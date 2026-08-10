@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: betting-project
+  profiles:
+    default: replay
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,flyway
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+betting:
+  runtime:
+    mode: replay
+
+logging:
+  pattern:
+    level: "%5p [mode:${betting.runtime.mode:unknown}]"

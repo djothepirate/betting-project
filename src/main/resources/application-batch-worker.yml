@@ -1,0 +1,17 @@
+spring:
+  main:
+    web-application-type: none
+  datasource:
+    url: "${BETTING_DB_URL:jdbc:postgresql://localhost:${BETTING_DB_PORT:5432}/${BETTING_DB_NAME:betting}}"
+    username: "${BETTING_DB_USER:betting}"
+    password: "${BETTING_DB_PASSWORD}"
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  flyway:
+    enabled: true
+    validate-migration-naming: true
+
+betting:
+  runtime:
+    mode: batch-worker

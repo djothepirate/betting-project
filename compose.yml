@@ -1,0 +1,23 @@
+name: betting-project
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${BETTING_DB_NAME:?BETTING_DB_NAME must be set in .env}
+      POSTGRES_USER: ${BETTING_DB_USER:?BETTING_DB_USER must be set in .env}
+      POSTGRES_PASSWORD: ${BETTING_DB_PASSWORD:?BETTING_DB_PASSWORD must be set in .env}
+    ports:
+      - "${BETTING_DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    volumes:
+      - betting-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  betting-postgres-data:

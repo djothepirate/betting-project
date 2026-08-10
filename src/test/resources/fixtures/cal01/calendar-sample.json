@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "cal01-fixture-v1",
+  "provider": "offline-fixture",
+  "fixtures": [
+    {
+      "providerFixtureId": "fixture-001",
+      "kickoff": "2026-08-12T18:00:00Z",
+      "homeTeam": "FC København",
+      "awayTeam": "Debreceni VSC"
+    },
+    {
+      "providerFixtureId": "fixture-002",
+      "kickoff": "2026-08-12T18:30:00Z",
+      "homeTeam": "GKS Katowice",
+      "awayTeam": "Hapoel Tel Aviv"
+    }
+  ]
+}
