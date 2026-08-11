@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "cal01-fixture-v2",
+  "provider": "football-data",
+  "observedAt": "2026-08-11T10:05:00Z",
+  "fixtures": [
+    {
+      "providerFixtureId": "fd-upl-9001",
+      "competition": {
+        "providerCompetitionId": "fd-upl",
+        "name": "Premier Liha",
+        "countryCode": "UKR",
+        "type": "DOMESTIC_LEAGUE",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON"
+      },
+      "kickoff": "2026-08-15T12:00:00Z",
+      "status": "SCHEDULED",
+      "homeTeam": {
+        "providerTeamId": "fd-kryvbas-77",
+        "name": "Kryvbas KR",
+        "countryCode": "UKR"
+      },
+      "awayTeam": {
+        "providerTeamId": "fd-livyi-88",
+        "name": "Livyi Bereh",
+        "countryCode": "UKR"
+      }
+    }
+  ]
+}
