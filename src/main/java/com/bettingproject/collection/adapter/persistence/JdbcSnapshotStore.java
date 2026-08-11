@@ -4,6 +4,7 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 import com.bettingproject.collection.application.SnapshotStore;
+import com.bettingproject.collection.application.StoredSnapshot;
 import com.bettingproject.collection.domain.RawSnapshot;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -20,7 +21,8 @@ public class JdbcSnapshotStore implements SnapshotStore {
     }
 
     @Override
-    public boolean store(RawSnapshot snapshot) {
+    public StoredSnapshot storeAndResolve(RawSnapshot snapshot) {
+        UUID candidateId = UUID.randomUUID();
         int inserted = jdbcClient.sql("""
                 INSERT INTO raw_snapshot (
                     id, provider, endpoint, received_at, payload_sha256,
@@ -31,7 +33,7 @@ public class JdbcSnapshotStore implements SnapshotStore {
                 )
                 ON CONFLICT (provider, endpoint, payload_sha256) DO NOTHING
                 """)
-                .param("id", UUID.randomUUID())
+                .param("id", candidateId)
                 .param("provider", snapshot.provider())
                 .param("endpoint", snapshot.endpoint())
                 .param("receivedAt", snapshot.receivedAt().atOffset(ZoneOffset.UTC))
@@ -39,6 +41,21 @@ public class JdbcSnapshotStore implements SnapshotStore {
                 .param("payload", snapshot.payload())
                 .param("connectorVersion", snapshot.connectorVersion())
                 .update();
-        return inserted == 1;
+        if (inserted == 1) {
+            return new StoredSnapshot(candidateId, true);
+        }
+        UUID existingId = jdbcClient.sql("""
+                SELECT id
+                FROM raw_snapshot
+                WHERE provider = :provider
+                  AND endpoint = :endpoint
+                  AND payload_sha256 = :sha256
+                """)
+                .param("provider", snapshot.provider())
+                .param("endpoint", snapshot.endpoint())
+                .param("sha256", snapshot.sha256())
+                .query(UUID.class)
+                .single();
+        return new StoredSnapshot(existingId, false);
     }
 }

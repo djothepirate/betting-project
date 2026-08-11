@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "cal01-fixture-v2",
+  "provider": "highlightly",
+  "observedAt": "2026-08-11T10:10:00Z",
+  "fixtures": [
+    {
+      "providerFixtureId": "hly-upl-ambiguous",
+      "competition": {
+        "providerCompetitionId": "hly-upl",
+        "name": "Ukrainian Premier League",
+        "countryCode": "UKR",
+        "type": "DOMESTIC_LEAGUE",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON"
+      },
+      "kickoff": "2026-08-15T12:00:00Z",
+      "status": "SCHEDULED",
+      "homeTeam": {
+        "providerTeamId": "hly-hirnyk",
+        "name": "Hirnyk",
+        "countryCode": "UKR"
+      },
+      "awayTeam": {
+        "providerTeamId": "hly-livyi-bereh",
+        "name": "FC Livyi Bereh Kyiv",
+        "countryCode": "UKR"
+      }
+    }
+  ]
+}
