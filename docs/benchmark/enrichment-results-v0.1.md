@@ -1,7 +1,7 @@
 # Résultats du benchmark d'enrichissement v0.1
 
-- **Statut :** Consolidé - prêt pour revue humaine ENR-001
-- **Work Order :** échantillon et baseline ENR-001 v0.1 acceptés ; lot final prêt pour revue humaine
+- **Statut :** Consolidé, accepté, fusionné dans `main` et clôturé avec ENR-001
+- **Work Order :** échantillon et baseline ENR-001 v0.1 acceptés ; Pull Request `#3` fusionnée au commit `6913cea`
 - **Période sportive :** du 12 au 16 août 2026
 - **Dernières preuves post-match :** 17 août 2026
 - **Fuseau métier :** Europe/Paris
@@ -1983,4 +1983,4 @@ La finalisation a été reconstruite depuis la sauvegarde restaurable revalidée
 | Contrôle de secrets | `PASS` |
 | Fichiers de preuve externes scannés sans alerte | 457 / 457 |
 
-Le manifeste conserve 12 rencontres principales, 4 réserves et 1 contrôle transversal. ENR-P02, les quatre réserves, le second contrôle ENR-C01 et EVT-01 P12 restent explicitement non exécutés dans les conditions décrites plus haut ; aucun résultat n'a été inventé pour les remplacer. Le lot est prêt pour revue humaine, mais n'est encore ni commité, ni publié, ni fusionné.
+Le manifeste conserve 12 rencontres principales, 4 réserves et 1 contrôle transversal. ENR-P02, les quatre réserves, le second contrôle ENR-C01 et EVT-01 P12 restent explicitement non exécutés dans les conditions décrites plus haut ; aucun résultat n'a été inventé pour les remplacer. Le lot a été revu, publié au commit `743aff7`, fusionné dans `main` par la Pull Request `#3` au commit `6913cea`, puis clôturé le 1er septembre 2026.

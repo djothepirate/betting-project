@@ -16,7 +16,7 @@ Les charges de benchmark et les connecteurs de production restent séparés : le
 |---:|---|---|---|
 | 0 | Sauvegarde ENR-001 | Sécuriser code, diff et preuves historiques | Restauration à blanc et manifeste SHA-256 validés — réalisée le 1er septembre 2026 |
 | 1 | DEVX-001 | Éliminer les faux verts et versionner la mémoire du projet | Accepté, fusionné par la Pull Request `#2` et clôturé |
-| 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | 57 tests standards, 12 PostgreSQL, 127 preuves vérifiées ; prêt pour revue et fusion séparée |
+| 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | Accepté, fusionné par la Pull Request `#3` au commit `6913cea` et clôturé |
 | 3 | CAT-002 | Durcir le canon et rendre les anomalies opérables | ordre, autorité, concurrence, mappings et replay administrables |
 | 4 | MVP-001 | Planifier, router et collecter le calendrier | faux fournisseurs, budgets, jobs et replay complets hors réseau |
 | 5 | ENR-002 | Produire l'enrichissement et la qualité | pilote local de sept jours conforme |
@@ -46,7 +46,7 @@ La protection de branche et le caractère obligatoire des checks GitHub restent 
 
 Réconcilier le diff historique, préserver le collecteur comme outil de benchmark contrôlé et versionner les rapports, scripts, fixtures représentatives et index expurgés nécessaires. Les payloads complets restent hors Git.
 
-### Décisions à clôturer
+### Décisions clôturées
 
 - sélection fournisseur par capacité, compétition, saison, phase et type de donnée ;
 - Highlightly `PRIMARY` pour les capacités 2026 mesurées ;
@@ -66,6 +66,8 @@ Réconcilier le diff historique, préserver le collecteur comme outil de benchma
 - revue, commit, push, Pull Request et fusion autorisés séparément.
 
 Le cas `Hirnyk` conserve deux preuves distinctes : ambiguïté historique sans rapprochement textuel, et mapping explicite de la référence exacte `highlightly:TEAM:5522923` vers `FC Kryvbas Kryvyi Rih` comme `CONFIRMED_HISTORICAL_REBRAND_ALIAS`.
+
+Le commit `743aff7` a été revu avec les CI Windows et Linux vertes, puis fusionné dans `main` par la Pull Request `#3` au commit `6913cea`. ENR-001 est accepté, fusionné et clôturé ; CAT-002 est le prochain Work Order à ouvrir dans la feuille de route.
 
 ## Étape 3 — CAT-002
 
