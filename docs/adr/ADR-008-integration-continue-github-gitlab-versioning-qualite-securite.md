@@ -73,8 +73,9 @@ Chaque dépôt suit SemVer indépendamment des autres :
 
 Un tag de release doit viser un commit de `main`, correspondre exactement à la version Maven et
 ne jamais être déplacé. Un artefact est construit une fois, identifié par SHA-256, accompagné d'un
-SBOM CycloneDX et d'une provenance. La production promeut ces mêmes octets ; aucun rebuild n'est
-autorisé sur le VPS.
+SBOM CycloneDX et d'une provenance. Une provenance de release exclut tout identifiant de run ou de
+forge ; elle porte la version d'artefact déterminée par le tag. La production promeut ces mêmes
+octets ; aucun rebuild n'est autorisé sur le VPS.
 
 ### 4. Qualité progressive sans régression
 

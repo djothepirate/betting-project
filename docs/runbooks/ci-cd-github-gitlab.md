@@ -49,6 +49,8 @@ doit être ajouté avant cette décision d'exploitation.
   atteignable depuis `origin/main` et si la version Maven est identique et non SNAPSHOT ;
 - le bundle contient l'artefact, un SBOM sans numéro de série et généré deux fois à empreinte
   identique, la provenance et `SHA256SUMS` ;
+- la provenance porte `artifact.version` : l'IID reste dans la version des snapshots, mais aucun
+  identifiant propre à GitHub ou GitLab n'entre dans le payload immuable d'un tag ;
 - un tag et son artefact sont immuables ; une correction crée une nouvelle version ;
 - le VPS reçoit un artefact existant et vérifié, jamais un rebuild.
 

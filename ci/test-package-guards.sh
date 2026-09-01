@@ -64,4 +64,13 @@ assert_rejected 'ne désigne pas le commit source' \
     env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
     sh ci/package-artifact.sh
 
+if grep -Fq 'build.pipeline.iid=' ci/package-artifact.sh; then
+    echo 'FAIL: une provenance immuable ne doit pas contenir l’IID de la forge.' >&2
+    exit 1
+fi
+if ! grep -Fq 'artifact.version=$artifact_version' ci/package-artifact.sh; then
+    echo 'FAIL: la provenance doit porter la version canonique de l’artefact.' >&2
+    exit 1
+fi
+
 printf 'PACKAGE_GIT_GUARDS=PASS\n'
