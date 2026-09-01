@@ -1,10 +1,11 @@
 # DEVX-001 - Fiabiliser le build, les validations et la mémoire du dépôt
 
-- **Statut :** Validé par le porteur - publication en attente
-- **Version :** 0.4
+- **Statut :** Pull Request ouverte - CI verte - en attente de revue et d'autorisation de fusion
+- **Version :** 0.5
 - **Date d'ouverture et d'acceptation du périmètre :** 2026-09-01
 - **Date de préparation pour revue :** 2026-09-01
 - **Date de validation humaine et d'autorisation du commit :** 2026-09-01
+- **Date de publication de la branche et d'ouverture de la Pull Request :** 2026-09-01
 - **Responsable de décision :** Porteur du Betting Project
 - **Exécutant :** Codex, sur la branche `codex/devx-001`
 - **Jalon :** Consolidation préalable au MVP football
@@ -81,7 +82,7 @@ Une restauration à blanc a validé l'identité des deux patches et des octets b
 - [x] Les contrôles de secrets Windows et POSIX réussissent.
 - [x] `git diff --check` réussit.
 - [x] Le diff reste limité à DEVX-001 et est validé par le porteur après revue humaine.
-- [ ] Les deux jobs GitHub Actions sont observés verts sur la branche ou la Pull Request publiée.
+- [x] Les deux jobs GitHub Actions sont observés verts sur la branche et la Pull Request publiée.
 
 ## Commandes de validation prévues
 
@@ -152,15 +153,17 @@ Le premier essai exécuté dans le sandbox sans accès réseau a échoué dès l
 - Le scan complet Windows et POSIX, incluant le diff contre `origin/main`, est `PASS`.
 - L'analyse syntaxique PowerShell, `sh -n`, l'analyse YAML du workflow et `git diff --check` réussissent.
 
-### CI et limites ouvertes
+### CI, correctif d'isolation et limites ouvertes
 
-Le 1er septembre 2026, le porteur du Betting Project a validé le diff DEVX-001 et autorisé la création de son commit local. Cette décision n'autorise ni push, ni Pull Request, ni fusion, ni modification des protections GitHub.
+Le 1er septembre 2026, le porteur du Betting Project a validé le diff DEVX-001, autorisé le commit `2fc6b52`, puis son push sur `codex/devx-001`. Après observation de la première CI, il a autorisé le correctif minimal, le commit `e4255d8`, sa publication et l'ouverture de la Pull Request. Aucune de ces décisions n'autorise la fusion ni la modification des protections GitHub.
 
 Le workflow `.github/workflows/ci.yml` contient deux jobs sans secret fournisseur :
 
 - Windows : wrapper, tests des scripts, scan du dépôt et du diff, puis build standard ;
 - Linux : wrapper, tests POSIX, scan du dépôt et du diff, build standard, puis intégration PostgreSQL/Testcontainers obligatoire.
 
-Le workflow n'a pas été poussé et ne peut donc pas encore être observé dans GitHub Actions. Le dernier critère reste ouvert jusqu'au passage vert des deux jobs après autorisation humaine distincte du push et de la Pull Request.
+La première exécution de branche, `33500860455`, a validé Windows mais révélé sous Linux une dépendance à l'ordre des classes d'intégration : `PostgreSqlBootstrapIT.duplicateRawSnapshotIsIgnored()` laissait son snapshot validé dans la base Testcontainers partagée avant `CalendarNormalizationIT`. Le correctif `e4255d8` ajoute `@Transactional` à cette seule méthode, sans modifier le code de production. L'ordre défavorable Bootstrap puis Calendar a ensuite réussi localement avec 17 tests standards et 11 tests PostgreSQL.
+
+Après publication du correctif, l'exécution de branche `33502308409` puis l'exécution de Pull Request `33502537082` ont chacune terminé avec les deux jobs Windows et Linux verts, intégration PostgreSQL/Testcontainers comprise. La Pull Request `#2`, de `codex/devx-001` vers `main`, est ouverte, non brouillon et sans conflit. La fusion reste soumise à une autorisation humaine explicite distincte.
 
 L'intégration WSL2 locale a correctement échoué faute de socket Docker `/var/run/docker.sock` dans la distribution courante. Cette limite d'environnement n'a pas été masquée : le build Linux standard est vert, l'intégration réelle est verte sous Windows via Docker Desktop, et le job Linux est configuré pour échouer si Testcontainers ne dispose pas de Docker.
