@@ -119,6 +119,14 @@ quality:observe:
         org.jacoco:jacoco-maven-plugin:0.8.15:prepare-agent \
         test \
         org.jacoco:jacoco-maven-plugin:0.8.15:report || status=$?
+      if [ ! -s target/jacoco.exec ]; then
+        echo 'FAIL: les données d’exécution JaCoCo sont absentes ou vides.' >&2
+        status=1
+      fi
+      if [ ! -s target/site/jacoco/jacoco.xml ]; then
+        echo 'FAIL: le rapport XML JaCoCo est absent ou vide.' >&2
+        status=1
+      fi
       ./mvnw -B -ntp -DskipTests \
         org.apache.maven.plugins:maven-pmd-plugin:3.28.0:pmd \
         org.apache.maven.plugins:maven-pmd-plugin:3.28.0:cpd || status=$?
