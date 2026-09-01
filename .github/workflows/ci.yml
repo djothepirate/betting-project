@@ -1,13 +1,11 @@
 name: CI
 
 "on":
+  # Les branches de travail sont qualifiées sur leur merge synthétique via la PR.
+  # Ne pas ajouter ici leurs motifs : un run push ne doit jamais remplacer ce contrôle.
   push:
     branches:
       - main
-      - "codex/**"
-      - "human/**"
-      - "release/**"
-      - "hotfix/**"
     tags:
       - "v*"
   pull_request:
@@ -17,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ startsWith(github.ref, 'refs/tags/') && 'tag' || 'branch' }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
