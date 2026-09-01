@@ -1,11 +1,12 @@
 # DEVX-001 - Fiabiliser le build, les validations et la mémoire du dépôt
 
-- **Statut :** Pull Request ouverte - CI verte - en attente de revue et d'autorisation de fusion
-- **Version :** 0.5
+- **Statut :** Pull Request ouverte - revue en cours - fusion soumise à autorisation
+- **Version :** 0.6
 - **Date d'ouverture et d'acceptation du périmètre :** 2026-09-01
 - **Date de préparation pour revue :** 2026-09-01
 - **Date de validation humaine et d'autorisation du commit :** 2026-09-01
 - **Date de publication de la branche et d'ouverture de la Pull Request :** 2026-09-01
+- **Date du correctif de revue sur les artefacts ignorés :** 2026-09-01
 - **Responsable de décision :** Porteur du Betting Project
 - **Exécutant :** Codex, sur la branche `codex/devx-001`
 - **Jalon :** Consolidation préalable au MVP football
@@ -65,7 +66,7 @@ Une restauration à blanc a validé l'identité des deux patches et des octets b
 
 - [x] La CI Windows vérifie le wrapper, le build standard et les secrets sans clé fournisseur.
 - [x] La CI Linux vérifie le wrapper, le build standard, l'intégration PostgreSQL et les secrets sans clé fournisseur.
-- [x] Le contrôle des secrets couvre les changements Git et des formats sensibles supplémentaires sans afficher de valeur secrète.
+- [x] Le contrôle des secrets couvre les changements Git, les sorties locales ignorées `*.log` et `reports/**`, et des formats sensibles supplémentaires sans afficher de valeur secrète ni élargir la lecture aux autres fichiers ignorés destinés à l'injection de clés.
 - [x] Aucun test ni aucune étape de CI ne configure ou n'appelle un fournisseur ; aucune clé fournisseur n'est requise.
 
 ### Documentation
@@ -148,12 +149,13 @@ Le premier essai exécuté dans le sandbox sans accès réseau a échoué dès l
 - Quatre échecs simulés sont couverts séparément : `mvnw -version`, build standard, scan de secrets et intégration/Testcontainers. Chaque scénario vérifie l'arrêt immédiat des étapes suivantes.
 - Les tests du scanner réussissent sous PowerShell et sous POSIX. Ils couvrent notamment les clés privées PEM, PKCS#8 chiffrées et PGP, les clés AWS/Google, les jetons GitHub/GitLab/Slack/Stripe/SendGrid, JWT et Bearer, les affectations génériques et les endpoints privés SofaScore.
 - Des régressions dédiées prouvent qu'un secret présent seulement dans l'index, déjà commité dans `HEAD` puis masqué par le working tree, ou ajouté puis retiré dans deux commits successifs, reste détecté sans que sa valeur soit affichée. En l'absence de base explicite ou pour le SHA nul d'un premier push, `origin/main` est utilisé lorsqu'il existe ; une base explicite introuvable fait échouer le scan.
+- Les portées `Repository`/`repository` et `All`/`all` détectent également les secrets synthétiques placés dans un journal ignoré imbriqué et un fichier sous `reports/**`. Les tests vérifient d'abord avec `git check-ignore` que ces artefacts sont réellement ignorés, puis prouvent qu'un fichier d'injection local ignoré hors de ces deux familles reste hors de la sélection.
 - Les valeurs synthétiques détectées ne sont jamais réaffichées ; seuls le chemin et l'identifiant de règle sont exposés.
 - Les placeholders explicites des fixtures de test restent autorisés et ne masquent pas une valeur réelle de même famille.
 - Le scan complet Windows et POSIX, incluant le diff contre `origin/main`, est `PASS`.
 - L'analyse syntaxique PowerShell, `sh -n`, l'analyse YAML du workflow et `git diff --check` réussissent.
 
-### CI, correctif d'isolation et limites ouvertes
+### CI, correctifs de revue et limites ouvertes
 
 Le 1er septembre 2026, le porteur du Betting Project a validé le diff DEVX-001, autorisé le commit `2fc6b52`, puis son push sur `codex/devx-001`. Après observation de la première CI, il a autorisé le correctif minimal, le commit `e4255d8`, sa publication et l'ouverture de la Pull Request. Aucune de ces décisions n'autorise la fusion ni la modification des protections GitHub.
 
@@ -165,5 +167,7 @@ Le workflow `.github/workflows/ci.yml` contient deux jobs sans secret fournisseu
 La première exécution de branche, `33500860455`, a validé Windows mais révélé sous Linux une dépendance à l'ordre des classes d'intégration : `PostgreSqlBootstrapIT.duplicateRawSnapshotIsIgnored()` laissait son snapshot validé dans la base Testcontainers partagée avant `CalendarNormalizationIT`. Le correctif `e4255d8` ajoute `@Transactional` à cette seule méthode, sans modifier le code de production. L'ordre défavorable Bootstrap puis Calendar a ensuite réussi localement avec 17 tests standards et 11 tests PostgreSQL.
 
 Après publication du correctif, l'exécution de branche `33502308409` puis l'exécution de Pull Request `33502537082` ont chacune terminé avec les deux jobs Windows et Linux verts, intégration PostgreSQL/Testcontainers comprise. La Pull Request `#2`, de `codex/devx-001` vers `main`, est ouverte, non brouillon et sans conflit. La fusion reste soumise à une autorisation humaine explicite distincte.
+
+La revue de la Pull Request a ensuite signalé que `git ls-files --others --exclude-standard` omettait les journaux et rapports ignorés par Git. Le correctif ajoute une seconde énumération Git strictement limitée aux pathspecs `**/*.log` et `**/reports/**` dans les portées dépôt et complète, sous PowerShell comme sous POSIX. Cette liste positive restaure la couverture des sorties locales sans parcourir l'ensemble des fichiers ignorés ni les fichiers servant à injecter des clés ; les diagnostics restent limités au chemin et à l'identifiant de règle.
 
 L'intégration WSL2 locale a correctement échoué faute de socket Docker `/var/run/docker.sock` dans la distribution courante. Cette limite d'environnement n'a pas été masquée : le build Linux standard est vert, l'intégration réelle est verte sous Windows via Docker Desktop, et le job Linux est configuré pour échouer si Testcontainers ne dispose pas de Docker.

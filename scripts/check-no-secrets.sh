@@ -59,8 +59,18 @@ blob_file=$(mktemp "${TMPDIR:-/tmp}/betting-secret-blob.XXXXXX")
 commit_file=$(mktemp "${TMPDIR:-/tmp}/betting-secret-commits.XXXXXX")
 trap 'rm -f "$candidate_file" "$unique_file" "$blob_candidates" "$blob_file" "$commit_file"' EXIT HUP INT TERM
 
+list_ignored_repository_candidates() {
+    # Liste positive : couvrir les sorties locales sans élargir le scan aux
+    # autres fichiers ignorés.
+    git -C "$repository" -c core.quotepath=false ls-files \
+        --others --ignored --exclude-standard -- \
+        ':(glob)**/*.log' \
+        ':(glob)**/reports/**'
+}
+
 list_repository_candidates() {
     git -C "$repository" -c core.quotepath=false ls-files --cached --others --exclude-standard
+    list_ignored_repository_candidates
 }
 
 list_git_change_candidates() {

@@ -106,7 +106,19 @@ function Test-GitRevision {
 }
 
 function Get-RepositoryCandidates {
-    Invoke-GitForOutput -Arguments @('-c', 'core.quotepath=false', 'ls-files', '--cached', '--others', '--exclude-standard')
+    $candidates = New-Object System.Collections.Generic.List[string]
+    Invoke-GitForOutput -Arguments @(
+        '-c', 'core.quotepath=false', 'ls-files', '--cached', '--others', '--exclude-standard'
+    ) | ForEach-Object { $candidates.Add($_) }
+
+    # Les sorties locales doivent rester exemptes de secrets ; cette liste
+    # positive n'élargit pas le scan aux autres fichiers ignorés.
+    Invoke-GitForOutput -Arguments @(
+        '-c', 'core.quotepath=false', 'ls-files', '--others', '--ignored', '--exclude-standard', '--',
+        ':(glob)**/*.log', ':(glob)**/reports/**'
+    ) | ForEach-Object { $candidates.Add($_) }
+
+    return $candidates
 }
 
 function Get-GitChangeCandidates {

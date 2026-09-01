@@ -6,7 +6,7 @@
 - Injecter les valeurs par environnement ou fichier extérieur au dépôt.
 - Ne jamais copier le fichier local des clés API dans ce dépôt.
 - Masquer les en-têtes d'autorisation, cookies et paramètres sensibles avant journalisation.
-- Exécuter `scripts/check-no-secrets.cmd` sous Windows ou `scripts/check-no-secrets.sh` sous Linux avant revue ; le contrôle couvre les fichiers locaux, l'index Git, les blobs `HEAD` et les versions intermédiaires depuis la base fournie ou `origin/main`, sans afficher la valeur détectée. Une base explicite invalide est une erreur fatale.
+- Exécuter `scripts/check-no-secrets.cmd` sous Windows ou `scripts/check-no-secrets.sh` sous Linux avant revue ; le contrôle couvre les fichiers suivis ou non suivis, les sorties locales ignorées `*.log` et `reports/**`, l'index Git, les blobs `HEAD` et les versions intermédiaires depuis la base fournie ou `origin/main`, sans afficher la valeur détectée. La sélection positive des sorties ignorées n'élargit pas le scan aux autres fichiers ignorés, notamment ceux qui servent à injecter des clés. Une base explicite invalide est une erreur fatale.
 - Conserver les payloads complets de benchmark hors Git ; ne versionner que des fixtures expurgées, manifestes, empreintes et conclusions nécessaires au replay.
 
 ## Rotation planifiée

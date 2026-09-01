@@ -16,7 +16,7 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 
 - BOOT-001 : fusionné et clôturé ;
 - CAT-001 : fusionné et clôturé, avec migrations Flyway `V001` et `V002` ;
-- DEVX-001 : implémenté et prêt pour revue humaine ; validation des deux jobs CI encore attendue avant clôture ;
+- DEVX-001 : implémenté dans la Pull Request `#2`, en revue ; sa fusion reste soumise à une autorisation humaine explicite ;
 - profils autorisés : `control-api`, `batch-worker` et `replay` ;
 - PostgreSQL : source de vérité ;
 - fournisseurs sportifs : aucun appel requis pour construire, tester ou rejouer le dépôt.
@@ -37,7 +37,7 @@ Sans profil actif, l'application démarre en mode `replay`, hors réseau. L'acc�
 
 - Validation standard sans Docker : `.\mvnw.cmd verify`
 - Tests PostgreSQL réels avec Testcontainers : `.\mvnw.cmd -Pintegration verify`
-- Recherche de secrets dans les fichiers locaux, l'index Git, les blobs `HEAD` et chaque commit depuis la base fournie ou `origin/main` : `.\scripts\check-no-secrets.cmd`
+- Recherche de secrets dans les fichiers suivis ou non suivis, les sorties locales ignorées `*.log` et `reports/**`, l'index Git, les blobs `HEAD` et chaque commit depuis la base fournie ou `origin/main` : `.\scripts\check-no-secrets.cmd`
 - Validation Windows complète, intégration PostgreSQL comprise : `.\scripts\verify-windows.cmd`
 
 La commande `verify` seule n'est pas une validation complète. La validation Windows complète exécute systématiquement le profil `integration` et échoue si Testcontainers ne peut pas joindre un moteur Docker ; la présence de la CLI `docker` n'est pas un prérequis suffisant ni nécessaire à cette détection.

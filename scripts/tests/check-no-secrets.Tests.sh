@@ -26,6 +26,7 @@ printf '%s\n' \
     'documentation sans identifiant sensible' \
     'BETTING_DB_PASSWORD=TEST_ONLY_PLACEHOLDER' \
     'Authorization: Bearer test-only-sensitive-value' >"$test_root/safe.txt"
+printf '%s\n' '*.log' 'reports/' 'secrets/' '.env' >"$test_root/.gitignore"
 
 git -C "$test_root" init --quiet
 git -C "$test_root" config user.name 'DEVX secret scan test'
@@ -36,6 +37,60 @@ git -C "$test_root" commit --quiet -m 'safe baseline'
 
 sh "$test_root/scripts/check-no-secrets.sh" --scope all >/dev/null
 base_revision=$(git -C "$test_root" rev-parse HEAD)
+
+ignored_log_secret='client_''secret='$(printf '%024d' 0 | tr 0 L)
+ignored_report_secret='access_''token='$(printf '%024d' 0 | tr 0 R)
+protected_local_secret='refresh_''token='$(printf '%024d' 0 | tr 0 P)
+mkdir -p "$test_root/runtime" "$test_root/reports/nested" "$test_root/secrets"
+printf '%s' "$ignored_log_secret" >"$test_root/runtime/application.log"
+printf '%s' "$ignored_report_secret" >"$test_root/reports/nested/result.txt"
+printf '%s' "$protected_local_secret" >"$test_root/secrets/synthetic-local-key.txt"
+git -C "$test_root" check-ignore --quiet -- runtime/application.log
+git -C "$test_root" check-ignore --quiet -- reports/nested/result.txt
+
+for ignored_scope in repository all
+do
+    if ignored_output=$(sh "$test_root/scripts/check-no-secrets.sh" --scope "$ignored_scope" 2>&1); then
+        printf 'FAIL: le scope %s a ignoré des artefacts locaux sensibles.\n' "$ignored_scope" >&2
+        exit 1
+    fi
+    for expected_ignored_path in runtime/application.log reports/nested/result.txt
+    do
+        case "$ignored_output" in
+            *"$expected_ignored_path"*) ;;
+            *)
+                printf 'FAIL: le scope %s n\047a pas signalé %s.\n' "$ignored_scope" "$expected_ignored_path" >&2
+                exit 1
+                ;;
+        esac
+    done
+    for ignored_secret in "$ignored_log_secret" "$ignored_report_secret" "$protected_local_secret"
+    do
+        case "$ignored_output" in
+            *"$ignored_secret"*)
+                printf 'FAIL: le scope %s a affiché une valeur synthétique ignorée.\n' "$ignored_scope" >&2
+                exit 1
+                ;;
+        esac
+    done
+    case "$ignored_output" in
+        *'synthetic-local-key.txt'*)
+            printf 'FAIL: le scope %s a lu un fichier local protégé.\n' "$ignored_scope" >&2
+            exit 1
+            ;;
+    esac
+done
+
+rm "$test_root/runtime/application.log" "$test_root/reports/nested/result.txt"
+rmdir "$test_root/runtime" "$test_root/reports/nested" "$test_root/reports"
+for protected_scope in repository all
+do
+    if ! protected_output=$(sh "$test_root/scripts/check-no-secrets.sh" --scope "$protected_scope" 2>&1); then
+        printf 'FAIL: le scope %s a refusé le dépôt après retrait des artefacts : %s\n' \
+            "$protected_scope" "$protected_output" >&2
+        exit 1
+    fi
+done
 
 index_only_secret='client_''secret='$(printf '%024d' 0 | tr 0 Z)
 printf '%s' "$index_only_secret" >"$test_root/safe.txt"

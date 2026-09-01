@@ -39,6 +39,10 @@ try {
         (Join-Path $temporaryRoot 'safe.txt'),
         "documentation sans identifiant sensible`nBETTING_DB_PASSWORD=TEST_ONLY_PLACEHOLDER`nAuthorization: Bearer test-only-sensitive-value"
     )
+    [System.IO.File]::WriteAllText(
+        (Join-Path $temporaryRoot '.gitignore'),
+        "*.log`nreports/`nsecrets/`n.env`n"
+    )
 
     Invoke-Git -Arguments @('init', '--quiet')
     Invoke-Git -Arguments @('config', 'user.name', 'DEVX secret scan test')
@@ -49,6 +53,54 @@ try {
     $safeResult = Invoke-Scanner -Arguments @('-Scope', 'All')
     if ($safeResult.ExitCode -ne 0) {
         throw "Le depot temoin sain a ete refuse : $($safeResult.Output)"
+    }
+
+    $ignoredLogSecret = (('client_' + 'secret') + '=' + ('L' * 24))
+    $ignoredReportSecret = (('access_' + 'token') + '=' + ('R' * 24))
+    $protectedLocalSecret = (('refresh_' + 'token') + '=' + ('P' * 24))
+    $ignoredLogDirectory = Join-Path $temporaryRoot 'runtime'
+    $ignoredLogPath = Join-Path $ignoredLogDirectory 'application.log'
+    $ignoredReportDirectory = Join-Path $temporaryRoot 'reports/nested'
+    $ignoredReportPath = Join-Path $ignoredReportDirectory 'result.txt'
+    $protectedLocalDirectory = Join-Path $temporaryRoot 'secrets'
+    $protectedLocalPath = Join-Path $protectedLocalDirectory 'synthetic-local-key.txt'
+    [void](New-Item -ItemType Directory -Path $ignoredLogDirectory -Force)
+    [void](New-Item -ItemType Directory -Path $ignoredReportDirectory -Force)
+    [void](New-Item -ItemType Directory -Path $protectedLocalDirectory -Force)
+    [System.IO.File]::WriteAllText($ignoredLogPath, $ignoredLogSecret)
+    [System.IO.File]::WriteAllText($ignoredReportPath, $ignoredReportSecret)
+    [System.IO.File]::WriteAllText($protectedLocalPath, $protectedLocalSecret)
+    Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'runtime/application.log')
+    Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'reports/nested/result.txt')
+
+    foreach ($ignoredScope in @('Repository', 'All')) {
+        $ignoredArtifactResult = Invoke-Scanner -Arguments @('-Scope', $ignoredScope)
+        if ($ignoredArtifactResult.ExitCode -ne 1) {
+            throw "Le scope $ignoredScope a ignore des artefacts locaux sensibles."
+        }
+        foreach ($expectedIgnoredPath in @('runtime/application.log', 'reports/nested/result.txt')) {
+            if ($ignoredArtifactResult.Output -notmatch [regex]::Escape($expectedIgnoredPath)) {
+                throw "Le scope $ignoredScope n'a pas signale l artefact ignore $expectedIgnoredPath."
+            }
+        }
+        foreach ($ignoredSecret in @($ignoredLogSecret, $ignoredReportSecret, $protectedLocalSecret)) {
+            if ($ignoredArtifactResult.Output.Contains($ignoredSecret)) {
+                throw "Le scope $ignoredScope a affiche une valeur synthetique ignoree."
+            }
+        }
+        if ($ignoredArtifactResult.Output -match 'synthetic-local-key\.txt') {
+            throw "Le scope $ignoredScope a lu un fichier local protege."
+        }
+    }
+
+    Remove-Item -LiteralPath $ignoredLogPath -Force
+    Remove-Item -LiteralPath $ignoredLogDirectory -Force
+    Remove-Item -LiteralPath (Join-Path $temporaryRoot 'reports') -Recurse -Force
+    foreach ($protectedScope in @('Repository', 'All')) {
+        $protectedResult = Invoke-Scanner -Arguments @('-Scope', $protectedScope)
+        if ($protectedResult.ExitCode -ne 0) {
+            throw "Le scope $protectedScope a refuse le depot apres retrait des artefacts : $($protectedResult.Output)"
+        }
     }
 
     $baseRevision = (& git -C $temporaryRoot rev-parse HEAD).Trim()

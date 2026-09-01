@@ -74,7 +74,7 @@ La commande `verify` seule n'est pas une validation complète. `verify-windows.c
 
 La référence CAT-001 comprend 17 tests standards et 11 tests PostgreSQL. Les contrôles n'appellent aucun fournisseur et ne consomment aucun quota.
 
-Les lanceurs `.cmd` fonctionnent même lorsque l'exécution directe des scripts PowerShell est désactivée. La dérogation reste limitée au processus de contrôle et ne change pas la politique globale de Windows. Le contrôle de secrets inspecte le working tree, les blobs de l'index et, lorsqu'une base est fournie ou que `origin/main` est disponible, les blobs `HEAD` ainsi que chaque version modifiée dans `base..HEAD` ; il n'affiche jamais une valeur détectée. Une base explicite introuvable fait échouer le contrôle au lieu de réduire silencieusement sa couverture.
+Les lanceurs `.cmd` fonctionnent même lorsque l'exécution directe des scripts PowerShell est désactivée. La dérogation reste limitée au processus de contrôle et ne change pas la politique globale de Windows. Le contrôle de secrets inspecte les fichiers suivis ou non suivis du working tree, les sorties locales ignorées `*.log` et `reports/**`, les blobs de l'index et, lorsqu'une base est fournie ou que `origin/main` est disponible, les blobs `HEAD` ainsi que chaque version modifiée dans `base..HEAD` ; il n'affiche jamais une valeur détectée. La sélection positive des sorties ignorées n'élargit pas le scan aux autres fichiers ignorés, notamment ceux qui servent à injecter des clés. Une base explicite introuvable fait échouer le contrôle au lieu de réduire silencieusement sa couverture.
 
 ## Arrêt
 
