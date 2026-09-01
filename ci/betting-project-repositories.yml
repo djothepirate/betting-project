@@ -1,0 +1,48 @@
+schema_version: 1
+ci_contract_version: "1.0"
+canonical_forge: github
+gitlab_namespace: djothepirate-betting-project
+
+official_repositories:
+  - github: djothepirate/betting-project
+    gitlab: djothepirate-betting-project/betting-project
+    default_branch: main
+    classification: vps-deployable
+    build:
+      java: "25"
+      standard: "./mvnw verify"
+      integration: "./mvnw -Pintegration verify"
+    versioning: independent-semver
+    snapshot: "X.Y.Z-snapshot.p<pipeline-iid>.g<short-sha>"
+    release_tags: "vX.Y.Z or vX.Y.Z-rc.N"
+    artifact_policy: application-build-candidate
+    vps_bundle_status: pending-dedicated-work-order
+    official_since: "2026-08-10"
+    decision: ADR-008
+
+  - github: djothepirate/betting-sofascore-local-lab
+    gitlab: djothepirate-betting-project/betting-sofascore-local-lab
+    default_branch: main
+    classification: local-only
+    build:
+      java: "25"
+      standard: "./mvnw clean verify"
+      integration: "./mvnw -Pintegration-tests verify"
+    versioning: independent-semver
+    snapshot: "X.Y.Z-snapshot.p<pipeline-iid>.g<short-sha>"
+    release_tags: "vX.Y.Z or vX.Y.Z-rc.N"
+    artifact_policy: experimental-local-only
+    vps_bundle_status: forbidden
+    official_since: "2026-09-01"
+    decision: ADR-008
+
+onboarding_requirements:
+  - human_approval_of_registry_change
+  - private_gitlab_project_created
+  - repository_classification_recorded
+  - independent_semver_initialized
+  - github_ci_green
+  - gitlab_ci_green_on_same_sha
+  - one_way_mirror_tested
+  - branch_and_tag_protections_reviewed
+  - credentials_scoped_per_repository

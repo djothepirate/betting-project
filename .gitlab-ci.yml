@@ -1,0 +1,176 @@
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - when: never
+
+stages:
+  - validate
+  - test
+  - observe
+  - package
+
+variables:
+  GIT_DEPTH: "0"
+  MAVEN_USER_HOME: "$CI_PROJECT_DIR/.m2"
+  MAVEN_OPTS: >-
+    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    -Dfile.encoding=UTF-8
+    -Duser.timezone=UTC
+    -Djava.awt.headless=true
+  SECRET_DETECTION_HISTORIC_SCAN: "true"
+  SAST_EXCLUDED_ANALYZERS: "spotbugs"
+
+default:
+  interruptible: true
+
+.maven-java25:
+  image:
+    name: "docker.io/library/maven@sha256:7e461cec477077c1d9e50b13df8aef9018764410f4c4cd7c34803f10c4c99e4c"
+  before_script:
+    - chmod +x mvnw scripts/check-no-secrets.sh ci/package-artifact.sh
+    - java --version
+    - ./mvnw -version
+
+validate:source:
+  extends: .maven-java25
+  stage: validate
+  script:
+    - sh scripts/tests/check-no-secrets.Tests.sh
+    - sh ci/test-package-guards.sh
+    - ./scripts/check-no-secrets.sh --scope all --base "${CI_COMMIT_BEFORE_SHA:-}"
+    - |
+      ref="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-${CI_COMMIT_BRANCH:-}}"
+      if [ -n "${CI_COMMIT_TAG:-}" ]; then
+        printf 'TAG_REF=%s\n' "$CI_COMMIT_TAG"
+      else
+        sh ci/check-branch-name.sh "$ref"
+      fi
+    - |
+      if [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] \
+        && ! printf '%s' "$CI_COMMIT_BEFORE_SHA" | grep -Eq '^0+$' \
+        && git cat-file -e "${CI_COMMIT_BEFORE_SHA}^{commit}" 2>/dev/null; then
+        git diff --check "${CI_COMMIT_BEFORE_SHA}...HEAD"
+      else
+        git show --check --format= HEAD
+      fi
+
+test:linux:
+  extends: .maven-java25
+  stage: test
+  services:
+    - name: "docker.io/library/docker@sha256:12e683a161823b2a839aeea999b9d960e6e1f9a97b1679ad6b441982e2d9cf07"
+      alias: docker
+      command:
+        - --tls=false
+  variables:
+    DOCKER_HOST: "tcp://docker:2375"
+    DOCKER_TLS_CERTDIR: ""
+    TESTCONTAINERS_HOST_OVERRIDE: "docker"
+  timeout: 45m
+  script:
+    - ./mvnw -B -ntp -Pintegration clean verify
+  artifacts:
+    when: always
+    expire_in: 14 days
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
+    paths:
+      - target/surefire-reports/
+      - target/failsafe-reports/
+
+quality:observe:
+  extends: .maven-java25
+  stage: observe
+  allow_failure: true
+  timeout: 30m
+  script:
+    - |
+      status=0
+      ./mvnw -B -ntp \
+        org.jacoco:jacoco-maven-plugin:0.8.15:prepare-agent \
+        test \
+        org.jacoco:jacoco-maven-plugin:0.8.15:report || status=$?
+      if [ ! -s target/jacoco.exec ]; then
+        echo 'FAIL: les données d’exécution JaCoCo sont absentes ou vides.' >&2
+        status=1
+      fi
+      if [ ! -s target/site/jacoco/jacoco.xml ]; then
+        echo 'FAIL: le rapport XML JaCoCo est absent ou vide.' >&2
+        status=1
+      fi
+      ./mvnw -B -ntp -DskipTests \
+        org.apache.maven.plugins:maven-pmd-plugin:3.28.0:pmd \
+        org.apache.maven.plugins:maven-pmd-plugin:3.28.0:cpd || status=$?
+      ./mvnw -B -ntp -DskipTests \
+        org.apache.maven.plugins:maven-javadoc-plugin:3.12.0:javadoc || status=$?
+      exit "$status"
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - target/site/jacoco/
+      - target/site/apidocs/
+      - target/pmd.xml
+      - target/cpd.xml
+
+security:dependencies:
+  extends: .maven-java25
+  stage: observe
+  allow_failure: true
+  timeout: 30m
+  script:
+    - ./mvnw -B -ntp -DskipTests -DfailBuildOnCVSS=11
+      org.owasp:dependency-check-maven:13.0.0:check
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - target/dependency-check-report.*
+
+.package:
+  extends: .maven-java25
+  stage: package
+  dependencies: []
+  script:
+    - source_epoch=$(git show -s --format=%ct "$CI_COMMIT_SHA")
+    - ./mvnw -B -ntp -DskipTests
+      -Dproject.build.outputTimestamp="$source_epoch" clean package
+    - |
+      if [ -n "${CI_COMMIT_TAG:-}" ]; then
+        git fetch --no-tags origin \
+          "+refs/heads/main:refs/remotes/origin/main"
+      fi
+      sh ci/package-artifact.sh
+  artifacts:
+    paths:
+      - target/distribution/
+
+package:snapshot:
+  extends: .package
+  artifacts:
+    name: "betting-project-snapshot-${CI_PIPELINE_IID}-${CI_COMMIT_SHORT_SHA}"
+    expire_in: 30 days
+    paths:
+      - target/distribution/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+package:release:
+  extends: .package
+  artifacts:
+    name: "betting-project-${CI_COMMIT_TAG}"
+    expire_in: never
+    paths:
+      - target/distribution/
+  rules:
+    - if: '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~ /^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$/'
