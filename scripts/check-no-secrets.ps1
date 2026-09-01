@@ -115,7 +115,11 @@ function Get-RepositoryCandidates {
     # positive n'élargit pas le scan aux autres fichiers ignorés.
     Invoke-GitForOutput -Arguments @(
         '-c', 'core.quotepath=false', 'ls-files', '--others', '--ignored', '--exclude-standard', '--',
-        ':(glob)**/*.log', ':(glob)**/reports/**'
+        ':(glob)**/*.log',
+        ':(glob)**/reports/**',
+        ':(glob)**/*.raw.json',
+        ':(glob)**/*.metadata.json',
+        ':(glob)**/*.replay.json'
     ) | ForEach-Object { $candidates.Add($_) }
 
     return $candidates

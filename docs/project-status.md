@@ -2,7 +2,7 @@
 
 ## Synthèse
 
-Betting Project possède un socle applicatif et un catalogue canonique fusionnés, ainsi qu'un benchmark football riche conservé hors Git. Il ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
+Betting Project possède un socle applicatif, un catalogue canonique et une chaîne de validation fusionnés, ainsi qu'un benchmark football finalisé sur une branche séparée avec son corpus complet conservé hors Git. Il ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
 
 | Couche | État | Conclusion |
 |---|---|---|
@@ -10,7 +10,7 @@ Betting Project possède un socle applicatif et un catalogue canonique fusionné
 | Socle applicatif | Fusionné et clôturé | BOOT-001 a livré Java 25, Spring Boot 4.1, PostgreSQL, Flyway, les trois profils autorisés, des jobs/outbox minimaux et le replay hors réseau. |
 | Catalogue canonique | Fusionné et clôturé | CAT-001 a livré compétitions, saisons, équipes, rencontres, mappings, anomalies, provenance et normalisation idempotente. |
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
-| ENR-001 | Fonctionnel, sauvegardé, non intégré | Le lot historique passe ses validations hors réseau mais son diff doit encore être finalisé, revu et fusionné séparément. |
+| ENR-001 | Finalisé, prêt pour revue, non intégré | Le diff est reconstruit sur `codex/enr-001`, les 127 preuves sont vérifiées et les validations sont vertes. Commit, publication et fusion restent soumis à des autorisations séparées. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
@@ -66,7 +66,20 @@ La sauvegarde référence le commit de base `25d1c29` et conserve :
 
 Une restauration à blanc a validé l'identité des patches indexé et non indexé ainsi que les octets des fichiers conservés. Le rapport et le manifeste de validation restent avec la sauvegarde externe ; aucun payload complet ni chemin propre à l'ancien checkout n'est requis par le dépôt.
 
-## Risque P0 traité localement par DEVX-001
+## Finalisation locale ENR-001
+
+Le lot a été reconstruit sur `codex/enr-001` depuis la sauvegarde restaurable, sans rebase destructif du checkout historique et sans appel fournisseur. Il apporte :
+
+- un index expurgé de 127 appels et un vérificateur lecture seule, hors réseau ;
+- sept fixtures synthétiques couvrant les familles réellement appelées ;
+- le collecteur historique de benchmark, explicitement séparé des futurs adaptateurs de production ;
+- un garde de quota sans hypothèse de remise à zéro à minuit, un verrou exclusif et des écritures atomiques ;
+- les deux preuves Hirnyk distinctes : ambiguïté textuelle historique et alias exact explicitement confirmé ;
+- la baseline MVP et toutes les limites ou non-exécutions enregistrées sans inventer de résultat.
+
+La validation du 1er septembre 2026 réussit avec 57 tests standards, 12 tests PostgreSQL/Testcontainers et 127 preuves sur 127 conformes. La validation Windows complète et le contrôle de secrets sont verts. Le lot reste non commité, non publié et non fusionné jusqu'aux décisions humaines correspondantes.
+
+## Risque P0 traité et fusionné par DEVX-001
 
 À l'ouverture de DEVX-001, deux défauts permettaient un faux succès de la validation Windows :
 
@@ -88,7 +101,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 
 ## Prochaines portes
 
-1. finaliser ENR-001 depuis la sauvegarde validée, puis le revoir et le fusionner séparément ;
+1. revoir ENR-001, puis autoriser séparément son commit, sa publication, sa Pull Request et sa fusion ;
 2. réaliser CAT-002 avant toute ingestion planifiée en volume ;
 3. construire MVP-001 puis ENR-002 et valider un pilote local de sept jours ;
 4. ouvrir OPS-001 seulement après acceptation du pipeline local fiable.

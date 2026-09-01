@@ -1,0 +1,52 @@
+[
+  {
+    "team": {
+      "id": 1002,
+      "logo": "https://example.invalid/teams/1002.png",
+      "name": "Beta FC"
+    },
+    "statistics": [
+      {"displayName": "Shots accuracy", "value": 33.3},
+      {"displayName": "Shots on target", "value": 2},
+      {"displayName": "Shots off target", "value": 4},
+      {"displayName": "Blocked shots", "value": 1},
+      {"displayName": "Shots within penalty area", "value": 5},
+      {"displayName": "Shots outside penalty area", "value": 2},
+      {"displayName": "Fouls", "value": 11},
+      {"displayName": "Corners", "value": 4},
+      {"displayName": "Offsides", "value": 1},
+      {"displayName": "Possession", "value": 47.5},
+      {"displayName": "Yellow cards", "value": 2},
+      {"displayName": "Red cards", "value": 0},
+      {"displayName": "Goalkeeper saves", "value": 3},
+      {"displayName": "Total passes", "value": 390},
+      {"displayName": "Successful passes", "value": 310},
+      {"displayName": "Failed passes", "value": 80}
+    ]
+  },
+  {
+    "team": {
+      "id": 1001,
+      "logo": "https://example.invalid/teams/1001.png",
+      "name": "Alpha FC"
+    },
+    "statistics": [
+      {"displayName": "Shots accuracy", "value": 50.0},
+      {"displayName": "Shots on target", "value": 5},
+      {"displayName": "Shots off target", "value": 3},
+      {"displayName": "Blocked shots", "value": 2},
+      {"displayName": "Shots within penalty area", "value": 7},
+      {"displayName": "Shots outside penalty area", "value": 3},
+      {"displayName": "Fouls", "value": 9},
+      {"displayName": "Corners", "value": 6},
+      {"displayName": "Offsides", "value": 0},
+      {"displayName": "Possession", "value": 52.5},
+      {"displayName": "Yellow cards", "value": 1},
+      {"displayName": "Red cards", "value": 0},
+      {"displayName": "Goalkeeper saves", "value": 2},
+      {"displayName": "Total passes", "value": 440},
+      {"displayName": "Successful passes", "value": 365},
+      {"displayName": "Failed passes", "value": 75}
+    ]
+  }
+]

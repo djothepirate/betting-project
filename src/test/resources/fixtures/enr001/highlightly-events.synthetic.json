@@ -1,0 +1,44 @@
+[
+  {
+    "team": {
+      "id": 1001,
+      "logo": "https://example.invalid/teams/1001.png",
+      "name": "Alpha FC"
+    },
+    "time": "12",
+    "type": "Goal",
+    "assist": "Alpha 10",
+    "player": "Alpha 9",
+    "playerId": 1109,
+    "substituted": null,
+    "assistingPlayerId": 1110
+  },
+  {
+    "team": {
+      "id": 1002,
+      "logo": "https://example.invalid/teams/1002.png",
+      "name": "Beta FC"
+    },
+    "time": "45+2",
+    "type": "Yellow Card",
+    "assist": null,
+    "player": "Beta 4",
+    "playerId": 1204,
+    "substituted": null,
+    "assistingPlayerId": null
+  },
+  {
+    "team": {
+      "id": 1001,
+      "logo": "https://example.invalid/teams/1001.png",
+      "name": "Alpha FC"
+    },
+    "time": "70",
+    "type": "Substitution",
+    "assist": null,
+    "player": "Alpha Substitute",
+    "playerId": 1112,
+    "substituted": "Alpha 8",
+    "assistingPlayerId": 1108
+  }
+]

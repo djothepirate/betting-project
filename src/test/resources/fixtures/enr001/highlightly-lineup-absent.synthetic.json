@@ -1,0 +1,18 @@
+{
+  "homeTeam": {
+    "formation": "Unknown",
+    "substitutes": [],
+    "initialLineup": [],
+    "id": 1001,
+    "logo": "https://example.invalid/teams/1001.png",
+    "name": "Alpha FC"
+  },
+  "awayTeam": {
+    "formation": "Unknown",
+    "substitutes": [],
+    "initialLineup": [],
+    "id": 1002,
+    "logo": "https://example.invalid/teams/1002.png",
+    "name": "Beta FC"
+  }
+}

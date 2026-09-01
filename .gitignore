@@ -27,5 +27,8 @@ secrets/
 # Sorties locales
 reports/
 tmp/
+*.raw.json
+*.metadata.json
+*.replay.json
 .DS_Store
 Thumbs.db

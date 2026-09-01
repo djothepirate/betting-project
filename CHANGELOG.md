@@ -2,9 +2,33 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
-## En préparation — DEVX-001
+## Prêt pour revue humaine — ENR-001
 
-### Préparé dans le lot
+### Finalisé dans le lot
+
+- reconstruction du diff historique depuis une sauvegarde restaurable et revalidée, sans modifier le checkout source ;
+- conservation du collecteur comme outil manuel de benchmark, distinct des futurs adaptateurs de production ;
+- index expurgé de 127 appels et vérificateur du corpus strictement hors réseau et en lecture seule ;
+- sept fixtures synthétiques représentatives des familles réellement appelées, avec manifeste de provenance et tests ;
+- garde de quota prudente, verrou d'exécution exclusif et écritures atomiques des preuves et replays ;
+- conservation séparée de l'ambiguïté historique `Hirnyk` et du mapping explicite de `highlightly:TEAM:5522923` ;
+- baseline MVP acceptée par capacité, compétition, saison, phase et type de donnée.
+
+### Validation
+
+- 57 tests standards réussis ;
+- 12 tests PostgreSQL/Testcontainers réussis ;
+- 127 preuves sur 127 vérifiées, empreintes conformes et replays `PASS` ;
+- manifeste valide de 12 rencontres principales, 4 réserves et 1 contrôle transversal ;
+- validation Windows complète et contrôle de secrets réussis, sans appel fournisseur.
+
+### Gouvernance
+
+Le lot est finalisé dans le working tree de `codex/enr-001` et prêt pour revue humaine. Il n'est pas encore commité, publié ou fusionné ; ces opérations exigent des autorisations distinctes.
+
+## 2026-09-01 — DEVX-001
+
+### Ajouté
 
 - correction du Maven Wrapper Windows avec Maven 3.9.16 et vérification de la distribution par SHA-256 ;
 - normalisation LF du wrapper POSIX pour les checkouts Windows utilisés depuis WSL2 ;
@@ -14,9 +38,9 @@ Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les crit�
 - CI Windows/Linux sans étape, configuration, clé ni appel fournisseur ;
 - mémoire durable du projet : cadrage, état courant, feuille de route et procédures actualisées.
 
-### Gouvernance
+### Validation et gouvernance
 
-Le lot reste en cours tant que toutes ses validations n'ont pas été consignées dans `docs/work-orders/DEVX-001.md` et que le porteur ne l'a pas revu. Aucun commit, push, Pull Request ou fusion n'est implicite.
+Le lot a été revu, publié et fusionné dans `main` par la Pull Request `#2`, après correction du défaut P2 signalé en revue et validation des CI Windows et Linux. DEVX-001 est accepté, fusionné et clôturé.
 
 ## 2026-08-11 — CAT-001
 
@@ -48,6 +72,6 @@ Le lot reste en cours tant que toutes ses validations n'ont pas été consignée
 
 BOOT-001 a été accepté, fusionné dans `main` et clôturé avant CAT-001.
 
-## Lots de benchmark hors de `main`
+## Corpus de benchmark hors de Git
 
-INV-01, CAL-01 et ENR-001 ont produit des mesures et preuves conservées hors Git. ENR-001 n'est pas encore intégré : son collecteur reste un outil de benchmark contrôlé et ne constitue pas le connecteur de production du futur pipeline.
+INV-01, CAL-01 et ENR-001 ont produit des mesures et payloads complets conservés hors Git. ENR-001 versionne seulement les rapports, l'index expurgé, les empreintes, les fixtures synthétiques, le collecteur contrôlé et le vérificateur ; il ne constitue pas le connecteur de production du futur pipeline.

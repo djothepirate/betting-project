@@ -15,8 +15,8 @@ Les charges de benchmark et les connecteurs de production restent séparés : le
 | Ordre | Work Order | But | Porte de sortie principale |
 |---:|---|---|---|
 | 0 | Sauvegarde ENR-001 | Sécuriser code, diff et preuves historiques | Restauration à blanc et manifeste SHA-256 validés — réalisée le 1er septembre 2026 |
-| 1 | DEVX-001 | Éliminer les faux verts et versionner la mémoire du projet | Builds, intégration, scripts, secrets et CI fiables ; revue humaine |
-| 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | 29 tests standards, 11 PostgreSQL, 127 preuves rejouées ; revue et fusion séparées |
+| 1 | DEVX-001 | Éliminer les faux verts et versionner la mémoire du projet | Accepté, fusionné par la Pull Request `#2` et clôturé |
+| 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | 57 tests standards, 12 PostgreSQL, 127 preuves vérifiées ; prêt pour revue et fusion séparée |
 | 3 | CAT-002 | Durcir le canon et rendre les anomalies opérables | ordre, autorité, concurrence, mappings et replay administrables |
 | 4 | MVP-001 | Planifier, router et collecter le calendrier | faux fournisseurs, budgets, jobs et replay complets hors réseau |
 | 5 | ENR-002 | Produire l'enrichissement et la qualité | pilote local de sept jours conforme |
@@ -57,7 +57,7 @@ Réconcilier le diff historique, préserver le collecteur comme outil de benchma
 
 ### Porte d'acceptation
 
-- 29 tests standards et 11 tests PostgreSQL via le wrapper corrigé ;
+- 57 tests standards et 12 tests PostgreSQL via le wrapper corrigé ;
 - 127 preuves ENR rejouées hors réseau avec empreintes conformes ;
 - manifeste valide de 12 rencontres principales, 4 réserves et 1 contrôle transversal ;
 - contrôle de secrets, `git diff --check`, architecture et fixtures propres ;

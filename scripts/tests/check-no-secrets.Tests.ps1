@@ -41,7 +41,7 @@ try {
     )
     [System.IO.File]::WriteAllText(
         (Join-Path $temporaryRoot '.gitignore'),
-        "*.log`nreports/`nsecrets/`n.env`n"
+        "*.log`nreports/`nsecrets/`n.env`n*.raw.json`n*.metadata.json`n*.replay.json`n"
     )
 
     Invoke-Git -Arguments @('init', '--quiet')
@@ -57,11 +57,17 @@ try {
 
     $ignoredLogSecret = (('client_' + 'secret') + '=' + ('L' * 24))
     $ignoredReportSecret = (('access_' + 'token') + '=' + ('R' * 24))
+    $ignoredRawSecret = (('client_' + 'secret') + '=' + ('W' * 24))
+    $ignoredMetadataSecret = (('access_' + 'token') + '=' + ('M' * 24))
+    $ignoredReplaySecret = (('refresh_' + 'token') + '=' + ('Y' * 24))
     $protectedLocalSecret = (('refresh_' + 'token') + '=' + ('P' * 24))
     $ignoredLogDirectory = Join-Path $temporaryRoot 'runtime'
     $ignoredLogPath = Join-Path $ignoredLogDirectory 'application.log'
     $ignoredReportDirectory = Join-Path $temporaryRoot 'reports/nested'
     $ignoredReportPath = Join-Path $ignoredReportDirectory 'result.txt'
+    $ignoredRawPath = Join-Path $temporaryRoot 'fixture.raw.json'
+    $ignoredMetadataPath = Join-Path $temporaryRoot 'fixture.metadata.json'
+    $ignoredReplayPath = Join-Path $temporaryRoot 'fixture.replay.json'
     $protectedLocalDirectory = Join-Path $temporaryRoot 'secrets'
     $protectedLocalPath = Join-Path $protectedLocalDirectory 'synthetic-local-key.txt'
     [void](New-Item -ItemType Directory -Path $ignoredLogDirectory -Force)
@@ -69,21 +75,40 @@ try {
     [void](New-Item -ItemType Directory -Path $protectedLocalDirectory -Force)
     [System.IO.File]::WriteAllText($ignoredLogPath, $ignoredLogSecret)
     [System.IO.File]::WriteAllText($ignoredReportPath, $ignoredReportSecret)
+    [System.IO.File]::WriteAllText($ignoredRawPath, $ignoredRawSecret)
+    [System.IO.File]::WriteAllText($ignoredMetadataPath, $ignoredMetadataSecret)
+    [System.IO.File]::WriteAllText($ignoredReplayPath, $ignoredReplaySecret)
     [System.IO.File]::WriteAllText($protectedLocalPath, $protectedLocalSecret)
     Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'runtime/application.log')
     Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'reports/nested/result.txt')
+    Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'fixture.raw.json')
+    Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'fixture.metadata.json')
+    Invoke-Git -Arguments @('check-ignore', '--quiet', '--', 'fixture.replay.json')
 
     foreach ($ignoredScope in @('Repository', 'All')) {
         $ignoredArtifactResult = Invoke-Scanner -Arguments @('-Scope', $ignoredScope)
         if ($ignoredArtifactResult.ExitCode -ne 1) {
             throw "Le scope $ignoredScope a ignore des artefacts locaux sensibles."
         }
-        foreach ($expectedIgnoredPath in @('runtime/application.log', 'reports/nested/result.txt')) {
+        foreach ($expectedIgnoredPath in @(
+            'runtime/application.log',
+            'reports/nested/result.txt',
+            'fixture.raw.json',
+            'fixture.metadata.json',
+            'fixture.replay.json'
+        )) {
             if ($ignoredArtifactResult.Output -notmatch [regex]::Escape($expectedIgnoredPath)) {
                 throw "Le scope $ignoredScope n'a pas signale l artefact ignore $expectedIgnoredPath."
             }
         }
-        foreach ($ignoredSecret in @($ignoredLogSecret, $ignoredReportSecret, $protectedLocalSecret)) {
+        foreach ($ignoredSecret in @(
+            $ignoredLogSecret,
+            $ignoredReportSecret,
+            $ignoredRawSecret,
+            $ignoredMetadataSecret,
+            $ignoredReplaySecret,
+            $protectedLocalSecret
+        )) {
             if ($ignoredArtifactResult.Output.Contains($ignoredSecret)) {
                 throw "Le scope $ignoredScope a affiche une valeur synthetique ignoree."
             }
@@ -96,6 +121,9 @@ try {
     Remove-Item -LiteralPath $ignoredLogPath -Force
     Remove-Item -LiteralPath $ignoredLogDirectory -Force
     Remove-Item -LiteralPath (Join-Path $temporaryRoot 'reports') -Recurse -Force
+    Remove-Item -LiteralPath $ignoredRawPath -Force
+    Remove-Item -LiteralPath $ignoredMetadataPath -Force
+    Remove-Item -LiteralPath $ignoredReplayPath -Force
     foreach ($protectedScope in @('Repository', 'All')) {
         $protectedResult = Invoke-Scanner -Arguments @('-Scope', $protectedScope)
         if ($protectedResult.ExitCode -ne 0) {

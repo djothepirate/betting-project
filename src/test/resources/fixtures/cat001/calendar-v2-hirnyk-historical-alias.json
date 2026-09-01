@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "cal01-fixture-v2",
+  "provider": "highlightly",
+  "observedAt": "2026-08-14T21:50:32Z",
+  "fixtures": [
+    {
+      "providerFixtureId": "1332201287",
+      "competition": {
+        "providerCompetitionId": "284167",
+        "name": "Ukrainian Premier League",
+        "countryCode": "UKR",
+        "type": "DOMESTIC_LEAGUE",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON"
+      },
+      "kickoff": "2026-08-15T10:00:00Z",
+      "status": "SCHEDULED",
+      "homeTeam": {
+        "providerTeamId": "5522923",
+        "name": "Hirnyk",
+        "countryCode": "UKR"
+      },
+      "awayTeam": {
+        "providerTeamId": "14605646",
+        "name": "Livyi Bereh",
+        "countryCode": "UKR"
+      }
+    }
+  ]
+}
