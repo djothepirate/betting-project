@@ -1,0 +1,61 @@
+{
+  "area": {
+    "id": 3001,
+    "name": "Sample Area",
+    "code": "ZZ",
+    "flag": "https://example.invalid/areas/zz.svg"
+  },
+  "competition": {
+    "id": 4001,
+    "name": "Sample Competition",
+    "code": "SMP",
+    "type": "LEAGUE",
+    "emblem": "https://example.invalid/competitions/4001.png"
+  },
+  "season": {
+    "id": 5001,
+    "startDate": "2026-01-01",
+    "endDate": "2026-12-31",
+    "currentMatchday": 1,
+    "winner": null
+  },
+  "id": 800001,
+  "utcDate": "2026-01-15T19:00:00Z",
+  "status": "TIMED",
+  "venue": null,
+  "matchday": 1,
+  "stage": "REGULAR_SEASON",
+  "group": null,
+  "lastUpdated": "2026-01-15T12:30:00Z",
+  "homeTeam": {
+    "id": 8101,
+    "name": "Alpha FC",
+    "shortName": "Alpha",
+    "tla": "ALP",
+    "crest": "https://example.invalid/teams/8101.png"
+  },
+  "awayTeam": {
+    "id": 8102,
+    "name": "Beta FC",
+    "shortName": "Beta",
+    "tla": "BET",
+    "crest": "https://example.invalid/teams/8102.png"
+  },
+  "score": {
+    "winner": null,
+    "duration": "REGULAR",
+    "fullTime": {"home": null, "away": null},
+    "halfTime": {"home": null, "away": null}
+  },
+  "odds": {
+    "msg": "Synthetic odds-unavailable marker"
+  },
+  "referees": [
+    {
+      "id": 8201,
+      "name": "Sample Referee",
+      "type": "REFEREE",
+      "nationality": "Sample"
+    }
+  ]
+}

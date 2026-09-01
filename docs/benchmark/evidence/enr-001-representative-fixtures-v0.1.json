@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "enr-001-representative-fixtures-v1",
+  "corpusId": "ENR-001",
+  "synthetic": true,
+  "fullPayloadsTrackedInGit": false,
+  "commonTransformations": [
+    "names replaced with Alpha/Beta synthetic labels",
+    "provider identifiers replaced with reserved synthetic ranges",
+    "URLs replaced with example.invalid",
+    "dates shifted to a synthetic date",
+    "arrays reduced while preserving the observed nesting and nullability"
+  ],
+  "fixtures": [
+    {
+      "fixtureId": "ENR-FIX-HIGHLIGHTLY-DETAIL-PREMATCH",
+      "path": "src/test/resources/fixtures/enr001/highlightly-detail-prematch.synthetic.json",
+      "fixtureSha256": "3589d681177dee3b9e5df062b5e89eae32e5146a0a29ae9d4208e7e2e5982a7c",
+      "derivedFromLogicalEvidenceId": "ENR-P08-DETAIL-001",
+      "provider": "Highlightly",
+      "endpointFamily": "DETAIL",
+      "collectionWindow": "T-60",
+      "sourceRawSha256": "f3c20eb1acbd738daecd006bcb3642e21b9a11ed980af9f13522a4f8616dc226",
+      "testCoverage": ["prematch null score", "team identity", "provider-specific detail schema"]
+    },
+    {
+      "fixtureId": "ENR-FIX-HIGHLIGHTLY-LINEUP-ABSENT",
+      "path": "src/test/resources/fixtures/enr001/highlightly-lineup-absent.synthetic.json",
+      "fixtureSha256": "ab2315b8155eca034238f6d8f8532556830ccf09ddfd66ba1fb70e06150ab81a",
+      "derivedFromLogicalEvidenceId": "ENR-P08-LINEUP-001",
+      "provider": "Highlightly",
+      "endpointFamily": "LINEUP",
+      "collectionWindow": "T-60",
+      "sourceRawSha256": "966dc045d9a75c9eddbf5a587c1f888d34a5bc9c455be22ddbe84cae10072b34",
+      "testCoverage": ["ABSENT", "identified teams with empty lineups"]
+    },
+    {
+      "fixtureId": "ENR-FIX-HIGHLIGHTLY-LINEUP-COMPLETE",
+      "path": "src/test/resources/fixtures/enr001/highlightly-lineup-complete.synthetic.json",
+      "fixtureSha256": "484d9836de0bb0562a575a7c64c14944ae163955a5087978544fdaa099c75085",
+      "derivedFromLogicalEvidenceId": "ENR-P08-LINEUP-003",
+      "provider": "Highlightly",
+      "endpointFamily": "LINEUP",
+      "collectionWindow": "T-30",
+      "sourceRawSha256": "8607fda5083edd211400cf7efcac2ca24af45a3e70449cf6cdc85dd163c25508",
+      "testCoverage": ["COMPLETE", "nested tactical lines", "eleven unique starters per team", "derived INCOMPLETE mutation"]
+    },
+    {
+      "fixtureId": "ENR-FIX-HIGHLIGHTLY-STATISTICS-REDUCED",
+      "path": "src/test/resources/fixtures/enr001/highlightly-statistics-reduced.synthetic.json",
+      "fixtureSha256": "bf61553f16f54d534eba8f8bb79199f5f37804980bfab26ae17d80780855f764",
+      "derivedFromLogicalEvidenceId": "ENR-P12-STATISTICS-001",
+      "provider": "Highlightly",
+      "endpointFamily": "STATISTICS",
+      "collectionWindow": "POST_MATCH",
+      "sourceRawSha256": "6d424602cd7a16c369f7bbfffb7a218c669bbca048a1a88e23833aea60103081",
+      "testCoverage": ["reduced schema", "team.id association", "zero distinct from missing metric"]
+    },
+    {
+      "fixtureId": "ENR-FIX-HIGHLIGHTLY-EVENTS",
+      "path": "src/test/resources/fixtures/enr001/highlightly-events.synthetic.json",
+      "fixtureSha256": "9cf9308782a29588ca6c9f5a51e10045be1a9606b26df07d904c74e3d5e1ab7f",
+      "derivedFromLogicalEvidenceId": "ENR-P08-EVENTS-002",
+      "provider": "Highlightly",
+      "endpointFamily": "EVENTS",
+      "collectionWindow": "POST_MATCH",
+      "sourceRawSha256": "7b8a843323f914b5ddb8d49a11bc156be7650ef02b84a08ab017b41446394c45",
+      "testCoverage": ["source order", "added-time notation", "goal", "card", "substitution"]
+    },
+    {
+      "fixtureId": "ENR-FIX-HIGHLIGHTLY-BOX-SCORE",
+      "path": "src/test/resources/fixtures/enr001/highlightly-box-score.synthetic.json",
+      "fixtureSha256": "bc39163dde5fb090b617884b4fbf577cf88b4acf117e4164b42516135179f9ad",
+      "derivedFromLogicalEvidenceId": "ENR-P08-BOX-SCORE-002",
+      "provider": "Highlightly",
+      "endpointFamily": "BOX_SCORE",
+      "collectionWindow": "POST_MATCH",
+      "sourceRawSha256": "3980ed121b71c184aa574d4755745ce9c0cb9a2d563dd8c0c93198f67088abec",
+      "additionalTransformations": ["synthetic composite player used to cover three independently observed quarantine categories"],
+      "testCoverage": ["MISSING_PLAYER_FULL_NAME", "ZERO_MINUTE_EXPECTED_METRICS", "INVALID_SECOND_YELLOW_VALUE"]
+    },
+    {
+      "fixtureId": "ENR-FIX-FOOTBALL-DATA-DETAIL",
+      "path": "src/test/resources/fixtures/enr001/football-data-detail.synthetic.json",
+      "fixtureSha256": "121e917e19eb85b16e25f0778cdc5d20150f94a734aebaaf8fe57b9f036f8824",
+      "derivedFromLogicalEvidenceId": "ENR-P08-FD-DETAIL-001",
+      "provider": "football-data.org",
+      "endpointFamily": "DETAIL",
+      "collectionWindow": "T-60",
+      "sourceRawSha256": "047c87540464be5b1555432a9a8209403e22ef939b5674859b9753db39a82361",
+      "testCoverage": ["provider-specific detail schema", "identity/time/status control", "no detailed enrichment fields"]
+    }
+  ]
+}

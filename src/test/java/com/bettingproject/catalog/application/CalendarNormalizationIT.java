@@ -2,6 +2,7 @@ package com.bettingproject.catalog.application;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -169,6 +170,56 @@ class CalendarNormalizationIT {
         assertThat(mappedCanonicalId).isNull();
         assertThat(anomalyCount("AMBIGUOUS_MAPPING")).isEqualTo(1);
         assertThat(canonical.homeTeamId()).isNotNull();
+    }
+
+    @Test
+    void confirmedHistoricalHirnykAliasResolvesExactProviderReferenceAndPreservesRawName() throws IOException {
+        CanonicalIds canonical = registerCanonicalEntities();
+        confirmCompetition("highlightly", "284167", canonical.competitionId());
+        confirmTeam("highlightly", "5522923", canonical.homeTeamId());
+        confirmTeam("highlightly", "14605646", canonical.awayTeamId());
+
+        NormalizationResult result = normalizationService.normalize(snapshot(
+                "/fixtures/cat001/calendar-v2-hirnyk-historical-alias.json",
+                "highlightly",
+                "calendar/upl",
+                "2026-08-14T21:50:33Z"));
+
+        UUID mappedCanonicalId = jdbcClient.sql("""
+                SELECT canonical_entity_id
+                FROM provider_mapping
+                WHERE provider = 'highlightly'
+                  AND entity_type = 'TEAM'
+                  AND provider_entity_id = '5522923'
+                """)
+                .query(UUID.class)
+                .single();
+        String mappingStatus = jdbcClient.sql("""
+                SELECT mapping_status
+                FROM provider_mapping
+                WHERE provider = 'highlightly'
+                  AND entity_type = 'TEAM'
+                  AND provider_entity_id = '5522923'
+                """)
+                .query(String.class)
+                .single();
+        UUID fixtureHomeTeamId = jdbcClient.sql("SELECT home_team_id FROM canonical_fixture")
+                .query(UUID.class)
+                .single();
+        byte[] rawPayload = jdbcClient.sql("SELECT payload FROM raw_snapshot")
+                .query(byte[].class)
+                .single();
+
+        assertThat(result.fixturesCreated()).isEqualTo(1);
+        assertThat(result.fixturesBlocked()).isZero();
+        assertThat(result.anomalies()).isZero();
+        assertThat(count("canonical_fixture")).isEqualTo(1);
+        assertThat(mappedCanonicalId).isEqualTo(canonical.homeTeamId());
+        assertThat(mappingStatus).isEqualTo("CONFIRMED");
+        assertThat(fixtureHomeTeamId).isEqualTo(canonical.homeTeamId());
+        assertThat(new String(rawPayload, StandardCharsets.UTF_8))
+                .contains("\"providerTeamId\": \"5522923\"")
+                .contains("\"name\": \"Hirnyk\"");
     }
 
     @Test

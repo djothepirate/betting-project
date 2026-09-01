@@ -1,0 +1,471 @@
+{
+  "schemaVersion": "enrichment-sample-v1",
+  "version": "0.1",
+  "status": "ACCEPTED",
+  "acceptedAt": "2026-08-11",
+  "timezone": "Europe/Paris",
+  "source": {
+    "scenario": "CAL-01",
+    "snapshotCollectedAt": "2026-08-09T19:56:02.493Z",
+    "note": "Les horaires et statuts sont des valeurs de travail à reconfirmer par TIM-01 avant chaque rencontre."
+  },
+  "participantIdentityPolicy": {
+    "defaultOrderSignificant": true,
+    "neutralVenueRule": "L'ordre des participants peut être ignoré uniquement lorsqu'une rencontre est explicitement marquée neutralVenue=true et participantOrderSignificant=false. L'ordre propre à chaque fournisseur reste conservé dans l'observation brute.",
+    "automaticFuzzyMatchingAllowed": false
+  },
+  "providerApplicability": {
+    "highlightly": "Fournisseur 2026 principal pour les détails, compositions, statistiques, événements et statistiques joueurs.",
+    "football-data.org": "Contrôle 2026 des identités, horaires, statuts et scores uniquement sur les compétitions accessibles au plan gratuit.",
+    "api-football": "BLOCKED_BY_PLAN pour la saison 2026 avec le plan gratuit testé ; aucun sous-échantillon historique n'a été autorisé ou exécuté dans ENR-001 et tout futur retour exige une nouvelle décision ainsi qu'une preuve datée séparée."
+  },
+  "primaryMatches": [
+    {
+      "sampleId": "ENR-P01",
+      "dateEuropeParis": "2026-08-12",
+      "scheduledKickoffUtc": "2026-08-12T19:00:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-12T21:00:00+02:00",
+      "competition": "Supercoupe de l'UEFA",
+      "phase": "Finale",
+      "neutralVenue": true,
+      "participantOrderSignificant": false,
+      "participants": [
+        {
+          "canonicalName": "Paris Saint-Germain",
+          "acceptedAliases": ["Paris Saint Germain", "PSG"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Aston Villa",
+          "acceptedAliases": [],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1347698848",
+          "leagueId": "452665",
+          "observedCompetitionName": "UEFA Super Cup"
+        }
+      },
+      "tags": ["pilot", "priority-1", "neutral-venue", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P02",
+      "dateEuropeParis": "2026-08-13",
+      "scheduledKickoffUtc": "2026-08-13T18:00:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-13T20:00:00+02:00",
+      "competition": "Saudi Pro League",
+      "phase": "Saison régulière - journée 1",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Al Diriyah",
+          "acceptedAliases": [],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Al-Ahli",
+          "acceptedAliases": ["Al-Ahli Saudi"],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1364130807",
+          "leagueId": "262041",
+          "observedCompetitionName": "Pro League"
+        }
+      },
+      "tags": ["priority-2", "identity-alias", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P03",
+      "dateEuropeParis": "2026-08-13",
+      "scheduledKickoffUtc": "2026-08-13T18:30:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-13T20:30:00+02:00",
+      "competition": "Ligue Europa",
+      "phase": "Troisième tour qualificatif",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Anderlecht",
+          "acceptedAliases": [],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "PAOK",
+          "acceptedAliases": [],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1368039450",
+          "leagueId": "3337",
+          "observedCompetitionName": "UEFA Europa League"
+        }
+      },
+      "tags": ["priority-1", "uefa-qualifying", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P04",
+      "dateEuropeParis": "2026-08-13",
+      "scheduledKickoffUtc": "2026-08-13T18:30:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-13T20:30:00+02:00",
+      "competition": "Ligue Europa",
+      "phase": "Troisième tour qualificatif",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Rangers",
+          "acceptedAliases": ["Rangers FC"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Jagiellonia",
+          "acceptedAliases": [],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1360605965",
+          "leagueId": "3337",
+          "observedCompetitionName": "UEFA Europa League"
+        }
+      },
+      "tags": ["priority-1", "uefa-qualifying", "identity-alias", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P05",
+      "dateEuropeParis": "2026-08-13",
+      "scheduledKickoffUtc": "2026-08-13T18:45:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-13T20:45:00+02:00",
+      "competition": "Ligue Conférence",
+      "phase": "Troisième tour qualificatif",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Shelbourne",
+          "acceptedAliases": [],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Ajax",
+          "acceptedAliases": [],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1368087106",
+          "leagueId": "722432",
+          "observedCompetitionName": "UEFA Europa Conference League"
+        }
+      },
+      "tags": ["priority-1", "uefa-qualifying", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P06",
+      "dateEuropeParis": "2026-08-14",
+      "scheduledKickoffUtc": "2026-08-14T18:00:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-14T20:00:00+02:00",
+      "competition": "Saudi Pro League",
+      "phase": "Saison régulière - journée 1",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Al-Hilal",
+          "acceptedAliases": ["Al-Hilal Saudi"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Al-Faisaly",
+          "acceptedAliases": [],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1364134211",
+          "leagueId": "262041",
+          "observedCompetitionName": "Pro League"
+        }
+      },
+      "tags": ["priority-2", "identity-alias", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P07",
+      "dateEuropeParis": "2026-08-14",
+      "scheduledKickoffUtc": "2026-08-14T18:45:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-14T20:45:00+02:00",
+      "competition": "Ligue 2",
+      "phase": "Saison régulière - journée 2",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Saint-Étienne",
+          "acceptedAliases": [],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Clermont",
+          "acceptedAliases": ["Clermont Foot"],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1321127224",
+          "leagueId": "53546",
+          "observedCompetitionName": "Ligue 2"
+        }
+      },
+      "tags": ["priority-2", "identity-alias", "single-provider-2026", "user-priority"]
+    },
+    {
+      "sampleId": "ENR-P08",
+      "dateEuropeParis": "2026-08-14",
+      "scheduledKickoffUtc": "2026-08-14T19:15:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-14T21:15:00+02:00",
+      "competition": "Liga Portugal Betclic",
+      "phase": "Saison régulière - journée 2",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Sporting CP",
+          "acceptedAliases": ["Sporting Clube de Portugal"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Vitória SC",
+          "acceptedAliases": ["Guimaraes"],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1340719797",
+          "leagueId": "80778",
+          "observedCompetitionName": "Primeira Liga"
+        },
+        "football-data.org": {
+          "matchId": "567268",
+          "competitionCode": "PPL",
+          "observedCompetitionName": "Primeira Liga"
+        }
+      },
+      "tags": ["priority-1", "multi-provider", "identity-alias", "user-priority"]
+    },
+    {
+      "sampleId": "ENR-P09",
+      "dateEuropeParis": "2026-08-15",
+      "scheduledKickoffUtc": "2026-08-15T18:00:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-15T20:00:00+02:00",
+      "competition": "Saudi Pro League",
+      "phase": "Saison régulière - journée 1",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Al-Nassr",
+          "acceptedAliases": [],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Al-Fateh",
+          "acceptedAliases": ["Al-Fateh SC"],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1364136764",
+          "leagueId": "262041",
+          "observedCompetitionName": "Pro League"
+        }
+      },
+      "tags": ["priority-2", "identity-alias", "single-provider-2026"]
+    },
+    {
+      "sampleId": "ENR-P10",
+      "dateEuropeParis": "2026-08-15",
+      "scheduledKickoffUtc": "2026-08-15T19:30:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-15T21:30:00+02:00",
+      "competition": "LaLiga",
+      "phase": "Saison régulière - journée 1",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Sevilla",
+          "acceptedAliases": ["Sevilla FC"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Rayo Vallecano",
+          "acceptedAliases": ["Rayo Vallecano de Madrid"],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1336360975",
+          "leagueId": "119924",
+          "observedCompetitionName": "La Liga"
+        },
+        "football-data.org": {
+          "matchId": "564633",
+          "competitionCode": "PD",
+          "observedCompetitionName": "Primera Division"
+        }
+      },
+      "tags": ["priority-1", "multi-provider", "identity-alias"]
+    },
+    {
+      "sampleId": "ENR-P11",
+      "dateEuropeParis": "2026-08-15",
+      "scheduledKickoffUtc": "2026-08-15T19:30:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-15T21:30:00+02:00",
+      "competition": "Liga Portugal Betclic",
+      "phase": "Saison régulière - journée 2",
+      "neutralVenue": false,
+      "participantOrderSignificant": true,
+      "participants": [
+        {
+          "canonicalName": "Rio Ave",
+          "acceptedAliases": ["Rio Ave FC"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Porto",
+          "acceptedAliases": ["FC Porto"],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1340718946",
+          "leagueId": "80778",
+          "observedCompetitionName": "Primeira Liga"
+        },
+        "football-data.org": {
+          "matchId": "567274",
+          "competitionCode": "PPL",
+          "observedCompetitionName": "Primeira Liga"
+        }
+      },
+      "tags": ["priority-1", "multi-provider", "control-case"]
+    },
+    {
+      "sampleId": "ENR-P12",
+      "dateEuropeParis": "2026-08-16",
+      "scheduledKickoffUtc": "2026-08-16T18:45:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-16T20:45:00+02:00",
+      "competition": "Trophée des Champions",
+      "phase": "Finale",
+      "neutralVenue": true,
+      "participantOrderSignificant": false,
+      "participants": [
+        {
+          "canonicalName": "Paris Saint-Germain",
+          "acceptedAliases": ["Paris Saint Germain", "PSG"],
+          "observedProviderRole": "HOME"
+        },
+        {
+          "canonicalName": "Lens",
+          "acceptedAliases": [],
+          "observedProviderRole": "AWAY"
+        }
+      ],
+      "providerReferences": {
+        "highlightly": {
+          "matchId": "1316319925",
+          "leagueId": "448410",
+          "observedCompetitionName": "Trophée des Champions"
+        }
+      },
+      "tags": ["priority-1", "neutral-venue", "unordered-participants", "single-provider-2026"]
+    }
+  ],
+  "reserveMatches": [
+    {
+      "sampleId": "ENR-R01",
+      "activationOrder": 1,
+      "dateEuropeParis": "2026-08-13",
+      "scheduledKickoffUtc": "2026-08-13T18:45:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-13T20:45:00+02:00",
+      "competition": "Ligue Europa",
+      "participants": ["Heart of Midlothian", "Benfica"],
+      "highlightlyMatchId": "1368042854",
+      "preferredReplacementFor": ["ENR-P03", "ENR-P04"]
+    },
+    {
+      "sampleId": "ENR-R02",
+      "activationOrder": 2,
+      "dateEuropeParis": "2026-08-14",
+      "scheduledKickoffUtc": "2026-08-14T18:45:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-14T20:45:00+02:00",
+      "competition": "Ligue 2",
+      "participants": ["Grenoble", "Metz"],
+      "highlightlyMatchId": "1321122118",
+      "preferredReplacementFor": ["ENR-P07"]
+    },
+    {
+      "sampleId": "ENR-R03",
+      "activationOrder": 3,
+      "dateEuropeParis": "2026-08-14",
+      "scheduledKickoffUtc": "2026-08-14T18:45:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-14T20:45:00+02:00",
+      "competition": "Ligue 2",
+      "participants": ["Laval", "Nantes"],
+      "highlightlyMatchId": "1321123820",
+      "preferredReplacementFor": ["ENR-P07", "ENR-R02"]
+    },
+    {
+      "sampleId": "ENR-R04",
+      "activationOrder": 4,
+      "dateEuropeParis": "2026-08-15",
+      "scheduledKickoffUtc": "2026-08-15T18:00:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-15T20:00:00+02:00",
+      "competition": "Saudi Pro League",
+      "participants": ["Al-Ittihad", "Al Kholood"],
+      "highlightlyMatchId": "1364135913",
+      "preferredReplacementFor": ["ENR-P09"]
+    }
+  ],
+  "transversalControls": [
+    {
+      "sampleId": "ENR-C01",
+      "scenarioScope": ["ID-01", "TIM-01", "OPS-01", "REP-01"],
+      "fullEnrichment": false,
+      "dateEuropeParis": "2026-08-15",
+      "scheduledKickoffUtc": "2026-08-15T10:00:00Z",
+      "scheduledKickoffEuropeParis": "2026-08-15T12:00:00+02:00",
+      "competition": "Ukrainian Premier League",
+      "canonicalParticipants": ["FC Kryvbas Kryvyi Rih", "FC Livyi Bereh Kyiv"],
+      "highlightlyObservation": {
+        "matchId": "1332201287",
+        "leagueId": "284167",
+        "observedParticipants": ["Hirnyk", "Livyi Bereh"],
+        "homeTeamProviderId": "5522923",
+        "homeTeamRawName": "Hirnyk",
+        "homeTeamCanonicalName": "FC Kryvbas Kryvyi Rih",
+        "mappingStatus": "CONFIRMED",
+        "mappingType": "CONFIRMED_HISTORICAL_REBRAND_ALIAS",
+        "sourceNameQuality": "STALE_PROVIDER_NAME",
+        "mappingScope": "highlightly:TEAM:5522923:UKR"
+      },
+      "collectionWindows": ["J-1", "MATCH_DAY"],
+      "rule": "Résoudre l'entité Highlightly TEAM 5522923, dans le contexte ukrainien, vers FC Kryvbas Kryvyi Rih au moyen du mapping confirmé. Conserver Hirnyk comme valeur brute, interdire toute généralisation fondée sur le seul nom et enregistrer toute correction ultérieure comme une nouvelle observation."
+    }
+  ]
+}

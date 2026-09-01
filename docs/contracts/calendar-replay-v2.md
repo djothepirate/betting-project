@@ -87,7 +87,7 @@ Le type source est conservé dans la fixture, mais la compétition canonique uti
 - Un mapping `AMBIGUOUS` ou `REJECTED` bloque la rencontre concernée.
 - Aucune distance de texte, recherche floue ou substitution automatique de nom n'est utilisée.
 
-Ainsi, le libellé source `Hirnyk` ne peut pas être substitué automatiquement à l'équipe canonique `FC Kryvbas Kryvyi Rih`.
+Ainsi, aucune substitution fondée sur le seul libellé source `Hirnyk` n'est autorisée. La référence exacte `highlightly:TEAM:5522923` peut toutefois être résolue vers l'équipe canonique `FC Kryvbas Kryvyi Rih` par le mapping explicite `CONFIRMED_HISTORICAL_REBRAND_ALIAS` accepté le 15 août 2026, limité au contexte ukrainien. Le snapshot conserve toujours le libellé brut `Hirnyk`.
 
 ## Provenance et idempotence
 

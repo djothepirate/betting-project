@@ -1,0 +1,88 @@
+{
+  "venue": {
+    "city": "Sample City",
+    "name": "Sample Stadium",
+    "country": "ZZ",
+    "capacity": "20000"
+  },
+  "referee": {
+    "name": "Sample Referee",
+    "nationality": "ZZ"
+  },
+  "forecast": {
+    "status": null,
+    "temperature": null
+  },
+  "events": [],
+  "predictions": {
+    "live": [],
+    "prematch": [
+      {
+        "type": "prematch",
+        "modelType": "three-way",
+        "description": "Synthetic prediction",
+        "generatedAt": "2026-01-15T12:00:00Z",
+        "probabilities": {
+          "away": "25%",
+          "draw": "30%",
+          "home": "45%"
+        }
+      }
+    ]
+  },
+  "statistics": [
+    {
+      "statistics": [],
+      "team": {
+        "id": 1001,
+        "logo": "https://example.invalid/teams/1001.png",
+        "name": "Alpha FC"
+      }
+    },
+    {
+      "statistics": [],
+      "team": {
+        "id": 1002,
+        "logo": "https://example.invalid/teams/1002.png",
+        "name": "Beta FC"
+      }
+    }
+  ],
+  "id": 900001,
+  "round": "Final",
+  "date": "2026-01-15T19:00:00Z",
+  "country": {
+    "code": "ZZ",
+    "name": "Sample Country",
+    "logo": "https://example.invalid/countries/zz.svg"
+  },
+  "state": {
+    "clock": null,
+    "score": {
+      "current": null,
+      "penalties": null
+    },
+    "description": "Not started"
+  },
+  "awayTeam": {
+    "id": 1002,
+    "logo": "https://example.invalid/teams/1002.png",
+    "name": "Beta FC",
+    "topPlayers": [],
+    "shots": []
+  },
+  "homeTeam": {
+    "id": 1001,
+    "logo": "https://example.invalid/teams/1001.png",
+    "name": "Alpha FC",
+    "topPlayers": [],
+    "shots": []
+  },
+  "league": {
+    "id": 2001,
+    "logo": "https://example.invalid/leagues/2001.png",
+    "name": "Sample League",
+    "season": 2026
+  },
+  "news": []
+}

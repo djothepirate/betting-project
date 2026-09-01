@@ -1,0 +1,66 @@
+{
+  "homeTeam": {
+    "formation": "4-2-3-1",
+    "substitutes": [
+      {"name": "Alpha Substitute", "number": 12, "position": "Goalkeeper", "id": 1112}
+    ],
+    "initialLineup": [
+      [
+        {"name": "Alpha 1", "number": 1, "position": "Goalkeeper", "id": 1101}
+      ],
+      [
+        {"name": "Alpha 2", "number": 2, "position": "Defender", "id": 1102},
+        {"name": "Alpha 3", "number": 3, "position": "Defender", "id": 1103},
+        {"name": "Alpha 4", "number": 4, "position": "Defender", "id": 1104},
+        {"name": "Alpha 5", "number": 5, "position": "Defender", "id": 1105}
+      ],
+      [
+        {"name": "Alpha 6", "number": 6, "position": "Midfielder", "id": 1106},
+        {"name": "Alpha 8", "number": 8, "position": "Midfielder", "id": 1108}
+      ],
+      [
+        {"name": "Alpha 7", "number": 7, "position": "Midfielder", "id": 1107},
+        {"name": "Alpha 10", "number": 10, "position": "Midfielder", "id": 1110},
+        {"name": "Alpha 11", "number": 11, "position": "Midfielder", "id": 1111}
+      ],
+      [
+        {"name": "Alpha 9", "number": 9, "position": "Forward", "id": 1109}
+      ]
+    ],
+    "id": 1001,
+    "logo": "https://example.invalid/teams/1001.png",
+    "name": "Alpha FC"
+  },
+  "awayTeam": {
+    "formation": "4-2-3-1",
+    "substitutes": [
+      {"name": "Beta Substitute", "number": 12, "position": "Goalkeeper", "id": 1212}
+    ],
+    "initialLineup": [
+      [
+        {"name": "Beta 1", "number": 1, "position": "Goalkeeper", "id": 1201}
+      ],
+      [
+        {"name": "Beta 2", "number": 2, "position": "Defender", "id": 1202},
+        {"name": "Beta 3", "number": 3, "position": "Defender", "id": 1203},
+        {"name": "Beta 4", "number": 4, "position": "Defender", "id": 1204},
+        {"name": "Beta 5", "number": 5, "position": "Defender", "id": 1205}
+      ],
+      [
+        {"name": "Beta 6", "number": 6, "position": "Midfielder", "id": 1206},
+        {"name": "Beta 8", "number": 8, "position": "Midfielder", "id": 1208}
+      ],
+      [
+        {"name": "Beta 7", "number": 7, "position": "Midfielder", "id": 1207},
+        {"name": "Beta 10", "number": 10, "position": "Midfielder", "id": 1210},
+        {"name": "Beta 11", "number": 11, "position": "Midfielder", "id": 1211}
+      ],
+      [
+        {"name": "Beta 9", "number": 9, "position": "Forward", "id": 1209}
+      ]
+    ],
+    "id": 1002,
+    "logo": "https://example.invalid/teams/1002.png",
+    "name": "Beta FC"
+  }
+}

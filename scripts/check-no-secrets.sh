@@ -65,7 +65,10 @@ list_ignored_repository_candidates() {
     git -C "$repository" -c core.quotepath=false ls-files \
         --others --ignored --exclude-standard -- \
         ':(glob)**/*.log' \
-        ':(glob)**/reports/**'
+        ':(glob)**/reports/**' \
+        ':(glob)**/*.raw.json' \
+        ':(glob)**/*.metadata.json' \
+        ':(glob)**/*.replay.json'
 }
 
 list_repository_candidates() {
