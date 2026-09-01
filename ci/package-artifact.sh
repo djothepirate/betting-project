@@ -5,7 +5,7 @@ repository=$(git rev-parse --show-toplevel)
 cd "$repository"
 
 version=$(./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version)
-commit_sha=${CI_COMMIT_SHA:-${GITHUB_SHA:-}}
+commit_sha=${CI_COMMIT_SHA:-${SOURCE_COMMIT_SHA:-${GITHUB_SHA:-}}}
 pipeline_iid=${CI_PIPELINE_IID:-${GITHUB_RUN_NUMBER:-0}}
 tag=${CI_COMMIT_TAG:-}
 
