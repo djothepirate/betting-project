@@ -1,6 +1,6 @@
 # Plan de collecte du benchmark d'enrichissement v0.1
 
-- **Statut :** Exécuté - baseline consolidée, prête pour revue ENR-001
+- **Statut :** Exécuté - baseline consolidée, acceptée et fusionnée avec ENR-001
 - **Échantillon métier :** Accepté le 11 août 2026
 - **Période sportive observée :** du 12 au 16 août 2026
 - **Dernières preuves post-match :** 17 août 2026

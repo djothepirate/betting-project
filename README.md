@@ -1,6 +1,6 @@
 # Betting Project
 
-Betting Project est un monolithe modulaire Java/Spring destiné à construire une chaîne football prématch fiable, auditable et rejouable. `main` contient le socle applicatif BOOT-001, le catalogue canonique CAT-001 et les garde-fous DEVX-001. Le benchmark ENR-001 est finalisé sur sa branche séparée et prêt pour revue humaine ; la collecte planifiée, l'enrichissement de production, les cotes, les valuebets et la publication restent des étapes ultérieures.
+Betting Project est un monolithe modulaire Java/Spring destiné à construire une chaîne football prématch fiable, auditable et rejouable. `main` contient le socle applicatif BOOT-001, le catalogue canonique CAT-001, les garde-fous DEVX-001 et le benchmark football ENR-001 accepté. La collecte planifiée, l'enrichissement de production, les cotes, les valuebets et la publication restent des étapes ultérieures.
 
 Le projet est personnel et piloté par un humain. Il ne place aucun pari automatiquement et le profil live n'est pas autorisé.
 
@@ -17,7 +17,7 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 - BOOT-001 : fusionné et clôturé ;
 - CAT-001 : fusionné et clôturé, avec migrations Flyway `V001` et `V002` ;
 - DEVX-001 : accepté, fusionné dans `main` par la Pull Request `#2` et clôturé ;
-- ENR-001 : finalisé localement sur `codex/enr-001`, validé hors réseau fournisseur et prêt pour revue ; il n'est encore ni commité, ni publié, ni fusionné ;
+- ENR-001 : accepté, fusionné dans `main` par la Pull Request `#3` au commit de fusion `6913cea` et clôturé ;
 - profils autorisés : `control-api`, `batch-worker` et `replay` ;
 - PostgreSQL : source de vérité ;
 - fournisseurs sportifs : aucun appel requis pour construire, tester ou rejouer le dépôt.
@@ -44,7 +44,7 @@ Sans profil actif, l'application démarre en mode `replay`, hors réseau. L'acc�
 
 La commande `verify` seule n'est pas une validation complète. La validation Windows complète exécute systématiquement le profil `integration` et échoue si Testcontainers ne peut pas joindre un moteur Docker ; la présence de la CLI `docker` n'est pas un prérequis suffisant ni nécessaire à cette détection.
 
-Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun quota. Sur la branche ENR-001 finalisée, les validations du 1er septembre 2026 comptent 57 tests standards, 12 tests PostgreSQL/Testcontainers et 127 preuves externes vérifiées hors réseau. Les nombres historiques de CAT-001 restent 17 tests standards et 11 tests PostgreSQL/Testcontainers.
+Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun quota. Pour ENR-001, fusionné dans `main`, les validations du 1er septembre 2026 comptent 57 tests standards, 12 tests PostgreSQL/Testcontainers et 127 preuves externes vérifiées hors réseau. Les nombres historiques de CAT-001 restent 17 tests standards et 11 tests PostgreSQL/Testcontainers.
 
 ## Documentation
 

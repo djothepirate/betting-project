@@ -478,7 +478,7 @@ Les conditions suivantes sont confirmées et deviennent des contraintes d'accept
 
 ## 12. Séquencement retenu
 
-Après la fusion séparée d'ENR-001, le prochain Work Order est **CAT-002 - Durcir le catalogue et rendre les anomalies opérables**. Il précède l'ingestion planifiée en volume et couvre notamment l'autorité PRIMARY/CONTROL, les observations anciennes, les rencontres neutres, la concurrence de normalisation et le replay sécurisé par identifiant ou empreinte.
+ENR-001 ayant été revu et fusionné séparément dans `main` par la Pull Request `#3`, le prochain Work Order est **CAT-002 - Durcir le catalogue et rendre les anomalies opérables**. Il précède l'ingestion planifiée en volume et couvre notamment l'autorité PRIMARY/CONTROL, les observations anciennes, les rencontres neutres, la concurrence de normalisation et le replay sécurisé par identifiant ou empreinte.
 
 Le Work Order suivant sera **MVP-001 - Implémenter le registre de capacités, le routage et la collecte calendrier**.
 
@@ -495,4 +495,4 @@ Le Work Order devra couvrir :
 9. les tests de replay hors réseau ;
 10. une première vague de validation sur les compétitions activées.
 
-ENR-001 est soumis à une revue humaine séparée avant commit, publication et fusion. CAT-002 ne démarre qu'après cette fusion effective ; MVP-001 ne démarre qu'après acceptation de CAT-002.
+ENR-001 a été revu, publié au commit `743aff7`, fusionné dans `main` par la Pull Request `#3` au commit `6913cea`, puis clôturé le 1er septembre 2026. CAT-002 est désormais le prochain Work Order ; MVP-001 ne démarre qu'après acceptation de CAT-002.

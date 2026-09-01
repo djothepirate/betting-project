@@ -2,7 +2,7 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
-## Prêt pour revue humaine — ENR-001
+## 2026-09-01 — ENR-001
 
 ### Finalisé dans le lot
 
@@ -24,7 +24,7 @@ Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les crit�
 
 ### Gouvernance
 
-Le lot est finalisé dans le working tree de `codex/enr-001` et prêt pour revue humaine. Il n'est pas encore commité, publié ou fusionné ; ces opérations exigent des autorisations distinctes.
+Le lot a été commité sous `743aff7`, publié sur `codex/enr-001`, revu puis fusionné dans `main` par la Pull Request `#3`. Les CI Windows et Linux sont vertes et le commit de fusion est `6913cea`. ENR-001 est accepté, fusionné et clôturé.
 
 ## 2026-09-01 — DEVX-001
 
