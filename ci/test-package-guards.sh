@@ -76,6 +76,10 @@ if ! grep -Fq 'artifact.version=$artifact_version' ci/package-artifact.sh; then
     echo 'FAIL: la provenance doit porter la version canonique de l’artefact.' >&2
     exit 1
 fi
+if grep -Eq 'MAVEN_CACHE_POLICY|^[[:space:]]*cache:' .gitlab-ci.yml; then
+    echo 'FAIL: le cache GitLab partagé reste interdit sans isolation serveur qualifiée.' >&2
+    exit 1
+fi
 
 sh ci/test-release-reproducibility.sh
 

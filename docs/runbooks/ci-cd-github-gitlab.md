@@ -40,6 +40,11 @@ un workflow. L'activation stricte exige donc soit GitHub Pro avec un environneme
 `main`, soit un dépôt contrôleur séparé et réservé à l'administration. Aucun secret de miroir ne
 doit être ajouté avant cette décision d'exploitation.
 
+Le cache Maven GitLab reste désactivé : une politique ou une clé définie dans le YAML d'une branche
+n'est pas une frontière de confiance. Sa réactivation exige une séparation serveur qualifiée des
+caches de refs protégées et non protégées ; `main` et les tags ne doivent jamais lire un cache
+qu'une ref non protégée peut alimenter.
+
 ## Snapshots et releases
 
 - un snapshot est produit depuis `main` avec l'IID du pipeline et le SHA court ;

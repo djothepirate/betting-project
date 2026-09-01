@@ -115,6 +115,11 @@ sont distincts par dépôt, limités en écriture au seul projet GitLab cible et
 production n'est accessible aux pipelines de build. Aucun runner CI généraliste n'est installé sur
 le VPS de production.
 
+Les jobs GitLab ne consomment aucun cache Maven partagé entre pipelines. Une branche contrôle sa
+propre configuration CI et ne doit donc jamais pouvoir écrire dans un cache ensuite lu par `main`
+ou par un tag. Un cache ne pourra être réintroduit qu'après qualification d'une séparation imposée
+côté GitLab/runner entre refs protégées et non protégées, indépendamment du YAML du dépôt.
+
 ### 6. Frontière de livraison
 
 Le dépôt `betting-project` est classé `vps-deployable`, mais un bundle ne devient effectivement
