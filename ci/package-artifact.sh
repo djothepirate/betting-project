@@ -106,17 +106,17 @@ else
             base_version=${version%-SNAPSHOT}
             ;;
         *)
-            if ! printf '%s' "$version" | grep -Eq \
-                '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
-                echo "FAIL: version Maven non taguée hors convention SemVer : $version." >&2
-                exit 1
-            fi
             # La PR de préparation puis le build de main doivent pouvoir valider la
             # version finale avant la création du tag. Sans tag, ce payload reste un
             # snapshot non promouvable ; seul le pipeline GitLab du tag publie la release.
             base_version=$version
             ;;
     esac
+    if ! printf '%s' "$base_version" | grep -Eq \
+        '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
+        echo "FAIL: version Maven snapshot hors convention SemVer : $version." >&2
+        exit 1
+    fi
     artifact_version="${base_version}-snapshot.p${pipeline_iid}.g${short_sha}"
 fi
 

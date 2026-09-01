@@ -19,7 +19,7 @@ set -eu
 
 for arg in "$@"; do
     if [ "$arg" = help:evaluate ]; then
-        printf '1.2.3\n'
+        printf '%s\n' "${FIXTURE_MAVEN_VERSION:-1.2.3}"
         exit 0
     fi
 done
@@ -60,6 +60,21 @@ chmod +x "$fixture/mvnw"
         commit -qm 'release fixture'
     head_commit=$(git rev-parse HEAD)
     git update-ref refs/remotes/origin/main "$head_commit"
+
+    invalid_version_output=$(mktemp)
+    if env -i PATH="$PATH" FIXTURE_MAVEN_VERSION=foo-SNAPSHOT \
+        SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=99 \
+        GITHUB_REF_TYPE=branch GITHUB_REF_NAME=codex/invalid-version \
+        sh ci/package-artifact.sh >"$invalid_version_output" 2>&1; then
+        echo 'FAIL: une version Maven snapshot non SemVer a été acceptée.' >&2
+        exit 1
+    fi
+    if ! grep -Fq 'version Maven snapshot hors convention SemVer' "$invalid_version_output"; then
+        echo 'FAIL: le refus du snapshot Maven non SemVer est ambigu.' >&2
+        cat "$invalid_version_output" >&2
+        exit 1
+    fi
+    rm -f "$invalid_version_output"
 
     # Une PR de préparation porte déjà la version Maven finale, mais elle reste
     # non taguée : le bundle doit être un snapshot, jamais une release implicite.

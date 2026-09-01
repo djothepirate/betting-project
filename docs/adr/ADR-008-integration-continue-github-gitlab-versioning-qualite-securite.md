@@ -83,6 +83,8 @@ tag ne désigne le commit, ses builds de Pull Request puis de `main` restent des
 non promouvables nommés `X.Y.Z[-rc.N]-snapshot.p<id-pipeline>.g<sha-court>` et portent un
 `source.tag` vide. Le tag n'est créé sur ce même SHA qu'après fusion, CI de `main` verte et revue
 humaine ; seule son exécution GitLab produit ensuite le bundle de release canonique.
+Une base Maven snapshot qui ne respecte pas exactement `X.Y.Z[-rc.N]-SNAPSHOT` est refusée avant
+toute création d'artefact.
 
 ### 4. Qualité progressive sans régression
 
