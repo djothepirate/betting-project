@@ -128,32 +128,68 @@ if [ "$jar_count" -ne 1 ]; then
     exit 1
 fi
 
+sbom_work=$(mktemp -d "${TMPDIR:-/tmp}/betting-sbom.XXXXXX")
+trap 'rm -rf "$sbom_work"' EXIT
+
 generate_sbom() {
+    output_dir=$1
+    mkdir -p "$output_dir"
     ./mvnw -B -ntp -DskipTests \
         -Dproject.build.outputTimestamp="$source_epoch" \
         -DincludeBomSerialNumber=false \
         -DoutputFormat=json \
+        -DoutputDirectory="$output_dir" \
+        -DoutputName=bom \
+        -DoutputReactorProjects=false \
+        -Dcyclonedx.skip=false \
         -Dcyclonedx.skipAttach=true \
         org.cyclonedx:cyclonedx-maven-plugin:2.9.2:makeAggregateBom
-    test -f target/bom.json
+    if [ ! -s "$output_dir/bom.json" ]; then
+        echo "FAIL: le SBOM CycloneDX est absent ou vide dans $output_dir." >&2
+        exit 1
+    fi
 }
 
-generate_sbom
-first_sbom_sha=$(sha256sum target/bom.json | awk '{print $1}')
-generate_sbom
-second_sbom_sha=$(sha256sum target/bom.json | awk '{print $1}')
-if [ "$first_sbom_sha" != "$second_sbom_sha" ]; then
+first_sbom=$sbom_work/run-1/bom.json
+second_sbom=$sbom_work/run-2/bom.json
+generate_sbom "$sbom_work/run-1"
+generate_sbom "$sbom_work/run-2"
+if ! cmp -s "$first_sbom" "$second_sbom"; then
     echo 'FAIL: le SBOM CycloneDX n’est pas reproductible.' >&2
+    echo "Première empreinte : $(sha256sum "$first_sbom" | awk '{print $1}')" >&2
+    echo "Seconde empreinte : $(sha256sum "$second_sbom" | awk '{print $1}')" >&2
     exit 1
 fi
-if grep -Eq '"serialNumber"[[:space:]]*:' target/bom.json; then
+if grep -Eq '"serialNumber"[[:space:]]*:' "$first_sbom"; then
     echo 'FAIL: le SBOM reproductible ne doit pas contenir de numéro de série.' >&2
     exit 1
 fi
-if ! grep -Fq '"cdx:reproducible"' target/bom.json; then
-    echo 'FAIL: le SBOM ne déclare pas le mode reproductible CycloneDX.' >&2
+if grep -Eq '"timestamp"[[:space:]]*:' "$first_sbom"; then
+    echo 'FAIL: le SBOM reproductible ne doit pas contenir de timestamp.' >&2
     exit 1
 fi
+if ! grep -Eq '"bomFormat"[[:space:]]*:[[:space:]]*"CycloneDX"' "$first_sbom" ||
+   ! grep -Eq '"specVersion"[[:space:]]*:[[:space:]]*"1\\.6"' "$first_sbom"; then
+    echo 'FAIL: le document produit n’est pas un SBOM CycloneDX 1.6.' >&2
+    exit 1
+fi
+if ! awk '
+    /"name"[[:space:]]*:[[:space:]]*"cdx:reproducible"/ {
+        found++
+        expecting_value = 1
+        next
+    }
+    expecting_value && /"value"[[:space:]]*:/ {
+        if ($0 !~ /"value"[[:space:]]*:[[:space:]]*"enabled"/) exit 2
+        enabled++
+        expecting_value = 0
+    }
+    END { if (found != 1 || enabled != 1) exit 1 }
+' "$first_sbom"; then
+    echo 'FAIL: le SBOM ne déclare pas une fois le mode reproductible CycloneDX activé.' >&2
+    exit 1
+fi
+cp "$first_sbom" target/bom.json
 
 distribution=target/distribution
 stage=$distribution/stage
