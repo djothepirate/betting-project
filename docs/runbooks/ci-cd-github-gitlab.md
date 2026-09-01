@@ -1,6 +1,8 @@
 # Runbook — CI GitHub canonique et fabrique GitLab
-échouer et n'autorise aucune release.
-échouer et n'autorise aucune release.
+
+Ce runbook décrit l'amorçage, la qualification et l'exploitation de la fabrique CI sans confondre
+un artefact de build avec un livrable de production.
+
 ## État initial requis
 
 - les deux comptes utilisent la 2FA ;
@@ -41,7 +43,10 @@ doit être ajouté avant cette décision d'exploitation.
 ## Snapshots et releases
 
 - un snapshot est produit depuis `main` avec l'IID du pipeline et le SHA court ;
-- un tag `vX.Y.Z[-rc.N]` est accepté seulement si la version Maven est identique et non SNAPSHOT ;
+- un artefact de Pull Request référence le commit de fusion synthétique effectivement testé et ne
+  peut jamais être promu en production ;
+- un tag `vX.Y.Z[-rc.N]` est accepté seulement s'il désigne le commit extrait, si ce commit est
+  atteignable depuis `origin/main` et si la version Maven est identique et non SNAPSHOT ;
 - le bundle contient l'artefact, le SBOM, la provenance et `SHA256SUMS` ;
 - un tag et son artefact sont immuables ; une correction crée une nouvelle version ;
 - le VPS reçoit un artefact existant et vérifié, jamais un rebuild.

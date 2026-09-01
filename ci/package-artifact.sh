@@ -4,7 +4,6 @@ set -eu
 repository=$(git rev-parse --show-toplevel)
 cd "$repository"
 
-version=$(./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version)
 commit_sha=${CI_COMMIT_SHA:-${SOURCE_COMMIT_SHA:-${GITHUB_SHA:-}}}
 pipeline_iid=${CI_PIPELINE_IID:-${GITHUB_RUN_NUMBER:-0}}
 tag=${CI_COMMIT_TAG:-}
@@ -22,6 +21,17 @@ case "$commit_sha" in
         exit 1
         ;;
 esac
+
+if ! resolved_commit=$(git rev-parse --verify "${commit_sha}^{commit}" 2>/dev/null); then
+    echo "FAIL: commit source introuvable : $commit_sha." >&2
+    exit 1
+fi
+head_commit=$(git rev-parse --verify 'HEAD^{commit}')
+if [ "$resolved_commit" != "$head_commit" ]; then
+    echo "FAIL: le SHA source $resolved_commit ne correspond pas au commit extrait $head_commit." >&2
+    exit 1
+fi
+commit_sha=$resolved_commit
 
 short_sha=$(printf '%.12s' "$commit_sha")
 source_epoch=$(git show -s --format=%ct "$commit_sha")
@@ -44,6 +54,42 @@ if [ -n "$tag" ]; then
         echo "FAIL: tag hors convention SemVer : $tag" >&2
         exit 1
     fi
+    if ! tagged_commit=$(git rev-parse --verify "refs/tags/${tag}^{commit}" 2>/dev/null); then
+        echo "FAIL: le tag $tag est absent du checkout." >&2
+        exit 1
+    fi
+    if [ "$tagged_commit" != "$commit_sha" ]; then
+        echo "FAIL: le tag $tag ne désigne pas le commit source $commit_sha." >&2
+        exit 1
+    fi
+    if ! shallow=$(git rev-parse --is-shallow-repository 2>/dev/null); then
+        echo 'FAIL: impossible de déterminer si le dépôt est shallow.' >&2
+        exit 1
+    fi
+    if [ "$shallow" != false ]; then
+        echo 'FAIL: un historique Git complet est requis pour publier une release.' >&2
+        exit 1
+    fi
+    canonical_main_ref=refs/remotes/origin/main
+    if ! canonical_main_commit=$(git rev-parse --verify "${canonical_main_ref}^{commit}" 2>/dev/null); then
+        echo "FAIL: référence canonique main introuvable : $canonical_main_ref." >&2
+        exit 1
+    fi
+    if git merge-base --is-ancestor "$tagged_commit" "$canonical_main_commit"; then
+        :
+    else
+        ancestry_status=$?
+        if [ "$ancestry_status" -eq 1 ]; then
+            echo "FAIL: le commit tagué $tagged_commit n'est pas atteignable depuis $canonical_main_ref." >&2
+        else
+            echo "FAIL: impossible de vérifier l'appartenance du tag $tag à $canonical_main_ref." >&2
+        fi
+        exit 1
+    fi
+fi
+
+version=$(./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version)
+if [ -n "$tag" ]; then
     expected_version=${tag#v}
     if [ "$version" != "$expected_version" ]; then
         echo "FAIL: le tag $tag ne correspond pas à la version Maven $version." >&2

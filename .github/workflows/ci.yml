@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -102,6 +102,9 @@ jobs:
       - name: Tester le scanner de secrets POSIX
         run: sh scripts/tests/check-no-secrets.Tests.sh
 
+      - name: Tester les garde-fous de provenance et de release
+        run: sh ci/test-package-guards.sh
+
       - name: Contrôler le dépôt et les changements Git
         run: ./scripts/check-no-secrets.sh --scope all --base "$SECRET_SCAN_BASE"
 
@@ -113,13 +116,13 @@ jobs:
 
       - name: Produire le snapshot, le SBOM et la provenance
         env:
-          SOURCE_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          SOURCE_COMMIT_SHA: ${{ github.sha }}
         run: sh ci/package-artifact.sh
 
       - name: Publier l'artefact du run
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: betting-project-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: betting-project-${{ github.run_id }}-${{ github.sha }}
           if-no-files-found: error
           retention-days: 14
           path: target/distribution/

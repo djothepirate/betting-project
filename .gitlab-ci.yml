@@ -52,6 +52,7 @@ validate:source:
   stage: validate
   script:
     - sh scripts/tests/check-no-secrets.Tests.sh
+    - sh ci/test-package-guards.sh
     - ./scripts/check-no-secrets.sh --scope all --base "${CI_COMMIT_BEFORE_SHA:-}"
     - |
       ref="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-${CI_COMMIT_BRANCH:-}}"
@@ -150,7 +151,12 @@ security:dependencies:
     - job: test:linux
       artifacts: true
   script:
-    - sh ci/package-artifact.sh
+    - |
+      if [ -n "${CI_COMMIT_TAG:-}" ]; then
+        git fetch --no-tags origin \
+          "+refs/heads/main:refs/remotes/origin/main"
+      fi
+      sh ci/package-artifact.sh
   artifacts:
     paths:
       - target/distribution/
