@@ -144,6 +144,7 @@ generate_sbom() {
     mkdir -p "$output_dir"
     ./mvnw -B -ntp -DskipTests \
         -Dproject.build.outputTimestamp="$source_epoch" \
+        -DprojectType=application \
         -DincludeBomSerialNumber=false \
         -DoutputFormat=json \
         -DoutputDirectory="$output_dir" \
@@ -197,6 +198,108 @@ if ! awk '
     echo 'FAIL: le SBOM ne déclare pas une fois le mode reproductible CycloneDX activé.' >&2
     exit 1
 fi
+
+assert_sbom_root_metadata() {
+    sbom_path=$1
+    expected_component_name=$2
+    expected_repository_url=$3
+    root_component="$sbom_work/root-component.json"
+
+    if ! awk '
+        function brace_delta(line,    i, c, delta, quoted, escaped) {
+            delta = 0
+            quoted = 0
+            escaped = 0
+            for (i = 1; i <= length(line); i++) {
+                c = substr(line, i, 1)
+                if (quoted) {
+                    if (escaped) escaped = 0
+                    else if (c == "\\") escaped = 1
+                    else if (c == "\"") quoted = 0
+                } else if (c == "\"") quoted = 1
+                else if (c == "{") delta++
+                else if (c == "}") delta--
+            }
+            return delta
+        }
+        !in_metadata && /^[[:space:]]*"metadata"[[:space:]]*:[[:space:]]*\{/ {
+            in_metadata = 1
+            metadata_depth = brace_delta($0)
+            next
+        }
+        in_metadata && !in_component {
+            line_delta = brace_delta($0)
+            if ($0 ~ /^[[:space:]]*"component"[[:space:]]*:[[:space:]]*\{/) {
+                in_component = 1
+                found = 1
+                depth = line_delta
+                print
+                next
+            }
+            metadata_depth += line_delta
+            if (metadata_depth <= 0) exit 1
+            next
+        }
+        in_component {
+            print
+            depth += brace_delta($0)
+            if (depth == 0) {
+                complete = 1
+                exit
+            }
+        }
+        END { if (!found || !complete || depth != 0) exit 1 }
+    ' "$sbom_path" >"$root_component"; then
+        echo 'FAIL: composant racine absent ou illisible dans le SBOM.' >&2
+        exit 1
+    fi
+
+    if ! awk \
+        -v expected_component_name="$expected_component_name" \
+        -v expected_repository_url="$expected_repository_url" '
+        {
+            compact = $0
+            gsub(/[[:space:]]/, "", compact)
+            if (index(compact, "\"type\":\"application\"")) application++
+            if (index(compact, "\"name\":\"" expected_component_name "\"")) component_name++
+            if (index(compact, "\"license\":{")) license_objects++
+            if (index(compact, "\"name\":\"Proprietary\"")) proprietary++
+            has_url = index(compact, "\"url\":")
+            correct_url = index(compact, "\"url\":\"" expected_repository_url "\"")
+            if (index(compact, "\"type\":\"website\"")) {
+                website++
+                if (correct_url) website_url++
+                pending_reference = has_url ? "" : "website"
+            } else if (index(compact, "\"type\":\"vcs\"")) {
+                vcs++
+                if (correct_url) vcs_url++
+                pending_reference = has_url ? "" : "vcs"
+            } else if (has_url && pending_reference != "") {
+                if (correct_url && pending_reference == "website") website_url++
+                else if (correct_url && pending_reference == "vcs") vcs_url++
+                pending_reference = ""
+            }
+            if (index(compact, "Apache-2.0") ||
+                index(compact, "spring.io/projects/spring-boot") ||
+                index(compact, "github.com/spring-projects/spring-boot")) inherited++
+        }
+        END {
+            if (application != 1 || component_name != 1 ||
+                license_objects != 1 || proprietary != 1 ||
+                website != 1 || website_url != 1 ||
+                vcs != 1 || vcs_url != 1 || inherited != 0) exit 1
+        }
+    ' "$root_component"; then
+        echo 'FAIL: les métadonnées racine du SBOM ne décrivent pas l’application attendue.' >&2
+        cat "$root_component" >&2
+        exit 1
+    fi
+}
+
+assert_sbom_root_metadata "$first_sbom" \
+    betting-project \
+    https://github.com/djothepirate/betting-project
+printf 'SBOM_METADATA=PASS_APPLICATION_PROPRIETARY\n'
 cp "$first_sbom" target/bom.json
 
 distribution=target/distribution

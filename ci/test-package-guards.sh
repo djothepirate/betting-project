@@ -80,7 +80,31 @@ if grep -Eq 'MAVEN_CACHE_POLICY|^[[:space:]]*cache:' .gitlab-ci.yml; then
     echo 'FAIL: le cache GitLab partagé reste interdit sans isolation serveur qualifiée.' >&2
     exit 1
 fi
+if grep -Fq 'target/*.jar' .gitlab-ci.yml; then
+    echo 'FAIL: un JAR exécutable ne doit pas être conservé depuis les tests GitLab de branches ou MR.' >&2
+    exit 1
+fi
+if ! grep -Fq "github.event_name == 'push' && github.ref == 'refs/heads/main'" \
+    .github/workflows/ci.yml; then
+    echo 'FAIL: GitHub ne doit conserver un snapshot exécutable que depuis un push de main.' >&2
+    exit 1
+fi
+if grep -Fq "!startsWith(github.ref, 'refs/tags/')" .github/workflows/ci.yml; then
+    echo 'FAIL: GitHub doit valider le bundle d’un tag sans le téléverser.' >&2
+    exit 1
+fi
+if ! grep -Fq '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH' \
+    .gitlab-ci.yml; then
+    echo 'FAIL: GitLab ne doit conserver un snapshot que depuis un push de la branche par défaut.' >&2
+    exit 1
+fi
+if ! grep -Fq '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~' \
+    .gitlab-ci.yml; then
+    echo 'FAIL: une release GitLab exige un tag protégé.' >&2
+    exit 1
+fi
 
+sh ci/test-branch-name.sh
 sh ci/test-release-reproducibility.sh
 
 printf 'PACKAGE_GIT_GUARDS=PASS\n'

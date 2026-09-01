@@ -48,8 +48,8 @@ qu'une ref non protégée peut alimenter.
 ## Snapshots et releases
 
 - un snapshot est produit depuis `main` avec l'IID du pipeline et le SHA court ;
-- un artefact de Pull Request référence le commit de fusion synthétique effectivement testé et ne
-  peut jamais être promu en production ;
+- le bundle d'une Pull Request référence le commit de fusion synthétique effectivement testé, reste
+  éphémère dans le workspace du runner et n'est jamais téléversé ni promu en production ;
 - une Pull Request de préparation peut déjà porter la version Maven finale `X.Y.Z[-rc.N]` : sans
   tag, son artefact et celui du premier build de `main` restent des snapshots non promouvables,
   suffixés par l'IID et le SHA et dotés d'un `source.tag` vide ;

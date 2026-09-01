@@ -16,6 +16,19 @@
     <version>0.1.0-SNAPSHOT</version>
     <name>Betting Project</name>
     <description>Monolithe modulaire pour la chaîne de données football prématch.</description>
+    <url>https://github.com/djothepirate/betting-project</url>
+    <licenses>
+        <license>
+            <name>Proprietary</name>
+            <comments>All rights reserved. No license or other rights are granted except under a separate written agreement.</comments>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:https://github.com/djothepirate/betting-project.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/djothepirate/betting-project.git</developerConnection>
+        <url>https://github.com/djothepirate/betting-project</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <java.version>25</java.version>

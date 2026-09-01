@@ -25,10 +25,14 @@ for arg in "$@"; do
 done
 
 output_dir=
+project_type=
 for arg in "$@"; do
     case "$arg" in
         -DoutputDirectory=*)
             output_dir=$(printf '%s' "$arg" | sed 's/^-DoutputDirectory=//')
+            ;;
+        -DprojectType=application)
+            project_type=application
             ;;
     esac
 done
@@ -36,12 +40,26 @@ if [ -z "$output_dir" ]; then
     echo 'FAIL: invocation Maven factice inattendue.' >&2
     exit 1
 fi
+if [ "$project_type" != application ]; then
+    echo 'FAIL: projectType CycloneDX application absent.' >&2
+    exit 1
+fi
 mkdir -p "$output_dir"
-cat >"$output_dir/bom.json" <<'JSON'
+if [ "${FIXTURE_SBOM_MODE:-valid}" = invalid ]; then
+    cat >"$output_dir/bom.json" <<'JSON'
 {
   "bomFormat" : "CycloneDX",
   "specVersion" : "1.6",
   "metadata" : {
+    "component" : {
+      "type" : "library",
+      "name" : "betting-project",
+      "licenses" : [ { "license" : { "id" : "Apache-2.0" } } ],
+      "externalReferences" : [
+        { "type" : "website", "url" : "https://spring.io/projects/spring-boot/betting-project" },
+        { "type" : "vcs", "url" : "https://github.com/spring-projects/spring-boot/betting-project" }
+      ]
+    },
     "properties" : [ {
       "name" : "cdx:reproducible",
       "value" : "enabled"
@@ -49,6 +67,29 @@ cat >"$output_dir/bom.json" <<'JSON'
   }
 }
 JSON
+else
+cat >"$output_dir/bom.json" <<'JSON'
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "metadata" : {
+    "component" : {
+      "type" : "application",
+      "name" : "betting-project",
+      "licenses" : [ { "license" : { "name" : "Proprietary" } } ],
+      "externalReferences" : [
+        { "type" : "website", "url" : "https://github.com/djothepirate/betting-project" },
+        { "type" : "vcs", "url" : "https://github.com/djothepirate/betting-project" }
+      ]
+    },
+    "properties" : [ {
+      "name" : "cdx:reproducible",
+      "value" : "enabled"
+    } ]
+  }
+}
+JSON
+fi
 MVNW
 chmod +x "$fixture/mvnw"
 
@@ -58,6 +99,8 @@ chmod +x "$fixture/mvnw"
     git add .
     git -c user.name=ci-fixture -c user.email=ci-fixture.invalid@example.test \
         commit -qm 'release fixture'
+    git -c user.name=ci-fixture -c user.email=ci-fixture.invalid@example.test \
+        commit --allow-empty -qm 'release fixture head'
     head_commit=$(git rev-parse HEAD)
     git update-ref refs/remotes/origin/main "$head_commit"
 
@@ -75,6 +118,21 @@ chmod +x "$fixture/mvnw"
         exit 1
     fi
     rm -f "$invalid_version_output"
+
+    invalid_sbom_output=$(mktemp)
+    if env -i PATH="$PATH" FIXTURE_SBOM_MODE=invalid \
+        SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=98 \
+        GITHUB_REF_TYPE=branch GITHUB_REF_NAME=codex/invalid-sbom \
+        sh ci/package-artifact.sh >"$invalid_sbom_output" 2>&1; then
+        echo 'FAIL: des métadonnées SBOM héritées ont été acceptées.' >&2
+        exit 1
+    fi
+    if ! grep -Fq 'métadonnées racine du SBOM' "$invalid_sbom_output"; then
+        echo 'FAIL: le refus des métadonnées SBOM héritées est ambigu.' >&2
+        cat "$invalid_sbom_output" >&2
+        exit 1
+    fi
+    rm -f "$invalid_sbom_output"
 
     # Une PR de préparation porte déjà la version Maven finale, mais elle reste
     # non taguée : le bundle doit être un snapshot, jamais une release implicite.
@@ -103,6 +161,54 @@ chmod +x "$fixture/mvnw"
     fi
 
     git tag v1.2.3
+
+    shallow_checkout="$fixture/shallow-checkout"
+    git clone -q --depth 1 --no-tags "file://$fixture" "$shallow_checkout"
+    (
+        cd "$shallow_checkout"
+        shallow_head=$(git rev-parse HEAD)
+        git tag v1.2.3
+        git update-ref refs/remotes/origin/main "$shallow_head"
+        shallow_output=$(mktemp)
+        if env -i PATH="$PATH" SOURCE_COMMIT_SHA="$shallow_head" \
+            GITHUB_RUN_NUMBER=100 GITHUB_REF_TYPE=tag GITHUB_REF_NAME=v1.2.3 \
+            sh ci/package-artifact.sh >"$shallow_output" 2>&1; then
+            echo 'FAIL: une release issue d’un historique shallow a été acceptée.' >&2
+            exit 1
+        fi
+        if ! grep -Fq 'historique Git complet est requis' "$shallow_output"; then
+            echo 'FAIL: le refus de l’historique shallow est ambigu.' >&2
+            cat "$shallow_output" >&2
+            exit 1
+        fi
+        rm -f "$shallow_output"
+    )
+
+    real_git=$(command -v git)
+    git_shim="$fixture/git-shim"
+    mkdir -p "$git_shim"
+    cat >"$git_shim/git" <<'GIT'
+#!/usr/bin/env sh
+if [ "$1" = merge-base ] && [ "${2:-}" = --is-ancestor ]; then
+    exit 2
+fi
+exec "$REAL_GIT" "$@"
+GIT
+    chmod +x "$git_shim/git"
+    git_error_output=$(mktemp)
+    if env -i PATH="$git_shim:$PATH" REAL_GIT="$real_git" \
+        SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=100 \
+        GITHUB_REF_TYPE=tag GITHUB_REF_NAME=v1.2.3 \
+        sh ci/package-artifact.sh >"$git_error_output" 2>&1; then
+        echo 'FAIL: une erreur interne Git a été acceptée pendant la qualification du tag.' >&2
+        exit 1
+    fi
+    if ! grep -Fq "impossible de vérifier l'appartenance" "$git_error_output"; then
+        echo 'FAIL: le refus de l’erreur interne Git est ambigu.' >&2
+        cat "$git_error_output" >&2
+        exit 1
+    fi
+    rm -f "$git_error_output"
 
     umask 002
     env -i PATH="$PATH" SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=101 \

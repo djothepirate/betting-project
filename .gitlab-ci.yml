@@ -51,13 +51,7 @@ validate:source:
       if [ -n "${CI_COMMIT_TAG:-}" ]; then
         printf 'TAG_REF=%s\n' "$CI_COMMIT_TAG"
       else
-        case "$ref" in
-          main|codex/*|human/*|release/*|hotfix/*) ;;
-          *)
-            printf 'FAIL: branche hors convention : %s\n' "$ref" >&2
-            exit 1
-            ;;
-        esac
+        sh ci/check-branch-name.sh "$ref"
       fi
     - |
       if [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] \
@@ -93,7 +87,6 @@ test:linux:
     paths:
       - target/surefire-reports/
       - target/failsafe-reports/
-      - target/*.jar
 
 quality:observe:
   extends: .maven-java25
@@ -147,10 +140,11 @@ security:dependencies:
 .package:
   extends: .maven-java25
   stage: package
-  needs:
-    - job: test:linux
-      artifacts: true
+  dependencies: []
   script:
+    - source_epoch=$(git show -s --format=%ct "$CI_COMMIT_SHA")
+    - ./mvnw -B -ntp -DskipTests
+      -Dproject.build.outputTimestamp="$source_epoch" clean package
     - |
       if [ -n "${CI_COMMIT_TAG:-}" ]; then
         git fetch --no-tags origin \
@@ -169,7 +163,7 @@ package:snapshot:
     paths:
       - target/distribution/
   rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 package:release:
   extends: .package
@@ -179,4 +173,4 @@ package:release:
     paths:
       - target/distribution/
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$/'
+    - if: '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~ /^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$/'
