@@ -60,6 +60,33 @@ chmod +x "$fixture/mvnw"
         commit -qm 'release fixture'
     head_commit=$(git rev-parse HEAD)
     git update-ref refs/remotes/origin/main "$head_commit"
+
+    # Une PR de préparation porte déjà la version Maven finale, mais elle reste
+    # non taguée : le bundle doit être un snapshot, jamais une release implicite.
+    umask 077
+    env -i PATH="$PATH" SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=100 \
+        GITHUB_REF_TYPE=branch GITHUB_REF_NAME=release/1.2.3 \
+        sh ci/package-artifact.sh >/dev/null
+    untagged_bundle=target/distribution/betting-project-1.2.3-snapshot.p100.g$(printf '%.12s' "$head_commit").tar.gz
+    if [ ! -f "$untagged_bundle" ]; then
+        echo 'FAIL: la préparation de release non taguée ne produit pas son snapshot.' >&2
+        exit 1
+    fi
+    tar -xOf "$untagged_bundle" ./provenance.properties \
+        >release-preparation.properties
+    if ! grep -Fxq 'artifact.channel=snapshot' release-preparation.properties ||
+       ! grep -Fxq 'source.tag=' release-preparation.properties ||
+       ! grep -Fxq "artifact.version=1.2.3-snapshot.p100.g$(printf '%.12s' "$head_commit")" release-preparation.properties ||
+       ! grep -Fxq 'production.approved=false' release-preparation.properties ||
+       ! grep -Fxq 'vps.deployable=false' release-preparation.properties; then
+        echo 'FAIL: la préparation non taguée est présentée comme une release promouvable.' >&2
+        exit 1
+    fi
+    if [ -e target/distribution/betting-project-1.2.3.tar.gz ]; then
+        echo 'FAIL: une version Maven finale sans tag a produit un bundle de release.' >&2
+        exit 1
+    fi
+
     git tag v1.2.3
 
     umask 002

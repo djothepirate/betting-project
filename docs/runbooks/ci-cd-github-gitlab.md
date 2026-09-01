@@ -45,6 +45,10 @@ doit être ajouté avant cette décision d'exploitation.
 - un snapshot est produit depuis `main` avec l'IID du pipeline et le SHA court ;
 - un artefact de Pull Request référence le commit de fusion synthétique effectivement testé et ne
   peut jamais être promu en production ;
+- une Pull Request de préparation peut déjà porter la version Maven finale `X.Y.Z[-rc.N]` : sans
+  tag, son artefact et celui du premier build de `main` restent des snapshots non promouvables,
+  suffixés par l'IID et le SHA et dotés d'un `source.tag` vide ;
+- le tag est créé sur le SHA fusionné seulement après la CI de `main` verte et la revue humaine ;
 - un tag `vX.Y.Z[-rc.N]` est accepté seulement s'il désigne le commit extrait, si ce commit est
   atteignable depuis `origin/main` et si la version Maven est identique et non SNAPSHOT ;
 - le bundle contient l'artefact, un SBOM sans numéro de série et généré deux fois à empreinte

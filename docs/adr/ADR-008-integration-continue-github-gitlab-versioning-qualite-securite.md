@@ -78,6 +78,12 @@ forge ; elle porte la version d'artefact déterminée par le tag. La production 
 octets ; aucun rebuild n'est autorisé sur le VPS. GitLab est l'autorité de publication des tags :
 GitHub compile et teste ces refs, sans produire un second bundle de release.
 
+La Pull Request de préparation fixe d'abord la version Maven exacte `X.Y.Z[-rc.N]`. Tant qu'aucun
+tag ne désigne le commit, ses builds de Pull Request puis de `main` restent des snapshots
+non promouvables nommés `X.Y.Z[-rc.N]-snapshot.p<id-pipeline>.g<sha-court>` et portent un
+`source.tag` vide. Le tag n'est créé sur ce même SHA qu'après fusion, CI de `main` verte et revue
+humaine ; seule son exécution GitLab produit ensuite le bundle de release canonique.
+
 ### 4. Qualité progressive sans régression
 
 Les portes immédiatement bloquantes sont le build reproductible, les tests, les tests

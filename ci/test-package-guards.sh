@@ -48,6 +48,10 @@ assert_rejected 'ne correspond pas au commit extrait' \
     env CI_COMMIT_SHA="$parent_commit" CI_PIPELINE_IID=1 \
     sh ci/package-artifact.sh
 
+assert_rejected "le tag $test_tag est absent du checkout" \
+    env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
+    sh ci/package-artifact.sh
+
 git update-ref "$test_tag_ref" "$head_commit"
 git update-ref -d "$canonical_main_ref"
 assert_rejected 'référence canonique main introuvable' \
