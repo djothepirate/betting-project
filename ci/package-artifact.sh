@@ -24,6 +24,13 @@ case "$commit_sha" in
 esac
 
 short_sha=$(printf '%.12s' "$commit_sha")
+source_epoch=$(git show -s --format=%ct "$commit_sha")
+case "$source_epoch" in
+    *[!0-9]*|'')
+        echo 'FAIL: horodatage du commit source invalide.' >&2
+        exit 1
+        ;;
+esac
 case "$pipeline_iid" in
     *[!0-9]*)
         echo 'FAIL: identifiant de pipeline invalide.' >&2
@@ -96,6 +103,7 @@ production.approved=false
 vps.deployable=false
 source.repository=djothepirate/betting-project
 source.commit=$commit_sha
+source.epoch=$source_epoch
 source.tag=$tag
 maven.version=$version
 build.pipeline.iid=$pipeline_iid
@@ -108,7 +116,8 @@ EOF
     sha256sum "$jar_name" sbom.cdx.json provenance.properties >SHA256SUMS
 )
 
-tar -C "$stage" -czf "$distribution/$bundle_name" .
+tar --sort=name --mtime="@$source_epoch" --owner=0 --group=0 --numeric-owner \
+    -C "$stage" -czf "$distribution/$bundle_name" .
 (
     cd "$distribution"
     sha256sum "$bundle_name" >"$bundle_name.sha256"
