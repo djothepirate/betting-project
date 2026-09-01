@@ -128,9 +128,32 @@ if [ "$jar_count" -ne 1 ]; then
     exit 1
 fi
 
-./mvnw -B -ntp -DskipTests \
-    org.cyclonedx:cyclonedx-maven-plugin:2.9.2:makeAggregateBom
-test -f target/bom.json
+generate_sbom() {
+    ./mvnw -B -ntp -DskipTests \
+        -Dproject.build.outputTimestamp="$source_epoch" \
+        -DincludeBomSerialNumber=false \
+        -DoutputFormat=json \
+        -Dcyclonedx.skipAttach=true \
+        org.cyclonedx:cyclonedx-maven-plugin:2.9.2:makeAggregateBom
+    test -f target/bom.json
+}
+
+generate_sbom
+first_sbom_sha=$(sha256sum target/bom.json | awk '{print $1}')
+generate_sbom
+second_sbom_sha=$(sha256sum target/bom.json | awk '{print $1}')
+if [ "$first_sbom_sha" != "$second_sbom_sha" ]; then
+    echo 'FAIL: le SBOM CycloneDX n’est pas reproductible.' >&2
+    exit 1
+fi
+if grep -Eq '"serialNumber"[[:space:]]*:' target/bom.json; then
+    echo 'FAIL: le SBOM reproductible ne doit pas contenir de numéro de série.' >&2
+    exit 1
+fi
+if ! grep -Fq '"cdx:reproducible"' target/bom.json; then
+    echo 'FAIL: le SBOM ne déclare pas le mode reproductible CycloneDX.' >&2
+    exit 1
+fi
 
 distribution=target/distribution
 stage=$distribution/stage
@@ -155,6 +178,8 @@ maven.version=$version
 build.pipeline.iid=$pipeline_iid
 java.target=25
 sbom.format=CycloneDX-JSON
+sbom.reproducible=true
+sbom.serial-number=omitted
 EOF
 
 (

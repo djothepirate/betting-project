@@ -47,7 +47,8 @@ doit être ajouté avant cette décision d'exploitation.
   peut jamais être promu en production ;
 - un tag `vX.Y.Z[-rc.N]` est accepté seulement s'il désigne le commit extrait, si ce commit est
   atteignable depuis `origin/main` et si la version Maven est identique et non SNAPSHOT ;
-- le bundle contient l'artefact, le SBOM, la provenance et `SHA256SUMS` ;
+- le bundle contient l'artefact, un SBOM sans numéro de série et généré deux fois à empreinte
+  identique, la provenance et `SHA256SUMS` ;
 - un tag et son artefact sont immuables ; une correction crée une nouvelle version ;
 - le VPS reçoit un artefact existant et vérifié, jamais un rebuild.
 
