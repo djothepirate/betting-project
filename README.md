@@ -16,7 +16,7 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 
 - BOOT-001 : fusionné et clôturé ;
 - CAT-001 : fusionné et clôturé, avec migrations Flyway `V001` et `V002` ;
-- DEVX-001 : implémenté dans la Pull Request `#2`, en revue ; sa fusion reste soumise à une autorisation humaine explicite ;
+- DEVX-001 : accepté et autorisé à la fusion ; la présence de cette version dans `main` vaut clôture par la Pull Request `#2` ;
 - profils autorisés : `control-api`, `batch-worker` et `replay` ;
 - PostgreSQL : source de vérité ;
 - fournisseurs sportifs : aucun appel requis pour construire, tester ou rejouer le dépôt.

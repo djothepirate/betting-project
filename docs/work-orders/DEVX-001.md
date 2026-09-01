@@ -1,12 +1,13 @@
 # DEVX-001 - Fiabiliser le build, les validations et la mémoire du dépôt
 
-- **Statut :** Pull Request ouverte - revue en cours - fusion soumise à autorisation
-- **Version :** 0.6
+- **Statut :** Accepté - fusion autorisée ; présence de cette version dans `main` valant fusion et clôture
+- **Version :** 0.7
 - **Date d'ouverture et d'acceptation du périmètre :** 2026-09-01
 - **Date de préparation pour revue :** 2026-09-01
 - **Date de validation humaine et d'autorisation du commit :** 2026-09-01
 - **Date de publication de la branche et d'ouverture de la Pull Request :** 2026-09-01
 - **Date du correctif de revue sur les artefacts ignorés :** 2026-09-01
+- **Date d'autorisation de fusion :** 2026-09-01
 - **Responsable de décision :** Porteur du Betting Project
 - **Exécutant :** Codex, sur la branche `codex/devx-001`
 - **Jalon :** Consolidation préalable au MVP football
@@ -157,7 +158,7 @@ Le premier essai exécuté dans le sandbox sans accès réseau a échoué dès l
 
 ### CI, correctifs de revue et limites ouvertes
 
-Le 1er septembre 2026, le porteur du Betting Project a validé le diff DEVX-001, autorisé le commit `2fc6b52`, puis son push sur `codex/devx-001`. Après observation de la première CI, il a autorisé le correctif minimal, le commit `e4255d8`, sa publication et l'ouverture de la Pull Request. Aucune de ces décisions n'autorise la fusion ni la modification des protections GitHub.
+Le 1er septembre 2026, le porteur du Betting Project a validé le diff DEVX-001, autorisé le commit `2fc6b52`, puis son push sur `codex/devx-001`. Après observation de la première CI, il a autorisé le correctif minimal, le commit `e4255d8`, sa publication et l'ouverture de la Pull Request. Ces décisions sont restées distinctes de l'autorisation de fusion enregistrée ci-dessous et n'autorisent aucune modification des protections GitHub.
 
 Le workflow `.github/workflows/ci.yml` contient deux jobs sans secret fournisseur :
 
@@ -166,8 +167,16 @@ Le workflow `.github/workflows/ci.yml` contient deux jobs sans secret fournisseu
 
 La première exécution de branche, `33500860455`, a validé Windows mais révélé sous Linux une dépendance à l'ordre des classes d'intégration : `PostgreSqlBootstrapIT.duplicateRawSnapshotIsIgnored()` laissait son snapshot validé dans la base Testcontainers partagée avant `CalendarNormalizationIT`. Le correctif `e4255d8` ajoute `@Transactional` à cette seule méthode, sans modifier le code de production. L'ordre défavorable Bootstrap puis Calendar a ensuite réussi localement avec 17 tests standards et 11 tests PostgreSQL.
 
-Après publication du correctif, l'exécution de branche `33502308409` puis l'exécution de Pull Request `33502537082` ont chacune terminé avec les deux jobs Windows et Linux verts, intégration PostgreSQL/Testcontainers comprise. La Pull Request `#2`, de `codex/devx-001` vers `main`, est ouverte, non brouillon et sans conflit. La fusion reste soumise à une autorisation humaine explicite distincte.
+Après publication du correctif d'isolation, l'exécution de branche `33502308409` puis l'exécution de Pull Request `33502537082` ont chacune terminé avec les deux jobs Windows et Linux verts, intégration PostgreSQL/Testcontainers comprise.
 
 La revue de la Pull Request a ensuite signalé que `git ls-files --others --exclude-standard` omettait les journaux et rapports ignorés par Git. Le correctif ajoute une seconde énumération Git strictement limitée aux pathspecs `**/*.log` et `**/reports/**` dans les portées dépôt et complète, sous PowerShell comme sous POSIX. Cette liste positive restaure la couverture des sorties locales sans parcourir l'ensemble des fichiers ignorés ni les fichiers servant à injecter des clés ; les diagnostics restent limités au chemin et à l'identifiant de règle.
 
+Le commit `06ba0e2` portant ce correctif a réussi les CI de branche `33506337454` et de Pull Request `33506340882`, avec les jobs Windows et Linux verts dans les deux exécutions. Le fil P2 a reçu une réponse avec ces preuves puis a été résolu. La Pull Request `#2`, de `codex/devx-001` vers `main`, est restée ouverte, non brouillon et sans conflit pendant cette validation.
+
 L'intégration WSL2 locale a correctement échoué faute de socket Docker `/var/run/docker.sock` dans la distribution courante. Cette limite d'environnement n'a pas été masquée : le build Linux standard est vert, l'intégration réelle est verte sous Windows via Docker Desktop, et le job Linux est configuré pour échouer si Testcontainers ne dispose pas de Docker.
+
+## Décision de fusion et clôture
+
+Le 1er septembre 2026, après correction du défaut P2 et vérification des validations locales et GitHub, le porteur du Betting Project a explicitement autorisé la fusion de `codex/devx-001` vers `main` via la Pull Request `#2`. Cette autorisation est distincte de toute modification des protections GitHub, de tout déploiement et de toute reprise d'ENR-001.
+
+Le présent commit documentaire enregistre cette décision avant l'opération GitHub. Sa propre CI Windows/Linux reste une condition de fusion. Lorsque cette version est lue depuis `main`, la Pull Request `#2` a nécessairement intégré cette décision : DEVX-001 est alors accepté, fusionné et clôturé.

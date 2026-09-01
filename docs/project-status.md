@@ -73,7 +73,7 @@ Une restauration à blanc a validé l'identité des patches indexé et non index
 - le wrapper échouait lorsque le répertoire Maven `.m2` ordinaire exposait une propriété `Target` nulle ;
 - le script de validation ne propageait pas systématiquement les codes d'échec des commandes natives et pouvait omettre l'intégration lorsque la CLI Docker était absente.
 
-Le correctif, les tests de faux vert, la validation Windows complète et les contrôles Linux hors intégration locale sont désormais réussis. L'intégration WSL2 locale a échoué comme attendu faute de socket Docker, sans être omise ni transformée en succès. Le lot est prêt pour revue humaine ; il reste ouvert jusqu'au passage vert des deux jobs GitHub Actions et aux autorisations distinctes de commit, push, Pull Request et fusion. Cette clôture reste la porte préalable à toute fusion d'ENR-001.
+Le correctif, les tests de faux vert, la validation Windows complète et les contrôles Linux hors intégration locale sont réussis. L'intégration WSL2 locale a échoué comme attendu faute de socket Docker, sans être omise ni transformée en succès. Les CI Windows et Linux de la branche et de la Pull Request sont vertes sur le commit fonctionnel `06ba0e2`, le défaut P2 relevé en revue est corrigé et son fil est résolu. Le porteur a explicitement autorisé la fusion de la Pull Request `#2` le 1er septembre 2026, sous réserve de la CI verte du commit documentaire final. La présence de cette version dans `main` signifie que DEVX-001 est accepté, fusionné et clôturé, ce qui ouvre la reprise séparée d'ENR-001.
 
 ## Décisions actives
 
@@ -88,10 +88,9 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 
 ## Prochaines portes
 
-1. terminer et faire revoir DEVX-001 ;
-2. finaliser ENR-001 depuis la sauvegarde validée, puis le revoir et le fusionner séparément ;
-3. réaliser CAT-002 avant toute ingestion planifiée en volume ;
-4. construire MVP-001 puis ENR-002 et valider un pilote local de sept jours ;
-5. ouvrir OPS-001 seulement après acceptation du pipeline local fiable.
+1. finaliser ENR-001 depuis la sauvegarde validée, puis le revoir et le fusionner séparément ;
+2. réaliser CAT-002 avant toute ingestion planifiée en volume ;
+3. construire MVP-001 puis ENR-002 et valider un pilote local de sept jours ;
+4. ouvrir OPS-001 seulement après acceptation du pipeline local fiable.
 
 Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005.
