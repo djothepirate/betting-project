@@ -169,7 +169,7 @@ if grep -Eq '"timestamp"[[:space:]]*:' "$first_sbom"; then
     exit 1
 fi
 if ! grep -Eq '"bomFormat"[[:space:]]*:[[:space:]]*"CycloneDX"' "$first_sbom" ||
-   ! grep -Eq '"specVersion"[[:space:]]*:[[:space:]]*"1\\.6"' "$first_sbom"; then
+   ! grep -Eq '"specVersion"[[:space:]]*:[[:space:]]*"1[.]6"' "$first_sbom"; then
     echo 'FAIL: le document produit n’est pas un SBOM CycloneDX 1.6.' >&2
     exit 1
 fi
