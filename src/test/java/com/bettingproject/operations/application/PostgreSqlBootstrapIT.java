@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -85,6 +86,7 @@ class PostgreSqlBootstrapIT {
     }
 
     @Test
+    @Transactional
     void duplicateRawSnapshotIsIgnored() {
         RawSnapshot snapshot = RawSnapshot.capture(
                 "offline-fixture",
