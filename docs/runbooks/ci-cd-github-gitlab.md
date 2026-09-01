@@ -51,6 +51,8 @@ doit être ajouté avant cette décision d'exploitation.
   identique, la provenance et `SHA256SUMS` ;
 - la provenance porte `artifact.version` : l'IID reste dans la version des snapshots, mais aucun
   identifiant propre à GitHub ou GitLab n'entre dans le payload immuable d'un tag ;
+- GitLab est l'unique producteur d'une release taguée ; GitHub vérifie le tag sous Windows et Linux
+  mais ne republie pas le bundle avec une seconde chaîne d'outils ;
 - un tag et son artefact sont immuables ; une correction crée une nouvelle version ;
 - le VPS reçoit un artefact existant et vérifié, jamais un rebuild.
 

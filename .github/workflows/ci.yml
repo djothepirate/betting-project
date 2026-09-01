@@ -115,11 +115,13 @@ jobs:
         run: ./mvnw -B -ntp -Pintegration verify
 
       - name: Produire le snapshot, le SBOM et la provenance
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           SOURCE_COMMIT_SHA: ${{ github.sha }}
         run: sh ci/package-artifact.sh
 
       - name: Publier l'artefact du run
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: betting-project-${{ github.run_id }}-${{ github.sha }}

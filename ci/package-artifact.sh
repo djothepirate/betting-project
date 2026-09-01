@@ -223,8 +223,10 @@ EOF
     sha256sum "$jar_name" sbom.cdx.json provenance.properties >SHA256SUMS
 )
 
+find "$stage" -type d -exec chmod 0755 {} +
+find "$stage" -type f -exec chmod 0644 {} +
 tar --sort=name --mtime="@$source_epoch" --owner=0 --group=0 --numeric-owner \
-    -C "$stage" -czf "$distribution/$bundle_name" .
+    --mode='u=rwX,go=rX' -C "$stage" -czf "$distribution/$bundle_name" .
 (
     cd "$distribution"
     sha256sum "$bundle_name" >"$bundle_name.sha256"
