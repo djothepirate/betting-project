@@ -1,4 +1,4 @@
-# État du projet au 1er septembre 2026
+# État du projet au 2 septembre 2026
 
 ## Synthèse
 
@@ -11,10 +11,11 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | Catalogue canonique | Fusionné et clôturé | CAT-001 a livré compétitions, saisons, équipes, rencontres, mappings, anomalies, provenance et normalisation idempotente. |
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
+| CAT-002 | `MERGE_AUTHORIZED_IF_GREEN` avant fusion ; `ACCEPTED - MERGED - CLOSED` après fusion effective | La Pull Request `#8` contient le correctif fonctionnel publié `6fb69e2` et l'alignement documentaire publié `a3b471f`. Le premier accepte `*`, `?` et `%` comme valeurs fournisseur littérales à l'exécution tout en les refusant dans les affectations de configuration ; le second ne change aucun comportement. La seconde revue humaine est approuvée, les 36 critères sur 36 sont satisfaits, la baseline est de 219 tests standards et 89 tests PostgreSQL/Testcontainers, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. La fusion est autorisée si les checks du HEAD effectivement fusionné restent verts et si aucune nouvelle remarque ou aucun conflit n'apparaît. Dès que GitHub marque la PR `MERGED` et que cette version est présente dans `main`, CAT-002 vaut `ACCEPTED - MERGED - CLOSED`. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
-## État fusionné dans `main`
+## Catalogue fusionné et évolution CAT-002
 
 ### BOOT-001
 
@@ -38,7 +39,7 @@ Le catalogue fournit :
 - migration additive Flyway `V002` ;
 - 17 tests standards et 11 tests PostgreSQL/Testcontainers validés sous Windows et Ubuntu/WSL2.
 
-CAT-001 est fusionné et clôturé. Les limites restantes — concurrence, ordre des observations, autorité primaire/contrôle et opérations humaines sur les anomalies — appartiennent à CAT-002.
+CAT-001 est fusionné et clôturé. CAT-002 traite désormais localement la concurrence, l'ordre des observations, l'autorité primaire/contrôle, les décisions humaines de mapping, le cycle de vie des anomalies et les demandes durables de rejeu. Le lot 7 expose ces cas d'usage sous `/internal/catalog` avec pagination keyset, commandes strictes, provenance expurgée et composants limités au profil `control-api`. Le lot 8 prouve en plus la reprise d'une demande `PENDING` après fermeture complète puis redémarrage du contexte Spring, sans migration V006, worker ni exposition publique. La correction P2 de la PR `#8` préserve les caractères fournisseur littéraux dans la clé d'autorité et maintient le chargement classpath fermé aux jokers de configuration. Le commit fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont publiés avec quatre checks verts chacun ; la seconde attestation est approuvée, les 36 critères sont satisfaits et le fil P2 est résolu. La fusion est autorisée sous maintien de checks verts sur le HEAD final, sans nouvelle remarque ni conflit.
 
 ## Benchmark fournisseurs
 
@@ -99,10 +100,13 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 - Aucun pari automatique, aucun appel live, aucune dépendance à SofaScore.
 - PostgreSQL reste la source de vérité ; les preuves complètes du benchmark restent hors Git avec manifeste expurgé versionné lors d'ENR-001.
 
-## Prochaines portes
+## Porte de fusion et règle de succession
 
-1. cadrer et réaliser CAT-002 avant toute ingestion planifiée en volume ;
-2. construire MVP-001 puis ENR-002 et valider un pilote local de sept jours ;
-3. ouvrir OPS-001 seulement après acceptation du pipeline local fiable.
+| État externe vérifiable | Conséquence de gouvernance |
+|---|---|
+| La Pull Request `#8` n'est pas encore `MERGED` | CAT-002 reste `MERGE_AUTHORIZED_IF_GREEN`. Le HEAD final ne peut être fusionné que sans changement fonctionnel non revu, avec les checks Windows et Linux/PostgreSQL/Testcontainers verts, sans remarque ouverte ni conflit. |
+| GitHub marque la Pull Request `#8` `MERGED` et cette version est présente dans `main` | CAT-002 vaut `ACCEPTED - MERGED - CLOSED`. |
+| CAT-002 est effectivement clôturé | MVP-001 devient le prochain Work Order, sans activation automatique ; ENR-002 vient ensuite. |
+| Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
 
-Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005.
+Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel correctif `6fb69e2` et l'alignement documentaire `a3b471f` sont publiés, leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Le porteur a autorisé le présent closeout, son commit, son push, la mise à jour de la PR et sa fusion conditionnelle. Cette règle demeure valable pour le HEAD final : checks verts, aucune nouvelle remarque et aucun conflit. Les routes du lot 7 restent internes, sans authentification, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. La fusion réelle de cette version par la PR `#8` suffit à constater CAT-002 `ACCEPTED - MERGED - CLOSED`, sans réécriture préemptive du résultat GitHub.

@@ -8,6 +8,8 @@ public record DiscoveredFixture(
         DiscoveredCompetition competition,
         Instant kickoff,
         String status,
+        Boolean neutralVenue,
+        boolean participantsUnordered,
         DiscoveredTeam homeTeam,
         DiscoveredTeam awayTeam) {
 
@@ -31,6 +33,8 @@ public record DiscoveredFixture(
                 null,
                 kickoff,
                 "SCHEDULED",
+                null,
+                false,
                 new DiscoveredTeam(null, homeTeam, null),
                 new DiscoveredTeam(null, awayTeam, null));
     }

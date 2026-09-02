@@ -69,8 +69,8 @@ class PostgreSqlBootstrapIT {
 
         assertThat(first).isTrue();
         assertThat(second).isFalse();
-        assertThat(jobOutboxService.countJobs("publication:fixture-42")).isEqualTo(1);
-        assertThat(jobOutboxService.countOutboxMessages("job:publication:fixture-42:telegram")).isEqualTo(1);
+        assertThat(countJobs("publication:fixture-42")).isEqualTo(1);
+        assertThat(countOutboxMessages("job:publication:fixture-42:telegram")).isEqualTo(1);
     }
 
     @Test
@@ -82,7 +82,7 @@ class PostgreSqlBootstrapIT {
                 "not-json"))
                 .isInstanceOf(DataAccessException.class);
 
-        assertThat(jobOutboxService.countJobs("publication:invalid-json")).isZero();
+        assertThat(countJobs("publication:invalid-json")).isZero();
     }
 
     @Test
@@ -97,5 +97,19 @@ class PostgreSqlBootstrapIT {
 
         assertThat(snapshotStore.store(snapshot)).isTrue();
         assertThat(snapshotStore.store(snapshot)).isFalse();
+    }
+
+    private long countJobs(String jobKey) {
+        return jdbcClient.sql("SELECT COUNT(*) FROM persistent_job WHERE job_key = :jobKey")
+                .param("jobKey", jobKey)
+                .query(Long.class)
+                .single();
+    }
+
+    private long countOutboxMessages(String idempotencyKey) {
+        return jdbcClient.sql("SELECT COUNT(*) FROM outbox_message WHERE idempotency_key = :idempotencyKey")
+                .param("idempotencyKey", idempotencyKey)
+                .query(Long.class)
+                .single();
     }
 }

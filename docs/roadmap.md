@@ -1,6 +1,6 @@
 # Feuille de route de Betting Project
 
-- **Baseline :** 1er septembre 2026
+- **Baseline :** 2 septembre 2026
 - **Priorité 0 :** pipeline football prématch fiable
 - **Ordre obligatoire :** DEVX-001 → ENR-001 → CAT-002 → MVP-001 → ENR-002 → OPS-001
 
@@ -67,9 +67,11 @@ Réconcilier le diff historique, préserver le collecteur comme outil de benchma
 
 Le cas `Hirnyk` conserve deux preuves distinctes : ambiguïté historique sans rapprochement textuel, et mapping explicite de la référence exacte `highlightly:TEAM:5522923` vers `FC Kryvbas Kryvyi Rih` comme `CONFIRMED_HISTORICAL_REBRAND_ALIAS`.
 
-Le commit `743aff7` a été revu avec les CI Windows et Linux vertes, puis fusionné dans `main` par la Pull Request `#3` au commit `6913cea`. ENR-001 est accepté, fusionné et clôturé ; CAT-002 est le prochain Work Order à ouvrir dans la feuille de route.
+Le commit `743aff7` a été revu avec les CI Windows et Linux vertes, puis fusionné dans `main` par la Pull Request `#3` au commit `6913cea`. ENR-001 est accepté, fusionné et clôturé. CAT-002 est publié dans la Pull Request `#8`. Son correctif fonctionnel `6fb69e2`, produit après une remarque P2 valide, a été revu contre le manifeste SHA-256 correctif, poussé, validé par les quatre checks Windows/Linux et sa discussion de revue est résolue. L'alignement documentaire `a3b471f` est également publié et validé par quatre checks verts. La fusion est autorisée si le HEAD final conserve ces garanties et ne présente aucune nouvelle remarque ni aucun conflit.
 
 ## Étape 3 — CAT-002
+
+**Statut d'exécution :** Work Order `MERGE_AUTHORIZED_IF_GREEN` avant fusion effective, puis `ACCEPTED - MERGED - CLOSED` dès que GitHub marque la PR `#8` `MERGED` et que cette version est présente dans `main`. Les lots 0 à 7 restent `COMPLETED` et le lot 8 est `COMPLETED LOCALLY`. Les 36 critères sur 36 sont satisfaits ; la seconde revue humaine du correctif P2 est acquise, le commit fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont publiés avec quatre checks Windows/Linux verts chacun, et la discussion est résolue. Le porteur autorise le closeout final et la fusion si les checks du HEAD final restent verts et si aucune nouvelle remarque ou aucun conflit n'apparaît. L'adaptateur `/internal/catalog` reste strictement interne et lié à la boucle locale ; aucun endpoint public, worker CAT-002 ou appel fournisseur n'est introduit.
 
 ### Objectif
 
@@ -79,16 +81,22 @@ Rendre la normalisation sûre en volume et les anomalies réellement opérables 
 
 - replay d'un snapshot déjà stocké, ciblé par identifiant ou SHA-256, jamais par chemin HTTP arbitraire ;
 - consultation des anomalies, mappings et provenances ; confirmation ou rejet motivé d'un mapping ; replay idempotent des snapshots bloqués ;
-- terrain neutre et participants non ordonnés explicitement modélisés ;
+- terrain neutre et participants non ordonnés explicitement et séparément modélisés ; seul `participantsUnordered=true` autorise une identité insensible à l'ordre ;
 - protection contre les observations anciennes et transitions de statut invalides ;
 - autorité `PRIMARY`/`CONTROL` appliquée sans promotion silencieuse ;
 - opérations PostgreSQL sûres en concurrence ;
-- persistance des jobs déplacée derrière un port applicatif ;
-- migrations additives à partir de `V003`, sans modification de `V001` ou `V002`.
+- persistance des jobs déplacée derrière un port applicatif au lot 1, sans SQL ni JDBC dans `operations.application` ;
+- projection courante des mappings protégée par version optimiste, décisions humaines confirmées ou rejetées avec identité opérateur, justification expurgée, reçu d'idempotence global et historique append-only ;
+- projection courante et journal `OPENED`/`OBSERVED`/`RESOLVED`/`REOPENED` pour le cycle de vie des anomalies ;
+- migrations additives `V003`, `V004` et `V005`, sans modification des migrations antérieures ;
+- consultations keyset et commandes strictes sous `/internal/catalog`, sans payload brut, reçu d'idempotence ou chemin arbitraire ;
+- contrats `catalog-control-api-v1` et `stored-snapshot-replay-v1`, avec écoute limitée à `127.0.0.1` et aucune exposition avant OPS-001.
 
 ### Porte d'acceptation
 
-Tests couvrant ordre des observations, contradiction primaire/contrôle, inversion neutre/non neutre, deux normalisations concurrentes, décision humaine puis replay, et redémarrage sans perte d'observation.
+Tests couvrant ordre des observations, contradiction primaire/contrôle, inversion ordonnée/explicitement non ordonnée, neutralité indépendante de l'ordre, deux normalisations concurrentes, décision humaine puis replay, et redémarrage sans perte d'observation.
+
+Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste strict, V003 applique chronologie et journal, V004 protège les décisions humaines et historise le cycle des anomalies, et V005 ajoute les demandes et tentatives durables depuis une V004 peuplée. Le lot 6 sélectionne les snapshots par UUID ou SHA-256 unique, vérifie leur preuve avant parsing, reprend après arrêt et relie `CONFIRM` ou `REJECT` au rejeu après commit. Le lot 7 ajoute les lectures paginées, les décisions et rejeux manuels, les erreurs RFC 9457 et les projections expurgées sous le seul profil `control-api`, sans V006. Le lot 8 ajoute une preuve réelle de reprise au travers de trois contextes Spring successifs. Après la remarque P2 de la PR `#8`, la clé d'exécution accepte les valeurs fournisseur littérales `*`, `?` et `%`, tandis que les affectations classpath continuent de les refuser comme jokers. La baseline validée est de 219 tests standards et 89 tests PostgreSQL/Testcontainers. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont publiés et validés par quatre checks chacun ; la discussion est résolue. La fusion est autorisée lorsque le HEAD final conserve des checks verts, sans nouvelle remarque ni conflit ; la présence de cette version dans `main` clôt CAT-002 et ouvre ensuite MVP-001.
 
 ## Étape 4 — MVP-001
 

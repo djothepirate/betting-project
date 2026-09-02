@@ -18,6 +18,7 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 - CAT-001 : fusionné et clôturé, avec migrations Flyway `V001` et `V002` ;
 - DEVX-001 : accepté, fusionné dans `main` par la Pull Request `#2` et clôturé ;
 - ENR-001 : accepté, fusionné dans `main` par la Pull Request `#3` au commit de fusion `6913cea` et clôturé ;
+- CAT-002 : la Pull Request `#8` porte le correctif fonctionnel `6fb69e2`, qui distingue les caractères fournisseur littéraux `*`, `?` et `%` des jokers interdits dans les affectations de configuration, puis l'alignement documentaire `a3b471f`, sans changement de comportement. Ces deux commits sont publiés et leurs quatre checks Windows/Linux sont verts, dont PostgreSQL/Testcontainers sous Linux. La seconde revue humaine est acquise, les 36 critères sur 36 sont satisfaits et la discussion P2 est résolue. Tant que la PR n'est pas effectivement fusionnée, l'état reste `MERGE_AUTHORIZED_IF_GREEN` ; le porteur autorise la fusion si les checks du HEAD effectivement fusionné restent verts et si aucune nouvelle remarque ou aucun conflit n'apparaît. Dès que GitHub marque la PR `MERGED` et que cette version est présente dans `main`, CAT-002 vaut `ACCEPTED - MERGED - CLOSED` ;
 - profils autorisés : `control-api`, `batch-worker` et `replay` ;
 - PostgreSQL : source de vérité ;
 - fournisseurs sportifs : aucun appel requis pour construire, tester ou rejouer le dépôt.
@@ -29,10 +30,10 @@ Le détail vérifiable se trouve dans [`docs/project-status.md`](docs/project-st
 1. Copier `.env.example` vers `.env` et remplacer le mot de passe factice.
 2. Démarrer PostgreSQL : `docker compose --env-file .env up -d postgres`.
 3. Vérifier le build : `.\mvnw.cmd verify`.
-4. Démarrer l'API de contrôle : `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=control-api"`.
+4. Définir localement `BETTING_OPERATOR_ID` si les décisions humaines doivent être autorisées, puis démarrer l'API de contrôle : `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=control-api"`.
 5. Démarrer le worker dans un autre terminal : `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=batch-worker"`.
 
-Sans profil actif, l'application démarre en mode `replay`, hors réseau. L'accès éventuel du profil `replay` à PostgreSQL sera explicité par CAT-002 ; les fixtures actuelles restent autonomes.
+Sans profil actif, l'application démarre en mode `replay`, hors réseau et sans PostgreSQL. Les fixtures actuelles restent autonomes ; le rejeu d'un snapshot stocké appartient au `control-api` interne. Celui-ci écoute uniquement sur `127.0.0.1` et ne doit pas être exposé avant OPS-001 ; son contrat et sa procédure locale sont documentés dans [`catalog-control-api-v1.md`](docs/contracts/catalog-control-api-v1.md) et [`catalog-control-api-local.md`](docs/runbooks/catalog-control-api-local.md).
 
 ## Vérifications
 
@@ -44,7 +45,7 @@ Sans profil actif, l'application démarre en mode `replay`, hors réseau. L'acc�
 
 La commande `verify` seule n'est pas une validation complète. La validation Windows complète exécute systématiquement le profil `integration` et échoue si Testcontainers ne peut pas joindre un moteur Docker ; la présence de la CLI `docker` n'est pas un prérequis suffisant ni nécessaire à cette détection.
 
-Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun quota. Pour ENR-001, fusionné dans `main`, les validations du 1er septembre 2026 comptent 57 tests standards, 12 tests PostgreSQL/Testcontainers et 127 preuves externes vérifiées hors réseau. Les nombres historiques de CAT-001 restent 17 tests standards et 11 tests PostgreSQL/Testcontainers.
+Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun quota. Pour ENR-001, fusionné dans `main`, les validations du 1er septembre 2026 comptent 57 tests standards, 12 tests PostgreSQL/Testcontainers et 127 preuves externes vérifiées hors réseau. Le correctif fonctionnel `6fb69e2` du lot 8 de CAT-002 porte la baseline à 219 tests standards et 89 tests PostgreSQL/Testcontainers : outre la preuve de redémarrage réelle du candidat initial, douze scénarios PostgreSQL couvrent `*`, `?` et `%` dans chacun des quatre champs de la clé d'autorité et prouvent leur traitement fermé en `UNASSIGNED`. Les quatre checks Windows et Linux de `6fb69e2`, puis ceux de l'alignement documentaire `a3b471f`, sont verts, avec PostgreSQL/Testcontainers réellement exécuté sous Linux ; la discussion P2 associée est résolue. La porte durable de fusion exige que tout HEAD ultérieur conserve ces checks verts et n'introduise ni remarque bloquante ni conflit. L'absence actuelle d'intégration Docker Desktop dans WSL n'est jamais présentée comme un succès. Aucun endpoint public, worker CAT-002 ou appel fournisseur n'est ajouté par ce correctif. Les nombres historiques de CAT-001 restent 17 tests standards et 11 tests PostgreSQL/Testcontainers.
 
 ## Documentation
 
@@ -56,5 +57,8 @@ Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun qu
 - Work Orders : [`docs/work-orders/`](docs/work-orders/)
 - Procédures : [`docs/runbooks/`](docs/runbooks/)
 - Frontières modulaires : [`docs/architecture/module-boundaries.md`](docs/architecture/module-boundaries.md)
+- Contrat de l'API interne du catalogue : [`docs/contracts/catalog-control-api-v1.md`](docs/contracts/catalog-control-api-v1.md)
+- Exploitation locale de l'API du catalogue : [`docs/runbooks/catalog-control-api-local.md`](docs/runbooks/catalog-control-api-local.md)
+- Dossier de revue finale CAT-002 : [`docs/reviews/CAT-002-final-review.md`](docs/reviews/CAT-002-final-review.md)
 
 Les lanceurs `.cmd` des contrôles Windows appliquent une dérogation uniquement au processus PowerShell qu'ils ouvrent. Ils ne modifient pas la politique d'exécution globale du poste.

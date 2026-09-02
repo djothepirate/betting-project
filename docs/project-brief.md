@@ -48,7 +48,7 @@ Planificateur
 - Les effets externes utilisent des clés d'idempotence et l'outbox.
 - PostgreSQL est la source de vérité. Les migrations partagées sont immuables ; les corrections sont additives.
 - Les tests de persistance utilisent PostgreSQL/Testcontainers, jamais H2.
-- Le profil `replay` est hors réseau. CAT-002 précisera explicitement son accès éventuel à PostgreSQL.
+- Le profil `replay` reste hors réseau, sans DataSource, sans Flyway et sans PostgreSQL ; il rejoue des fichiers ou octets en mémoire. Le rejeu d'un snapshot PostgreSQL passe exclusivement par un cas d'usage interne du `control-api`.
 - Aucun microservice, broker externe, Redis ou Kubernetes n'est introduit sans besoin démontré et nouvelle décision.
 - Le staging VPS ne commence qu'après acceptation du pipeline local fiable.
 
@@ -106,7 +106,7 @@ Les règles suivantes sont invariantes :
 - Une référence fournisseur ne devient jamais un identifiant canonique.
 - Une identité ambiguë n'est pas rapprochée automatiquement sur le seul nom.
 - Le libellé brut `Hirnyk` reste une preuve d'ambiguïté ; seule une référence exacte et un mapping explicite de type `CONFIRMED_HISTORICAL_REBRAND_ALIAS` peuvent la relier historiquement à `FC Kryvbas Kryvyi Rih`.
-- L'ordre des participants est conservé. Une identité insensible à l'ordre n'est permise que pour un terrain neutre ou des participants explicitement non ordonnés.
+- L'ordre source des participants est toujours conservé. Une identité insensible à l'ordre n'est permise que lorsque `participantsUnordered=true` est explicitement porté par l'observation ; `neutralVenue=true` seul ne permet jamais une inversion.
 
 ## Axes fonctionnels différés
 

@@ -15,18 +15,18 @@ public record ProviderMapping(
         Double confidence,
         MappingStatus status,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        long version) {
 
     public ProviderMapping {
         id = Objects.requireNonNull(id, "id");
-        provider = requireText(provider, "provider");
-        entityType = Objects.requireNonNull(entityType, "entityType");
-        if (entityType == ProviderEntityType.SNAPSHOT) {
-            throw new IllegalArgumentException("SNAPSHOT is not a mappable entity type");
-        }
-        providerEntityId = requireText(providerEntityId, "providerEntityId");
-        season = season == null ? "" : season.trim();
-        phase = phase == null ? "" : phase.trim();
+        ProviderMappingKey key = new ProviderMappingKey(
+                provider, entityType, providerEntityId, season, phase);
+        provider = key.provider();
+        entityType = key.entityType();
+        providerEntityId = key.providerEntityId();
+        season = key.season();
+        phase = key.phase();
         status = Objects.requireNonNull(status, "status");
         if (status == MappingStatus.CONFIRMED && canonicalEntityId == null) {
             throw new IllegalArgumentException("confirmed mapping requires a canonical entity");
@@ -39,6 +39,9 @@ public record ProviderMapping(
         }
         createdAt = Objects.requireNonNull(createdAt, "createdAt");
         updatedAt = Objects.requireNonNull(updatedAt, "updatedAt");
+        if (version < 1) {
+            throw new IllegalArgumentException("version must be at least 1");
+        }
     }
 
     public static ProviderMapping confirmed(
@@ -51,7 +54,7 @@ public record ProviderMapping(
             Instant now) {
         return new ProviderMapping(
                 UUID.randomUUID(), provider, entityType, providerEntityId, canonicalEntityId,
-                season, phase, 1.0, MappingStatus.CONFIRMED, now, now);
+                season, phase, 1.0, MappingStatus.CONFIRMED, now, now, 1);
     }
 
     public static ProviderMapping ambiguous(
@@ -64,13 +67,54 @@ public record ProviderMapping(
             Instant now) {
         return new ProviderMapping(
                 UUID.randomUUID(), provider, entityType, providerEntityId, null,
-                season, phase, confidence, MappingStatus.AMBIGUOUS, now, now);
+                season, phase, confidence, MappingStatus.AMBIGUOUS, now, now, 1);
     }
 
-    private static String requireText(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(name + " must not be blank");
-        }
-        return value.trim();
+    public static ProviderMapping rejected(
+            String provider,
+            ProviderEntityType entityType,
+            String providerEntityId,
+            String season,
+            String phase,
+            Instant now) {
+        return new ProviderMapping(
+                UUID.randomUUID(), provider, entityType, providerEntityId, null,
+                season, phase, null, MappingStatus.REJECTED, now, now, 1);
+    }
+
+    public ProviderMappingKey key() {
+        return new ProviderMappingKey(provider, entityType, providerEntityId, season, phase);
+    }
+
+    public ProviderMapping confirm(UUID confirmedCanonicalEntityId, Instant now) {
+        return new ProviderMapping(
+                id,
+                provider,
+                entityType,
+                providerEntityId,
+                Objects.requireNonNull(confirmedCanonicalEntityId, "confirmedCanonicalEntityId"),
+                season,
+                phase,
+                1.0,
+                MappingStatus.CONFIRMED,
+                createdAt,
+                Objects.requireNonNull(now, "now"),
+                version + 1);
+    }
+
+    public ProviderMapping reject(Instant now) {
+        return new ProviderMapping(
+                id,
+                provider,
+                entityType,
+                providerEntityId,
+                null,
+                season,
+                phase,
+                null,
+                MappingStatus.REJECTED,
+                createdAt,
+                Objects.requireNonNull(now, "now"),
+                version + 1);
     }
 }

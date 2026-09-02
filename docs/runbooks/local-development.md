@@ -42,12 +42,15 @@ Worker avec PostgreSQL :
 
 ## Migrations
 
-Le dépôt fusionné contient :
+La base fusionnée contient V001 et V002. Le candidat CAT-002 ajoute localement, sans modifier les migrations antérieures :
 
 - `V001` : socle de persistance, jobs, outbox et snapshots ;
-- `V002` : catalogue canonique, références fournisseurs, mappings, observations et anomalies.
+- `V002` : catalogue canonique, références fournisseurs, mappings, observations et anomalies ;
+- `V003` : attributs calendrier v3, tampon d'autorité et journal d'application ;
+- `V004` : versions et décisions de mapping, reçus d'idempotence et cycle de vie des anomalies ;
+- `V005` : demandes durables de rejeu, tentatives et corrélations.
 
-Ces migrations partagées sont immuables. Toute correction ultérieure utilise une migration additive à partir de `V003`.
+V001 à V005 sont immuables dans le candidat de revue. Toute correction ultérieure utilisera une nouvelle migration additive ; CAT-002 ne crée aucune V006.
 
 ## Contrôles locaux
 
@@ -72,7 +75,9 @@ Contrôle de sécurité et validation Windows complète :
 
 La commande `verify` seule n'est pas une validation complète. `verify-windows.cmd` exécute systématiquement les tests PostgreSQL/Testcontainers et doit échouer si le moteur Docker n'est pas joignable. Testcontainers détermine lui-même l'accessibilité du moteur ; la présence de la CLI `docker` ne décide pas de l'exécution.
 
-La référence CAT-001 comprend 17 tests standards et 11 tests PostgreSQL. Les contrôles n'appellent aucun fournisseur et ne consomment aucun quota.
+La référence historique CAT-001 comprend 17 tests standards et 11 tests PostgreSQL. Le candidat correctif CAT-002 comprend 219 tests standards et 89 tests PostgreSQL/Testcontainers sous Windows. Il conserve la preuve de fermeture et réouverture réelle de trois contextes `control-api` et ajoute douze scénarios PostgreSQL pour les caractères runtime `*`, `?` et `%` dans la clé d'autorité. Les contrôles n'appellent aucun fournisseur et ne consomment aucun quota.
+
+La validation Linux complète initiale de la Pull Request `#8` était verte avant le correctif P2. Elle devra être rejouée sur le futur commit correctif ; une validation WSL locale qui omet Testcontainers faute de moteur Docker reste seulement partielle et ne ferme pas cette porte.
 
 Les lanceurs `.cmd` fonctionnent même lorsque l'exécution directe des scripts PowerShell est désactivée. La dérogation reste limitée au processus de contrôle et ne change pas la politique globale de Windows. Le contrôle de secrets inspecte les fichiers suivis ou non suivis du working tree, les sorties locales ignorées `*.log` et `reports/**`, les blobs de l'index et, lorsqu'une base est fournie ou que `origin/main` est disponible, les blobs `HEAD` ainsi que chaque version modifiée dans `base..HEAD` ; il n'affiche jamais une valeur détectée. La sélection positive des sorties ignorées n'élargit pas le scan aux autres fichiers ignorés, notamment ceux qui servent à injecter des clés. Une base explicite introuvable fait échouer le contrôle au lieu de réduire silencieusement sa couverture.
 

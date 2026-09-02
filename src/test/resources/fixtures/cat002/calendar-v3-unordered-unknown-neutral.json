@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "cal01-fixture-v3",
+  "provider": "synthetic-provider",
+  "observedAt": "2026-09-01T15:05:00Z",
+  "fixtures": [
+    {
+      "providerFixtureId": "synthetic-v3-unordered-001",
+      "competition": {
+        "providerCompetitionId": "synthetic-cup",
+        "name": "Synthetic Cup",
+        "countryCode": "FRA",
+        "type": "DOMESTIC_CUP",
+        "season": "2026/2027",
+        "phase": "FINAL"
+      },
+      "kickoff": "2026-09-12T19:00:00Z",
+      "status": "SCHEDULED",
+      "neutralVenue": null,
+      "participantsUnordered": true,
+      "homeTeam": {
+        "providerTeamId": "synthetic-gamma",
+        "name": "Synthetic FC Gamma",
+        "countryCode": "FRA"
+      },
+      "awayTeam": {
+        "providerTeamId": "synthetic-delta",
+        "name": "Synthetic FC Delta",
+        "countryCode": "FRA"
+      }
+    }
+  ]
+}

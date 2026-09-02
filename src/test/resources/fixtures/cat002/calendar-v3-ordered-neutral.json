@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "cal01-fixture-v3",
+  "provider": "synthetic-provider",
+  "observedAt": "2026-09-01T15:00:00Z",
+  "fixtures": [
+    {
+      "providerFixtureId": "synthetic-v3-ordered-001",
+      "competition": {
+        "providerCompetitionId": "synthetic-league",
+        "name": "Synthetic League",
+        "countryCode": "FRA",
+        "type": "DOMESTIC_LEAGUE",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON"
+      },
+      "kickoff": "2026-09-10T18:00:00Z",
+      "status": "SCHEDULED",
+      "neutralVenue": true,
+      "participantsUnordered": false,
+      "homeTeam": {
+        "providerTeamId": "synthetic-alpha",
+        "name": "Synthetic FC Alpha",
+        "countryCode": "FRA"
+      },
+      "awayTeam": {
+        "providerTeamId": "synthetic-beta",
+        "name": "Synthetic FC Beta",
+        "countryCode": "FRA"
+      }
+    }
+  ]
+}
