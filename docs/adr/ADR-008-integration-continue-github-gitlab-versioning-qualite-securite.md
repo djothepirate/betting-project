@@ -7,6 +7,7 @@
 - **Choix validés :** 1A, 2A et 3A
 - **Work Order d'application :** CI-001
 - **Amendement :** 2026-09-02 — promotion GitLab de `main` vers `release/<SemVer>`
+- **Amendement :** 2026-09-02 — cache public NVD borné par CI-002
 
 ## Contexte
 
@@ -155,6 +156,12 @@ Les jobs GitLab ne consomment aucun cache Maven partagé entre pipelines. Une br
 propre configuration CI et ne doit donc jamais pouvoir écrire dans un cache ensuite lu par `main`
 ou par un tag. Un cache ne pourra être réintroduit qu'après qualification d'une séparation imposée
 côté GitLab/runner entre refs protégées et non protégées, indépendamment du YAML du dépôt.
+
+CI-002 qualifie une exception étroite pour la seule base publique NVD de Dependency-Check. Ce cache
+n'inclut jamais le dépôt Maven `.m2/repository`, porte la version de l'outil et la ref GitLab dans sa
+clé, et bénéficie en plus de la séparation serveur entre refs protégées et non protégées. Un cache
+miss déclenche une reconstruction complète ; il ne transforme donc pas le cache en source de vérité
+et toute erreur de mise à jour reste bloquante après activation du ratchet.
 
 ### 6. Frontière de livraison
 

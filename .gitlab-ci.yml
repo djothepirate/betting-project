@@ -38,7 +38,7 @@ default:
     name: "docker.io/library/maven@sha256:7e461cec477077c1d9e50b13df8aef9018764410f4c4cd7c34803f10c4c99e4c"
   before_script:
     - chmod +x mvnw scripts/check-no-secrets.sh ci/package-artifact.sh
-      ci/check-gitlab-merge-request.sh
+      ci/check-gitlab-merge-request.sh ci/run-dependency-check.sh
     - java --version
     - ./mvnw -version
 
@@ -56,6 +56,7 @@ validate:source:
       fi
       sh ci/check-gitlab-merge-request.sh "$project_version"
     - sh scripts/tests/check-no-secrets.Tests.sh
+    - sh ci/test-dependency-check.sh
     - sh ci/test-package-guards.sh
     - ./scripts/check-no-secrets.sh --scope all --base "${CI_COMMIT_BEFORE_SHA:-}"
     - |
@@ -139,15 +140,20 @@ security:dependencies:
   extends: .maven-java25
   stage: observe
   allow_failure: true
-  timeout: 30m
+  timeout: 60m
+  cache:
+    key: "dependency-check-12-2-2-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - .m2/dependency-check-data/
+    policy: pull-push
   script:
-    - ./mvnw -B -ntp -DskipTests -DfailBuildOnCVSS=11
-      org.owasp:dependency-check-maven:13.0.0:check
+    - sh ci/run-dependency-check.sh
   artifacts:
     when: always
     expire_in: 30 days
     paths:
       - target/dependency-check-report.*
+      - target/gl-dependency-scanning-report.json
 
 .package:
   extends: .maven-java25

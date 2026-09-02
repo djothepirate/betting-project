@@ -95,8 +95,31 @@ if ! grep -Fq 'artifact.version=$artifact_version' ci/package-artifact.sh; then
     echo 'FAIL: la provenance doit porter la version canonique de l’artefact.' >&2
     exit 1
 fi
-if grep -Eq 'MAVEN_CACHE_POLICY|^[[:space:]]*cache:' .gitlab-ci.yml; then
-    echo 'FAIL: le cache GitLab partagé reste interdit sans isolation serveur qualifiée.' >&2
+if grep -Fq 'MAVEN_CACHE_POLICY' .gitlab-ci.yml; then
+    echo 'FAIL: le dépôt Maven général ne doit jamais être placé dans un cache GitLab partagé.' >&2
+    exit 1
+fi
+cache_count=$(grep -Ec '^  cache:$' .gitlab-ci.yml || true)
+if [ "$cache_count" -ne 1 ]; then
+    echo 'FAIL: seul le cache NVD qualifié de security:dependencies est autorisé.' >&2
+    exit 1
+fi
+dependency_cache=$(awk '
+    /^security:dependencies:/ { in_job = 1 }
+    in_job && /^\.package:/ { exit }
+    in_job { print }
+' .gitlab-ci.yml)
+if printf '%s\n' "$dependency_cache" | grep -Fq '.m2/repository/'; then
+    echo 'FAIL: le cache Dependency-Check ne doit pas contenir le dépôt Maven général.' >&2
+    exit 1
+fi
+if ! printf '%s\n' "$dependency_cache" |
+       grep -Fq 'key: "dependency-check-12-2-2-${CI_COMMIT_REF_SLUG}"' ||
+   ! printf '%s\n' "$dependency_cache" |
+       grep -Fq -- '- .m2/dependency-check-data/' ||
+   ! printf '%s\n' "$dependency_cache" |
+       grep -Fq 'policy: pull-push'; then
+    echo 'FAIL: le cache NVD doit rester versionné, isolé par ref et limité à sa base locale.' >&2
     exit 1
 fi
 if grep -Fq 'target/*.jar' .gitlab-ci.yml; then
