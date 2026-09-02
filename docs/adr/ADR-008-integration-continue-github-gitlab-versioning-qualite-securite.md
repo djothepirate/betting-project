@@ -7,7 +7,7 @@
 - **Choix validés :** 1A, 2A et 3A
 - **Work Order d'application :** CI-001
 - **Amendement :** 2026-09-02 — promotion GitLab de `main` vers `release/<SemVer>`
-- **Amendement :** 2026-09-02 — flux JSON 2.0 public NVD et cache borné par CI-002
+- **Amendement :** 2026-09-02 — flux JSON 2.0 public NVD sans cache inter-pipelines, corrigé par CI-003
 
 ## Contexte
 
@@ -157,13 +157,14 @@ propre configuration CI et ne doit donc jamais pouvoir écrire dans un cache ens
 ou par un tag. Un cache ne pourra être réintroduit qu'après qualification d'une séparation imposée
 côté GitLab/runner entre refs protégées et non protégées, indépendamment du YAML du dépôt.
 
-CI-002 qualifie une exception étroite pour la seule base publique NVD de Dependency-Check. Le flux
-JSON 2.0 officiel du NVD est la source externe ; le cache local ne sert qu'à éviter de reconstruire
-l'index complet à chaque pipeline. Ce cache n'inclut jamais le dépôt Maven `.m2/repository`, porte
-la version de l'outil, le format du flux et la ref GitLab dans sa clé, et bénéficie en plus de la
-séparation serveur entre refs protégées et non protégées. Un cache miss déclenche une reconstruction
-complète ; il ne transforme donc pas le cache en source de vérité et toute erreur de mise à jour
-reste bloquante après activation du ratchet.
+CI-002 retient le flux JSON 2.0 officiel du NVD comme source externe. CI-003 retire le cache GitLab
+initialement ajouté pour sa base locale : `main` étant non protégée, le suffixe GitLab entre refs
+protégées et non protégées ne la sépare pas des branches de développement. La clé par slug n'est pas
+non plus une frontière de confiance puisqu'une branche contrôle son propre YAML et peut choisir la
+clé qu'elle publie. Le job `security:dependencies` impose donc `cache: []`, reconstruit sa base dans
+son espace de travail éphémère et ne lit aucune donnée mutable produite par un autre pipeline. Toute
+réintroduction d'un cache exige une séparation imposée côté serveur ou un feed interne en lecture
+seule dont la publication échappe aux branches du dépôt.
 
 La baseline de CI-002 est résorbée par des versions corrigées, sans règle de suppression : Spring
 Boot 4.1.1 fournit Spring Framework 7.0.9, pgJDBC 42.7.13 et Log4j 2.25.5 ; Tomcat est surchargé à

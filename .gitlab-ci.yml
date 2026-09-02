@@ -140,11 +140,7 @@ security:dependencies:
   extends: .maven-java25
   stage: observe
   timeout: 60m
-  cache:
-    key: "dependency-check-12-2-2-nvd-json-2-0-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - .m2/dependency-check-data/
-    policy: pull-push
+  cache: []
   script:
     - sh ci/run-dependency-check.sh
   artifacts:
