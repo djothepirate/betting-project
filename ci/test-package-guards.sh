@@ -10,6 +10,8 @@ canonical_main_ref=refs/remotes/origin/main
 original_main=$(git rev-parse --verify "${canonical_main_ref}^{commit}" 2>/dev/null || true)
 test_tag="v999999.999999.$$-rc.1"
 test_tag_ref="refs/tags/$test_tag"
+canonical_release_ref="refs/remotes/origin/release/${test_tag#v}"
+original_release=$(git rev-parse --verify "${canonical_release_ref}^{commit}" 2>/dev/null || true)
 
 if git show-ref --verify --quiet "$test_tag_ref"; then
     echo "FAIL: le tag de test existe déjà : $test_tag" >&2
@@ -22,6 +24,11 @@ cleanup() {
         git update-ref "$canonical_main_ref" "$original_main" >/dev/null 2>&1 || true
     else
         git update-ref -d "$canonical_main_ref" >/dev/null 2>&1 || true
+    fi
+    if [ -n "$original_release" ]; then
+        git update-ref "$canonical_release_ref" "$original_release" >/dev/null 2>&1 || true
+    else
+        git update-ref -d "$canonical_release_ref" >/dev/null 2>&1 || true
     fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -68,6 +75,18 @@ assert_rejected 'ne désigne pas le commit source' \
     env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
     sh ci/package-artifact.sh
 
+git update-ref "$test_tag_ref" "$head_commit"
+git update-ref "$canonical_main_ref" "$head_commit"
+git update-ref -d "$canonical_release_ref"
+assert_rejected "branche de promotion introuvable : $canonical_release_ref" \
+    env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
+    sh ci/package-artifact.sh
+
+git update-ref "$canonical_release_ref" "$parent_commit"
+assert_rejected "ne désigne pas le SHA promu par $canonical_release_ref" \
+    env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
+    sh ci/package-artifact.sh
+
 if grep -Fq 'build.pipeline.iid=' ci/package-artifact.sh; then
     echo 'FAIL: une provenance immuable ne doit pas contenir l’IID de la forge.' >&2
     exit 1
@@ -89,6 +108,21 @@ if ! grep -Fq "github.event_name == 'push' && github.ref == 'refs/heads/main'" \
     echo 'FAIL: GitHub ne doit conserver un snapshot exécutable que depuis un push de main.' >&2
     exit 1
 fi
+if ! grep -Fq 'check-branch-name.sh "$BRANCH_NAME" github-pull-request' \
+    .github/workflows/ci.yml; then
+    echo 'FAIL: les Pull Requests GitHub doivent exclure les branches de promotion GitLab.' >&2
+    exit 1
+fi
+if ! awk '
+    /^  pull_request:/ { in_pull_request = 1; next }
+    in_pull_request && /^    branches:/ { has_branches = 1; next }
+    in_pull_request && /^      - main$/ { has_main = 1; exit }
+    in_pull_request && /^[^ ]/ { exit }
+    END { if (!has_branches || !has_main) exit 1 }
+' .github/workflows/ci.yml; then
+    echo 'FAIL: les Pull Requests GitHub doivent cibler exclusivement main.' >&2
+    exit 1
+fi
 if grep -Fq "!startsWith(github.ref, 'refs/tags/')" .github/workflows/ci.yml; then
     echo 'FAIL: GitHub doit valider le bundle d’un tag sans le téléverser.' >&2
     exit 1
@@ -103,8 +137,20 @@ if ! grep -Fq '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~' \
     echo 'FAIL: une release GitLab exige un tag protégé.' >&2
     exit 1
 fi
+if ! grep -Fq '+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}' \
+    .gitlab-ci.yml; then
+    echo 'FAIL: le pipeline de tag GitLab doit extraire la branche de promotion correspondante.' >&2
+    exit 1
+fi
+if ! grep -Fq 'git fetch --tags origin' .gitlab-ci.yml ||
+   ! grep -Fq 'check-gitlab-merge-request.sh "$project_version"' .gitlab-ci.yml; then
+    echo 'FAIL: le pipeline de MR GitLab doit contrôler la version et les tags déjà publiés.' >&2
+    exit 1
+fi
 
 sh ci/test-branch-name.sh
+sh ci/test-gitlab-workflow.sh
+sh ci/test-gitlab-merge-request.sh
 sh ci/test-release-reproducibility.sh
 
 printf 'PACKAGE_GIT_GUARDS=PASS\n'

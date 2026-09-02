@@ -5,6 +5,8 @@ include:
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - if: '$CI_COMMIT_BRANCH'
     - if: '$CI_COMMIT_TAG'
@@ -36,6 +38,7 @@ default:
     name: "docker.io/library/maven@sha256:7e461cec477077c1d9e50b13df8aef9018764410f4c4cd7c34803f10c4c99e4c"
   before_script:
     - chmod +x mvnw scripts/check-no-secrets.sh ci/package-artifact.sh
+      ci/check-gitlab-merge-request.sh
     - java --version
     - ./mvnw -version
 
@@ -43,6 +46,15 @@ validate:source:
   extends: .maven-java25
   stage: validate
   script:
+    - |
+      if [ "${CI_PIPELINE_SOURCE:-}" = merge_request_event ]; then
+        git fetch --tags origin
+        project_version=$(./mvnw -q -DforceStdout help:evaluate \
+          -Dexpression=project.version)
+      else
+        project_version=
+      fi
+      sh ci/check-gitlab-merge-request.sh "$project_version"
     - sh scripts/tests/check-no-secrets.Tests.sh
     - sh ci/test-package-guards.sh
     - ./scripts/check-no-secrets.sh --scope all --base "${CI_COMMIT_BEFORE_SHA:-}"
@@ -147,8 +159,10 @@ security:dependencies:
       -Dproject.build.outputTimestamp="$source_epoch" clean package
     - |
       if [ -n "${CI_COMMIT_TAG:-}" ]; then
+        release_branch="release/${CI_COMMIT_TAG#v}"
         git fetch --no-tags origin \
-          "+refs/heads/main:refs/remotes/origin/main"
+          "+refs/heads/main:refs/remotes/origin/main" \
+          "+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}"
       fi
       sh ci/package-artifact.sh
   artifacts:
