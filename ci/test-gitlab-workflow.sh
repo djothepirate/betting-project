@@ -4,56 +4,26 @@ set -eu
 repository=$(git rev-parse --show-toplevel)
 cd "$repository"
 
-if ! awk '
+expected_workflow_rules=$(cat <<'EOF'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - when: never
+EOF
+)
+actual_workflow_rules=$(awk '
     /^workflow:/ { in_workflow = 1; next }
-    in_workflow && /^stages:/ { in_workflow = 0 }
-    in_workflow && index($0, "CI_PIPELINE_SOURCE == \"merge_request_event\"") {
-        merge_request_rule = NR
-    }
-    in_workflow \
-        && index($0, "CI_PIPELINE_SOURCE == \"push\" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS") {
-        duplicate_push_rule = NR
-        expect_duplicate_push_denial = 1
-        next
-    }
-    in_workflow && expect_duplicate_push_denial {
-        if ($0 ~ /^      when: never$/) {
-            duplicate_push_is_denied = 1
-        }
-        expect_duplicate_push_denial = 0
-    }
-    in_workflow && index($0, "CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH") {
-        default_branch_rule = NR
-    }
-    in_workflow \
-        && index($0, "CI_COMMIT_BRANCH") \
-        && !index($0, "CI_DEFAULT_BRANCH") \
-        && !index($0, "CI_OPEN_MERGE_REQUESTS") {
-        branch_rule = NR
-    }
-    in_workflow && index($0, "CI_COMMIT_TAG") { tag_rule = NR }
-    in_workflow && index($0, "CI_PIPELINE_SOURCE == \"web\"") { web_rule = NR }
-    in_workflow && $0 ~ /^    - when: never$/ { final_denial = NR }
-    END {
-        if (!merge_request_rule \
-            || !duplicate_push_rule \
-            || !duplicate_push_is_denied \
-            || !default_branch_rule \
-            || !branch_rule \
-            || !tag_rule \
-            || !web_rule \
-            || !final_denial \
-            || merge_request_rule >= duplicate_push_rule \
-            || duplicate_push_rule >= default_branch_rule \
-            || default_branch_rule >= branch_rule \
-            || branch_rule >= tag_rule \
-            || tag_rule >= web_rule \
-            || web_rule >= final_denial) {
-            exit 1
-        }
-    }
-' .gitlab-ci.yml; then
-    echo 'FAIL: ordre ou contenu des règles workflow GitLab incorrect.' >&2
+    in_workflow && /^  rules:$/ { in_rules = 1; next }
+    in_rules && /^stages:/ { exit }
+    in_rules { print }
+' .gitlab-ci.yml)
+
+if [ "$actual_workflow_rules" != "$expected_workflow_rules" ]; then
+    echo 'FAIL: le bloc workflow.rules GitLab diffère de la séquence qualifiée.' >&2
     exit 1
 fi
 
