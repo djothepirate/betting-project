@@ -2,6 +2,34 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## 2026-09-02 — INT-001 (en cours)
+
+### Périmètre en implémentation
+
+- receiver J7 entrant strict, disponible uniquement sous `control-api` et désactivé par défaut ;
+- chemin brut exactement égal à `/api/imports/sofascore/j7-canonical-events`, sans préfixe de contexte/servlet, avec refus des slashs finaux, segments supplémentaires et alias matrix ou percent-encodés ;
+- contrat byte-exact de 1 à 5 Mio, validation JSON Schema Draft 2020-12, hashes fichier/data/sources et ACK v1.0 borné, sérialisé par un codec privé déterministe indépendant du Jackson MVC global ;
+- idempotence PostgreSQL `201/IMPORTED`, `200/DUPLICATE`, `409` divergent, inbox/audit/outbox transactionnels et migrations additives `V006` à `V008`, dont le refus à l'upgrade des anciennes preuves de purge datées dans le futur ; prochain slot `V009` ;
+- rétention configurable de 1 à 3 650 jours avec défaut/baseline à 30 jours, purge applicative bornée avec tombstone, sans route, scheduler ni surface runtime ;
+- activation fail-closed sur `127.0.0.1:8444`, HTTPS, client-auth `NEED`, compression serveur désactivée, stores locaux absolus non UNC, refus des alternatives bundle/PEM/SNI par une garde web prioritaire avant résolution TLS, certificat feuille en cours de validité avec EKU `clientAuth` et allowlist d'empreintes ; toutes les routes et le management partagent ce connecteur unique ;
+- bind PostgreSQL Compose et URL JDBC du receiver limités à `127.0.0.1:5433` : la garde web refuse avant création de la base/Flyway les propriétés statiques DataSource/JNDI/type, Hikari de localisation et Flyway dédiées, puis la garde bean inspecte les `JdbcConnectionDetails` et le `HikariDataSource` effectifs ;
+- sauvegarde PostgreSQL 17 complète directement envoyée vers `age --passphrase`, sans dump clair, et restauration directe vers une base standard fraîche, isolée et vide, avec manifeste `requiredMigration=V008`, contrôles de catalogues et preuves séparées des quatre tables J7 plus `outbox_message` ; l'origine standard de la base et l'absence de lecteur réseau mappé restent des frontières opérateur ;
+- rôle propriétaire PostgreSQL local conservé comme frontière de confiance de la qualification ; séparation owner de migration/rôle runtime à privilèges minimaux exigée avant toute production.
+
+### Sécurité et statut
+
+Le receiver ne dépend d'aucun code ou service du SofaScore Local Lab et n'ajoute aucun client sortant, sender, poller, scheduler, retry ou consommateur d'enrichissement. Aucune donnée réelle, clé ou certificat n'est autorisé dans Git. Le lot reste `IN_PROGRESS - NOT_QUALIFIED` jusqu'aux validations standard, PostgreSQL/Testcontainers, mTLS synthétiques, purge et restauration isolée. La sauvegarde/restauration cryptographique réelle n'a pas été exécutée pendant cet alignement documentaire. Sa présence n'autorise aucune livraison réelle, exposition LAN/VPS ou production.
+
+## 2026-09-02 — CAT-002
+
+### Fusion et clôture
+
+- Pull Request `#8` fusionnée dans `main` au commit `85dc943` ;
+- correctif fonctionnel `6fb69e2` et alignement documentaire `a3b471f` présents dans la base INT-001 ;
+- 36 critères sur 36 satisfaits, seconde revue humaine acquise, discussion P2 résolue ;
+- quatre checks Windows/Linux verts sur chacun des deux commits, PostgreSQL/Testcontainers compris ;
+- état final `ACCEPTED - MERGED - CLOSED`.
+
 ## 2026-09-01 — ENR-001
 
 ### Finalisé dans le lot
