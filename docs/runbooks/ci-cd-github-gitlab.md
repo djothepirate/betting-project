@@ -77,6 +77,13 @@ qu'une ref non protégée peut alimenter.
 9. Vérifier le bundle, ses empreintes et sa provenance, puis reprendre la synchronisation de
    `main`. Si un SHA change ou si le fast-forward devient impossible, arrêter la promotion.
 
+Le workflow donne la priorité au pipeline `merge_request_event` lorsqu'une Merge Request est
+ouverte. Pour le même changement, le pipeline de branche issu de `push` est alors supprimé via
+`CI_OPEN_MERGE_REQUESTS`, y compris lorsque la source est `main`. Le filtre reste limité à la source
+`push` afin de conserver les pipelines de tag, les lancements manuels et les déclenchements par API
+ou pipeline parent. En dehors d'une Merge Request ouverte, le push de synchronisation de `main`
+continue de produire et conserver son snapshot.
+
 Une branche de release déjà associée à son tag est scellée. Toute nouvelle Merge Request vers cette
 branche doit échouer ; une correction crée une nouvelle version. Les tags complets doivent être
 présents dans le checkout du pipeline de Merge Request afin que ce refus reste bloquant.

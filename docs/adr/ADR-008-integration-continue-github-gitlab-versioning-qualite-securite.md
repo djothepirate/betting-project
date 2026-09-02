@@ -82,6 +82,11 @@ promotion. Le pipeline refuse les Merge Requests issues d'un fork, une cible non
 version Maven différente du suffixe de la branche et toute nouvelle modification d'une branche de
 release déjà scellée par son tag.
 
+Lorsqu'une branche possède une Merge Request ouverte, le pipeline `merge_request_event` est la
+qualification de référence et le pipeline `push` redondant de cette branche est supprimé. Cette
+déduplication vise uniquement les événements `push` : elle ne bloque ni les tags, ni un lancement
+manuel, ni un pipeline déclenché par API ou par un autre pipeline.
+
 ### 3. Versionnement et immutabilité
 
 Chaque dépôt suit SemVer indépendamment des autres :

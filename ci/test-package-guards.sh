@@ -149,6 +149,7 @@ if ! grep -Fq 'git fetch --tags origin' .gitlab-ci.yml ||
 fi
 
 sh ci/test-branch-name.sh
+sh ci/test-gitlab-workflow.sh
 sh ci/test-gitlab-merge-request.sh
 sh ci/test-release-reproducibility.sh
 
