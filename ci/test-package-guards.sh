@@ -114,7 +114,7 @@ if printf '%s\n' "$dependency_cache" | grep -Fq '.m2/repository/'; then
     exit 1
 fi
 if ! printf '%s\n' "$dependency_cache" |
-       grep -Fq 'key: "dependency-check-12-2-2-${CI_COMMIT_REF_SLUG}"' ||
+       grep -Fq 'key: "dependency-check-12-2-2-nvd-json-2-0-${CI_COMMIT_REF_SLUG}"' ||
    ! printf '%s\n' "$dependency_cache" |
        grep -Fq -- '- .m2/dependency-check-data/' ||
    ! printf '%s\n' "$dependency_cache" |

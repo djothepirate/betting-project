@@ -35,10 +35,10 @@ assert_argument() {
     fi
 }
 
-assert_no_api_key_value() {
+assert_no_api_key_option() {
     log=$1
-    if grep -Fq -- '-DnvdApiKey=' "$log"; then
-        echo 'FAIL: une valeur de clé NVD est transmise directement à Maven.' >&2
+    if grep -Fq -- '-DnvdApiKey' "$log"; then
+        echo 'FAIL: le flux JSON public ne doit transmettre aucune option de clé NVD.' >&2
         exit 1
     fi
 }
@@ -48,39 +48,41 @@ unset_log="$sandbox/unset.log"
     unset NVD_API_KEY
     ARGUMENT_LOG="$unset_log" sh "$sandbox/ci/run-dependency-check.sh"
 )
-if grep -Fq -- '-DnvdApiKeyEnvironmentVariable=' "$unset_log"; then
-    echo 'FAIL: le nom de variable NVD est transmis alors que la clé est absente.' >&2
-    exit 1
-fi
-assert_no_api_key_value "$unset_log"
+assert_no_api_key_option "$unset_log"
 
 empty_log="$sandbox/empty.log"
 NVD_API_KEY='' ARGUMENT_LOG="$empty_log" sh "$sandbox/ci/run-dependency-check.sh"
-if grep -Fq -- '-DnvdApiKeyEnvironmentVariable=' "$empty_log"; then
-    echo 'FAIL: le nom de variable NVD est transmis alors que la clé est vide.' >&2
-    exit 1
-fi
-assert_no_api_key_value "$empty_log"
+assert_no_api_key_option "$empty_log"
 
 fixture_value='nonempty-fixture-value'
 configured_log="$sandbox/configured.log"
 NVD_API_KEY="$fixture_value" ARGUMENT_LOG="$configured_log" \
     sh "$sandbox/ci/run-dependency-check.sh"
-assert_argument '-DnvdApiKeyEnvironmentVariable=NVD_API_KEY' "$configured_log"
-assert_no_api_key_value "$configured_log"
+assert_no_api_key_option "$configured_log"
 if grep -Fq -- "$fixture_value" "$configured_log"; then
     echo 'FAIL: la valeur de la clé NVD apparaît dans les arguments Maven.' >&2
     exit 1
 fi
 
 assert_argument '-DdataDirectory='"$sandbox"'/target/dependency-check-data' "$unset_log"
+assert_argument '-DnvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz' "$unset_log"
 assert_argument '-Dformats=HTML,JSON,GITLAB' "$unset_log"
 assert_argument '-DfailOnError=true' "$unset_log"
-assert_argument '-DfailBuildOnCVSS=11' "$unset_log"
+assert_argument '-DfailBuildOnCVSS=7' "$unset_log"
 assert_argument 'org.owasp:dependency-check-maven:12.2.2:check' "$unset_log"
 
 if grep -Eq '^[[:space:]]+NVD_API_KEY:' .gitlab-ci.yml; then
     echo 'FAIL: NVD_API_KEY ne doit jamais être déclarée dans le dépôt.' >&2
+    exit 1
+fi
+
+dependency_job=$(awk '
+    /^security:dependencies:/ { in_job = 1 }
+    in_job && /^\.package:/ { exit }
+    in_job { print }
+' .gitlab-ci.yml)
+if printf '%s\n' "$dependency_job" | grep -Eq '^  allow_failure:'; then
+    echo 'FAIL: security:dependencies doit être bloquant après établissement de la baseline.' >&2
     exit 1
 fi
 

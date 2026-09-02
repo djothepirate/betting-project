@@ -7,7 +7,7 @@
 - **Choix validés :** 1A, 2A et 3A
 - **Work Order d'application :** CI-001
 - **Amendement :** 2026-09-02 — promotion GitLab de `main` vers `release/<SemVer>`
-- **Amendement :** 2026-09-02 — cache public NVD borné par CI-002
+- **Amendement :** 2026-09-02 — flux JSON 2.0 public NVD et cache borné par CI-002
 
 ## Contexte
 
@@ -157,11 +157,18 @@ propre configuration CI et ne doit donc jamais pouvoir écrire dans un cache ens
 ou par un tag. Un cache ne pourra être réintroduit qu'après qualification d'une séparation imposée
 côté GitLab/runner entre refs protégées et non protégées, indépendamment du YAML du dépôt.
 
-CI-002 qualifie une exception étroite pour la seule base publique NVD de Dependency-Check. Ce cache
-n'inclut jamais le dépôt Maven `.m2/repository`, porte la version de l'outil et la ref GitLab dans sa
-clé, et bénéficie en plus de la séparation serveur entre refs protégées et non protégées. Un cache
-miss déclenche une reconstruction complète ; il ne transforme donc pas le cache en source de vérité
-et toute erreur de mise à jour reste bloquante après activation du ratchet.
+CI-002 qualifie une exception étroite pour la seule base publique NVD de Dependency-Check. Le flux
+JSON 2.0 officiel du NVD est la source externe ; le cache local ne sert qu'à éviter de reconstruire
+l'index complet à chaque pipeline. Ce cache n'inclut jamais le dépôt Maven `.m2/repository`, porte
+la version de l'outil, le format du flux et la ref GitLab dans sa clé, et bénéficie en plus de la
+séparation serveur entre refs protégées et non protégées. Un cache miss déclenche une reconstruction
+complète ; il ne transforme donc pas le cache en source de vérité et toute erreur de mise à jour
+reste bloquante après activation du ratchet.
+
+La baseline de CI-002 est résorbée par des versions corrigées, sans règle de suppression : Spring
+Boot 4.1.1 fournit Spring Framework 7.0.9, pgJDBC 42.7.13 et Log4j 2.25.5 ; Tomcat est surchargé à
+11.0.25 jusqu'à ce que le BOM Spring Boot l'intègre. Toute vulnérabilité de score CVSS supérieur ou
+égal à 7, toute indisponibilité du flux ou toute erreur d'analyse fait ensuite échouer le pipeline.
 
 ### 6. Frontière de livraison
 

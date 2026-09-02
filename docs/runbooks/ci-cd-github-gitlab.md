@@ -116,29 +116,31 @@ restauration avant de changer ce statut.
 
 ## Dependency-Check et alimentation NVD
 
-Le job `security:dependencies` conserve sa base publique NVD dans
-`.m2/dependency-check-data/`. Son cache GitLab inclut la version de Dependency-Check et
-`CI_COMMIT_REF_SLUG` : une branche ne peut donc pas alimenter la base ensuite lue par `main` ou par
-une autre ref. Le réglage serveur « Use separate caches for protected branches » reste activé.
-L'absence d'un cache est tolérée comme un cache miss : le premier passage recharge les données et
-peut être long, les suivants ne récupèrent que les mises à jour.
+Le job `security:dependencies` alimente sa base depuis le flux JSON 2.0 public officiel :
 
-Le lanceur `ci/run-dependency-check.sh` n'ajoute aucune option de clé lorsque `NVD_API_KEY` est
-absente ou vide. Lorsqu'elle existe, il transmet uniquement
-`nvdApiKeyEnvironmentVariable=NVD_API_KEY` ; Dependency-Check lit alors la valeur dans
-l'environnement sans la placer dans les arguments Maven. Ne jamais utiliser `nvdApiKey`, écrire la
-valeur dans le YAML ou activer le debug Maven sur ce job.
+```text
+https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz
+```
 
-Si une clé NVD est ajoutée ultérieurement dans GitLab :
+Cette source évite l'API NVD et sa limite anonyme. Le lanceur `ci/run-dependency-check.sh` ne
+transmet donc jamais `nvdApiKey` ni `nvdApiKeyEnvironmentVariable`, que `NVD_API_KEY` soit absente,
+vide ou accidentellement présente dans l'environnement. Aucune variable GitLab n'est requise et
+aucune clé n'entre dans le dépôt ou les arguments Maven.
 
-1. créer une variable de projet nommée `NVD_API_KEY`, de type Variable et de portée `*` ;
-2. sélectionner au minimum « Masked », « Masked and hidden » si disponible, et « Protect
-   variable » ;
-3. laisser le développement des références désactivé ;
-4. vérifier sans afficher la valeur que la variable est masquée et protégée ;
-5. lancer le contrôle uniquement après revue du YAML. Une variable protégée n'est accessible que
-   depuis une ref protégée ; `main`, non protégée selon ADR-008, continue donc de s'appuyer sur son
-   cache NVD propre.
+La base est conservée dans `.m2/dependency-check-data/`. La clé du cache GitLab inclut la version
+de Dependency-Check, le format `nvd-json-2-0` et `CI_COMMIT_REF_SLUG` : une branche ne peut donc pas
+alimenter la base ensuite lue par `main` ou par une autre ref. Le réglage serveur « Use separate
+caches for protected branches » reste activé. Un cache miss reconstruit la base depuis les flux ;
+le premier passage observé par CI-002 a duré environ sept minutes, puis les passages suivants ne
+récupèrent que les mises à jour. Le flux demeure la source de vérité et `failOnError=true` interdit
+de considérer un échec de mise à jour comme un scan réussi.
+
+Si le projet abandonne un jour le flux au profit de l'API, ce changement exige un Work Order et une
+Pull Request dédiés. La clé devra alors être créée directement dans l'interface GitLab comme
+variable de projet masquée, cachée si l'option existe, protégée et sans développement des
+références ; sa valeur ne devra jamais être copiée dans un ticket, un journal ou le dépôt. Une
+variable protégée étant indisponible sur `main` non protégée selon ADR-008, ce changement devra aussi
+résoudre explicitement cette frontière d'exécution avant activation.
 
 Le ratchet de CI-002 bloque à CVSS 7 après établissement de la baseline. Une exception ne peut
 viser qu'une dépendance et une vulnérabilité exactes, doit expliquer le risque accepté et porte une
