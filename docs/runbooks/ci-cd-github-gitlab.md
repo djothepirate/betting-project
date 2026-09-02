@@ -16,21 +16,26 @@ un artefact de build avec un livrable de production.
 
 1. Fusionner et qualifier les workflows sans secret.
 2. Créer le projet GitLab manquant `betting-sofascore-local-lab` sans README initial.
-3. Protéger `main` et `v*` dans GitLab ; interdire le push humain direct.
-4. Vérifier qu'un runner Linux autorise Docker-in-Docker pour Testcontainers.
-5. Faire un bootstrap miroir depuis une station d'administration de confiance.
-6. Comparer les `refs/heads/*` et `refs/tags/*` entre GitHub et GitLab.
-7. Exécuter GitLab CI et vérifier le SHA exact, les rapports JUnit et l'artefact.
-8. Mesurer la baseline qualité sur le SHA de référence et activer le ratchet.
-9. Préparer le workflow de miroir dans une Pull Request séparée et désactivée.
-10. Activer seulement après test d'une référence verte, rouge, déplacée et supprimée.
+3. Laisser `main` non protégée, protéger `release/*` et `v*`, puis interdire le push direct et le
+   force-push vers les branches de release.
+4. Réserver la fusion de `release/*` aux Maintainers et configurer le projet en fast-forward sans
+   squash ni suppression de la branche source.
+5. Vérifier qu'un runner Linux autorise Docker-in-Docker pour Testcontainers.
+6. Faire un bootstrap de `main` depuis une station d'administration de confiance.
+7. Comparer `main` et les tags synchronisés entre GitHub et GitLab ; exclure les branches
+   `release/*`, propres à GitLab, de cette comparaison.
+8. Exécuter GitLab CI et vérifier le SHA exact, les rapports JUnit et l'artefact.
+9. Mesurer la baseline qualité sur le SHA de référence et activer le ratchet.
+10. Préparer le workflow de miroir dans une Pull Request séparée et désactivée.
+11. Activer seulement après test d'une référence verte, rouge, déplacée et supprimée.
 
 ## Règles du miroir Free-compatible
 
 - une clé d'écriture GitLab distincte par projet ;
 - aucune clé partagée entre dépôts ;
 - aucun checkout ni exécution du code source dans le job privilégié de miroir ;
-- publication du seul SHA encore pointé par la référence GitHub après une CI verte ;
+- publication du seul SHA encore pointé par `main` GitHub après une CI verte ;
+- synchronisation des seuls tags SemVer immuables, jamais des branches GitLab `release/*` ;
 - jamais de force-push sur `main` ;
 - tags SemVer immuables ;
 - rotation tous les 90 jours et immédiate en cas de suspicion.
@@ -45,6 +50,37 @@ n'est pas une frontière de confiance. Sa réactivation exige une séparation se
 caches de refs protégées et non protégées ; `main` et les tags ne doivent jamais lire un cache
 qu'une ref non protégée peut alimenter.
 
+## Promotion de `main` vers `release/<SemVer>`
+
+1. Préparer la version Maven exacte `X.Y.Z[-rc.N]` sur une branche de travail, puis la fusionner
+   dans `main` par Pull Request GitHub après revue humaine et CI verte.
+2. Noter le `CANDIDATE_SHA` de `main`, suspendre toute nouvelle synchronisation de `main` pendant
+   la promotion, puis copier ce SHA vers GitLab et attendre son pipeline vert.
+3. Créer la branche cible `release/X.Y.Z[-rc.N]` depuis le sommet de la précédente branche de
+   release protégée. Vérifier que ce sommet est un ancêtre de `CANDIDATE_SHA`.
+4. Pour la toute première release, choisir un `BASE_SHA` strictement ancêtre de `CANDIDATE_SHA`,
+   protéger temporairement la branche exacte `main` avec push et force-push interdits, créer la
+   branche protégée via l'interface ou l'API GitLab sur `BASE_SHA`, puis retirer immédiatement la
+   règle exacte `main`. Vérifier ensuite que seule la règle `release/*` protège des branches. Cette
+   séquence n'autorise aucun push direct vers une branche de release.
+5. Ouvrir une Merge Request GitLab dont la source est `main` et la cible
+   `release/X.Y.Z[-rc.N]`. La source et la cible doivent appartenir au même projet, la cible doit
+   être protégée et la version Maven doit être exactement `X.Y.Z[-rc.N]`. Ne jamais sélectionner le
+   squash ni la suppression de la source.
+6. Avant fusion, vérifier que la source de la Merge Request vaut toujours `CANDIDATE_SHA`, que son
+   pipeline est vert, que les discussions sont résolues et que la fusion est fast-forward.
+7. Après fusion, vérifier que `main`, `release/X.Y.Z[-rc.N]` et `CANDIDATE_SHA` désignent exactement
+   le même commit. Conserver la branche de release comme preuve durable ; ne pas y pousser.
+8. Après revue humaine, créer sur GitHub le tag `vX.Y.Z[-rc.N]` sur `CANDIDATE_SHA`, attendre sa CI
+   verte, puis synchroniser ce tag immuable vers GitLab. Le pipeline GitLab doit refuser le bundle
+   si le tag ne correspond pas au sommet de la branche de release associée.
+9. Vérifier le bundle, ses empreintes et sa provenance, puis reprendre la synchronisation de
+   `main`. Si un SHA change ou si le fast-forward devient impossible, arrêter la promotion.
+
+Une branche de release déjà associée à son tag est scellée. Toute nouvelle Merge Request vers cette
+branche doit échouer ; une correction crée une nouvelle version. Les tags complets doivent être
+présents dans le checkout du pipeline de Merge Request afin que ce refus reste bloquant.
+
 ## Snapshots et releases
 
 - un snapshot est produit depuis `main` avec l'IID du pipeline et le SHA court ;
@@ -53,9 +89,11 @@ qu'une ref non protégée peut alimenter.
 - une Pull Request de préparation peut déjà porter la version Maven finale `X.Y.Z[-rc.N]` : sans
   tag, son artefact et celui du premier build de `main` restent des snapshots non promouvables,
   suffixés par l'IID et le SHA et dotés d'un `source.tag` vide ;
-- le tag est créé sur le SHA fusionné seulement après la CI de `main` verte et la revue humaine ;
+- le tag est créé sur le SHA promu seulement après les CI de `main`, de la Merge Request GitLab et
+  de la branche `release/<SemVer>` vertes, puis après revue humaine ;
 - un tag `vX.Y.Z[-rc.N]` est accepté seulement s'il désigne le commit extrait, si ce commit est
-  atteignable depuis `origin/main` et si la version Maven est identique et non SNAPSHOT ;
+  atteignable depuis `origin/main`, s'il correspond au sommet de `release/X.Y.Z[-rc.N]` et si la
+  version Maven est identique et non SNAPSHOT ;
 - le bundle contient l'artefact, un SBOM sans numéro de série et généré deux fois à empreinte
   identique, la provenance et `SHA256SUMS` ;
 - la provenance porte `artifact.version` : l'IID reste dans la version des snapshots, mais aucun

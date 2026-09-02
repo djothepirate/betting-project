@@ -217,6 +217,7 @@ GIT
     cp target/distribution/betting-project-1.2.3.tar.gz release-github.tar.gz
 
     umask 077
+    git update-ref refs/remotes/origin/release/1.2.3 "$head_commit"
     env -i PATH="$PATH" CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG=v1.2.3 \
         CI_PIPELINE_IID=909 sh ci/package-artifact.sh >/dev/null
     cp target/distribution/betting-project-1.2.3.tar.gz release-gitlab.tar.gz
