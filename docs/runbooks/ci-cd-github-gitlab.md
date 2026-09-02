@@ -114,6 +114,40 @@ Le bundle de CI-001 porte encore `vps.deployable=false`. Un Work Order d'exploit
 et qualifier l'image OCI, la configuration, la migration, le healthcheck, le rollback et la
 restauration avant de changer ce statut.
 
+## Dependency-Check et alimentation NVD
+
+Le job `security:dependencies` alimente sa base depuis le flux JSON 2.0 public officiel :
+
+```text
+https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz
+```
+
+Cette source évite l'API NVD et sa limite anonyme. Le lanceur `ci/run-dependency-check.sh` ne
+transmet donc jamais `nvdApiKey` ni `nvdApiKeyEnvironmentVariable`, que `NVD_API_KEY` soit absente,
+vide ou accidentellement présente dans l'environnement. Aucune variable GitLab n'est requise et
+aucune clé n'entre dans le dépôt ou les arguments Maven.
+
+La base est conservée dans `.m2/dependency-check-data/`. La clé du cache GitLab inclut la version
+de Dependency-Check, le format `nvd-json-2-0` et `CI_COMMIT_REF_SLUG` : une branche ne peut donc pas
+alimenter la base ensuite lue par `main` ou par une autre ref. Le réglage serveur « Use separate
+caches for protected branches » reste activé. Un cache miss reconstruit la base depuis les flux ;
+le premier passage observé par CI-002 a duré environ sept minutes, puis les passages suivants ne
+récupèrent que les mises à jour. Le flux demeure la source de vérité et `failOnError=true` interdit
+de considérer un échec de mise à jour comme un scan réussi.
+
+Si le projet abandonne un jour le flux au profit de l'API, ce changement exige un Work Order et une
+Pull Request dédiés. La clé devra alors être créée directement dans l'interface GitLab comme
+variable de projet masquée, cachée si l'option existe, protégée et sans développement des
+références ; sa valeur ne devra jamais être copiée dans un ticket, un journal ou le dépôt. Une
+variable protégée étant indisponible sur `main` non protégée selon ADR-008, ce changement devra aussi
+résoudre explicitement cette frontière d'exécution avant activation.
+
+Le ratchet de CI-002 bloque à CVSS 7 après établissement de la baseline. Une exception ne peut
+viser qu'une dépendance et une vulnérabilité exactes, doit expliquer le risque accepté et porte une
+échéance. Une règle élargie, sans échéance ou devenue inutilisée fait échouer la qualification.
+Dependency-Check `13.0.0` reste interdit à cause de sa régression sur la clé absente ; le passage à
+`13.0.1` ou ultérieur nécessite une Pull Request dédiée et une reconstruction volontaire du cache.
+
 ## Onboarding d'un futur dépôt
 
 Une Pull Request ajoute d'abord le dépôt au registre avec sa classification, ses commandes de test
