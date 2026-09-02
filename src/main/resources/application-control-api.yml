@@ -11,5 +11,10 @@ spring:
     validate-migration-naming: true
 
 betting:
+  operator:
+    id: "${BETTING_OPERATOR_ID:}"
   runtime:
     mode: control-api
+
+server:
+  address: 127.0.0.1

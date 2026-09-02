@@ -19,6 +19,11 @@ public record CalendarSnapshot(
         }
         schemaVersion = schemaVersion.trim();
         provider = provider.trim();
+        if (CalendarSnapshotSchemas.isNormalizable(schemaVersion)) {
+            observedAt = Objects.requireNonNull(
+                    observedAt,
+                    "observedAt must be present for canonical calendar schemas");
+        }
         Objects.requireNonNull(fixtures, "fixtures");
         fixtures = List.copyOf(fixtures);
     }

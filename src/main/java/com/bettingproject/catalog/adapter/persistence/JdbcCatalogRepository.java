@@ -4,16 +4,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.bettingproject.catalog.application.CatalogRepository;
+import com.bettingproject.catalog.application.StoredCanonicalFixture;
 import com.bettingproject.catalog.domain.CanonicalCompetition;
 import com.bettingproject.catalog.domain.CanonicalFixture;
 import com.bettingproject.catalog.domain.CanonicalSeason;
 import com.bettingproject.catalog.domain.CanonicalTeam;
 import com.bettingproject.catalog.domain.CompetitionType;
-import com.bettingproject.catalog.domain.FixtureObservation;
+import com.bettingproject.catalog.domain.FixtureAuthorityStamp;
 import com.bettingproject.catalog.domain.FixtureStatus;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -43,13 +45,14 @@ public class JdbcCatalogRepository implements CatalogRepository {
     }
 
     @Override
-    public void insertCompetition(CanonicalCompetition competition) {
+    public CanonicalCompetition getOrCreateCompetition(CanonicalCompetition competition) {
         jdbcClient.sql("""
                 INSERT INTO canonical_competition (
                     id, canonical_name, country_code, competition_type, created_at, updated_at
                 ) VALUES (
                     :id, :name, :countryCode, :type, :createdAt, :updatedAt
                 )
+                ON CONFLICT (canonical_name, country_code) DO NOTHING
                 """)
                 .param("id", competition.id())
                 .param("name", competition.name())
@@ -58,6 +61,9 @@ public class JdbcCatalogRepository implements CatalogRepository {
                 .param("createdAt", utc(competition.createdAt()))
                 .param("updatedAt", utc(competition.updatedAt()))
                 .update();
+        return findCompetition(competition.name(), competition.countryCode())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Canonical competition could not be resolved after insert: " + competition.name()));
     }
 
     @Override
@@ -74,13 +80,14 @@ public class JdbcCatalogRepository implements CatalogRepository {
     }
 
     @Override
-    public void insertSeason(CanonicalSeason season) {
+    public CanonicalSeason getOrCreateSeason(CanonicalSeason season) {
         jdbcClient.sql("""
                 INSERT INTO canonical_season (
                     id, competition_id, season_label, starts_on, ends_on, created_at, updated_at
                 ) VALUES (
                     :id, :competitionId, :label, :startsOn, :endsOn, :createdAt, :updatedAt
                 )
+                ON CONFLICT (competition_id, season_label) DO NOTHING
                 """)
                 .param("id", season.id())
                 .param("competitionId", season.competitionId())
@@ -90,6 +97,9 @@ public class JdbcCatalogRepository implements CatalogRepository {
                 .param("createdAt", utc(season.createdAt()))
                 .param("updatedAt", utc(season.updatedAt()))
                 .update();
+        return findSeason(season.competitionId(), season.label())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Canonical season could not be resolved after insert: " + season.label()));
     }
 
     @Override
@@ -106,13 +116,14 @@ public class JdbcCatalogRepository implements CatalogRepository {
     }
 
     @Override
-    public void insertTeam(CanonicalTeam team) {
+    public CanonicalTeam getOrCreateTeam(CanonicalTeam team) {
         jdbcClient.sql("""
                 INSERT INTO canonical_team (
                     id, canonical_name, country_code, created_at, updated_at
                 ) VALUES (
                     :id, :name, :countryCode, :createdAt, :updatedAt
                 )
+                ON CONFLICT (canonical_name, country_code) DO NOTHING
                 """)
                 .param("id", team.id())
                 .param("name", team.name())
@@ -120,11 +131,22 @@ public class JdbcCatalogRepository implements CatalogRepository {
                 .param("createdAt", utc(team.createdAt()))
                 .param("updatedAt", utc(team.updatedAt()))
                 .update();
+        return findTeam(team.name(), team.countryCode())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Canonical team could not be resolved after insert: " + team.name()));
     }
 
     @Override
     public Optional<CanonicalFixture> findFixture(UUID fixtureId) {
         return fixtureQuery("WHERE id = :fixtureId")
+                .param("fixtureId", fixtureId)
+                .query(this::mapFixture)
+                .optional();
+    }
+
+    @Override
+    public Optional<CanonicalFixture> findFixtureForUpdate(UUID fixtureId) {
+        return fixtureQuery("WHERE id = :fixtureId FOR UPDATE")
                 .param("fixtureId", fixtureId)
                 .query(this::mapFixture)
                 .optional();
@@ -154,48 +176,129 @@ public class JdbcCatalogRepository implements CatalogRepository {
     }
 
     @Override
-    public void insertFixture(CanonicalFixture fixture) {
-        jdbcClient.sql("""
+    public List<CanonicalFixture> findFixtureIdentityCandidatesForUpdate(
+            UUID competitionId,
+            UUID seasonId,
+            UUID sourceHomeTeamId,
+            UUID sourceAwayTeamId,
+            java.time.Instant kickoff) {
+        return fixtureQuery("""
+                WHERE competition_id = :competitionId
+                  AND season_id = :seasonId
+                  AND kickoff_at = :kickoff
+                  AND (
+                    (home_team_id = :sourceHomeTeamId AND away_team_id = :sourceAwayTeamId)
+                    OR
+                    (home_team_id = :sourceAwayTeamId AND away_team_id = :sourceHomeTeamId)
+                  )
+                ORDER BY
+                  CASE
+                    WHEN home_team_id = :sourceHomeTeamId AND away_team_id = :sourceAwayTeamId THEN 0
+                    ELSE 1
+                  END,
+                  id
+                FOR UPDATE
+                """)
+                .param("competitionId", competitionId)
+                .param("seasonId", seasonId)
+                .param("sourceHomeTeamId", sourceHomeTeamId)
+                .param("sourceAwayTeamId", sourceAwayTeamId)
+                .param("kickoff", utc(kickoff))
+                .query(this::mapFixture)
+                .list();
+    }
+
+    @Override
+    public StoredCanonicalFixture insertOrResolveFixture(CanonicalFixture fixture) {
+        int inserted = jdbcClient.sql("""
                 INSERT INTO canonical_fixture (
                     id, competition_id, season_id, home_team_id, away_team_id,
-                    kickoff_at, status, phase, created_at, updated_at
+                    neutral_venue, participants_unordered, kickoff_at, status, phase,
+                    last_authority_observation_id, last_authority_observed_at,
+                    last_authority_provider, last_authority_policy_version,
+                    created_at, updated_at
                 ) VALUES (
                     :id, :competitionId, :seasonId, :homeTeamId, :awayTeamId,
-                    :kickoff, :status, :phase, :createdAt, :updatedAt
+                    :neutralVenue, :participantsUnordered, :kickoff, :status, :phase,
+                    :lastAuthorityObservationId, :lastAuthorityObservedAt,
+                    :lastAuthorityProvider, :lastAuthorityPolicyVersion,
+                    :createdAt, :updatedAt
                 )
+                ON CONFLICT ON CONSTRAINT uq_canonical_fixture DO NOTHING
                 """)
                 .param("id", fixture.id())
                 .param("competitionId", fixture.competitionId())
                 .param("seasonId", fixture.seasonId())
                 .param("homeTeamId", fixture.homeTeamId())
                 .param("awayTeamId", fixture.awayTeamId())
+                .param("neutralVenue", fixture.neutralVenue())
+                .param("participantsUnordered", fixture.participantsUnordered())
                 .param("kickoff", utc(fixture.kickoff()))
                 .param("status", fixture.status().name())
                 .param("phase", fixture.phase())
+                .param("lastAuthorityObservationId", authorityObservationId(fixture.lastAuthority()))
+                .param("lastAuthorityObservedAt", authorityObservedAt(fixture.lastAuthority()))
+                .param("lastAuthorityProvider", authorityProvider(fixture.lastAuthority()))
+                .param("lastAuthorityPolicyVersion", authorityPolicyVersion(fixture.lastAuthority()))
                 .param("createdAt", utc(fixture.createdAt()))
                 .param("updatedAt", utc(fixture.updatedAt()))
                 .update();
+        if (inserted == 1) {
+            return new StoredCanonicalFixture(fixture, true);
+        }
+        CanonicalFixture existing = fixtureQuery("""
+                WHERE competition_id = :competitionId
+                  AND season_id = :seasonId
+                  AND home_team_id = :homeTeamId
+                  AND away_team_id = :awayTeamId
+                  AND kickoff_at = :kickoff
+                FOR UPDATE
+                """)
+                .param("competitionId", fixture.competitionId())
+                .param("seasonId", fixture.seasonId())
+                .param("homeTeamId", fixture.homeTeamId())
+                .param("awayTeamId", fixture.awayTeamId())
+                .param("kickoff", utc(fixture.kickoff()))
+                .query(this::mapFixture)
+                .optional()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Canonical fixture could not be resolved after insert conflict"));
+        return new StoredCanonicalFixture(existing, false);
     }
 
     @Override
-    public void updateFixture(CanonicalFixture fixture) {
+    public boolean updateFixtureIfAuthorityMatches(
+            CanonicalFixture fixture,
+            UUID expectedAuthorityObservationId) {
         int updated = jdbcClient.sql("""
                 UPDATE canonical_fixture
-                SET kickoff_at = :kickoff,
+                SET neutral_venue = :neutralVenue,
+                    participants_unordered = :participantsUnordered,
+                    kickoff_at = :kickoff,
                     status = :status,
                     phase = :phase,
+                    last_authority_observation_id = :lastAuthorityObservationId,
+                    last_authority_observed_at = :lastAuthorityObservedAt,
+                    last_authority_provider = :lastAuthorityProvider,
+                    last_authority_policy_version = :lastAuthorityPolicyVersion,
                     updated_at = :updatedAt
                 WHERE id = :id
+                  AND last_authority_observation_id IS NOT DISTINCT FROM :expectedAuthorityObservationId
                 """)
                 .param("id", fixture.id())
+                .param("neutralVenue", fixture.neutralVenue())
+                .param("participantsUnordered", fixture.participantsUnordered())
                 .param("kickoff", utc(fixture.kickoff()))
                 .param("status", fixture.status().name())
                 .param("phase", fixture.phase())
+                .param("lastAuthorityObservationId", authorityObservationId(fixture.lastAuthority()))
+                .param("lastAuthorityObservedAt", authorityObservedAt(fixture.lastAuthority()))
+                .param("lastAuthorityProvider", authorityProvider(fixture.lastAuthority()))
+                .param("lastAuthorityPolicyVersion", authorityPolicyVersion(fixture.lastAuthority()))
                 .param("updatedAt", utc(fixture.updatedAt()))
+                .param("expectedAuthorityObservationId", expectedAuthorityObservationId)
                 .update();
-        if (updated != 1) {
-            throw new IllegalStateException("Canonical fixture no longer exists: " + fixture.id());
-        }
+        return updated == 1;
     }
 
     @Override
@@ -213,45 +316,13 @@ public class JdbcCatalogRepository implements CatalogRepository {
         return exists("canonical_fixture", id);
     }
 
-    @Override
-    public boolean insertObservation(FixtureObservation observation) {
-        int inserted = jdbcClient.sql("""
-                INSERT INTO fixture_observation (
-                    id, raw_snapshot_id, canonical_fixture_id, provider, provider_fixture_id,
-                    provider_competition_id, provider_home_team_id, provider_away_team_id,
-                    source_kickoff_at, source_status, source_phase, normalization_status,
-                    reason_code, observed_at, created_at
-                ) VALUES (
-                    :id, :rawSnapshotId, :canonicalFixtureId, :provider, :providerFixtureId,
-                    :providerCompetitionId, :providerHomeTeamId, :providerAwayTeamId,
-                    :sourceKickoff, :sourceStatus, :sourcePhase, :normalizationStatus,
-                    :reasonCode, :observedAt, :createdAt
-                )
-                ON CONFLICT (raw_snapshot_id, provider_fixture_id) DO NOTHING
-                """)
-                .param("id", observation.id())
-                .param("rawSnapshotId", observation.rawSnapshotId())
-                .param("canonicalFixtureId", observation.canonicalFixtureId())
-                .param("provider", observation.provider())
-                .param("providerFixtureId", observation.providerFixtureId())
-                .param("providerCompetitionId", observation.providerCompetitionId())
-                .param("providerHomeTeamId", observation.providerHomeTeamId())
-                .param("providerAwayTeamId", observation.providerAwayTeamId())
-                .param("sourceKickoff", utc(observation.sourceKickoff()))
-                .param("sourceStatus", observation.sourceStatus())
-                .param("sourcePhase", observation.sourcePhase())
-                .param("normalizationStatus", observation.normalizationStatus().name())
-                .param("reasonCode", observation.reasonCode())
-                .param("observedAt", utc(observation.observedAt()))
-                .param("createdAt", utc(observation.createdAt()))
-                .update();
-        return inserted == 1;
-    }
-
     private JdbcClient.StatementSpec fixtureQuery(String whereClause) {
         return jdbcClient.sql("""
                 SELECT id, competition_id, season_id, home_team_id, away_team_id,
-                       kickoff_at, status, phase, created_at, updated_at
+                       neutral_venue, participants_unordered, kickoff_at, status, phase,
+                       last_authority_observation_id, last_authority_observed_at,
+                       last_authority_provider, last_authority_policy_version,
+                       created_at, updated_at
                 FROM canonical_fixture
                 """ + whereClause);
     }
@@ -301,11 +372,28 @@ public class JdbcCatalogRepository implements CatalogRepository {
                 resultSet.getObject("season_id", UUID.class),
                 resultSet.getObject("home_team_id", UUID.class),
                 resultSet.getObject("away_team_id", UUID.class),
+                resultSet.getObject("neutral_venue", Boolean.class),
+                resultSet.getBoolean("participants_unordered"),
                 instant(resultSet, "kickoff_at"),
                 FixtureStatus.valueOf(resultSet.getString("status")),
                 resultSet.getString("phase"),
+                mapAuthorityStamp(resultSet),
                 instant(resultSet, "created_at"),
                 instant(resultSet, "updated_at"));
+    }
+
+    private FixtureAuthorityStamp mapAuthorityStamp(ResultSet resultSet) throws SQLException {
+        UUID observationId = resultSet.getObject("last_authority_observation_id", UUID.class);
+        OffsetDateTime observedAt = resultSet.getObject("last_authority_observed_at", OffsetDateTime.class);
+        String provider = resultSet.getString("last_authority_provider");
+        String policyVersion = resultSet.getString("last_authority_policy_version");
+        if (observationId == null && observedAt == null && provider == null && policyVersion == null) {
+            return null;
+        }
+        if (observationId == null || observedAt == null || provider == null || policyVersion == null) {
+            throw new IllegalStateException("Canonical fixture has an incomplete authority stamp");
+        }
+        return new FixtureAuthorityStamp(observationId, observedAt.toInstant(), provider, policyVersion);
     }
 
     private java.time.Instant instant(ResultSet resultSet, String column) throws SQLException {
@@ -314,5 +402,21 @@ public class JdbcCatalogRepository implements CatalogRepository {
 
     private OffsetDateTime utc(java.time.Instant instant) {
         return instant.atOffset(ZoneOffset.UTC);
+    }
+
+    private UUID authorityObservationId(FixtureAuthorityStamp authority) {
+        return authority == null ? null : authority.observationId();
+    }
+
+    private OffsetDateTime authorityObservedAt(FixtureAuthorityStamp authority) {
+        return authority == null ? null : utc(authority.observedAt());
+    }
+
+    private String authorityProvider(FixtureAuthorityStamp authority) {
+        return authority == null ? null : authority.provider();
+    }
+
+    private String authorityPolicyVersion(FixtureAuthorityStamp authority) {
+        return authority == null ? null : authority.policyVersion();
     }
 }

@@ -32,4 +32,28 @@ class ArchitectureRulesTest {
             .should()
             .dependOnClassesThat()
             .resideInAPackage("..adapter..");
+
+    @ArchTest
+    static final ArchRule application_does_not_depend_on_jdbc = noClasses()
+            .that()
+            .resideInAPackage("..application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                    "java.sql..",
+                    "javax.sql..",
+                    "org.springframework.jdbc..",
+                    "org.postgresql..");
+
+    @ArchTest
+    static final ArchRule application_does_not_depend_on_web_or_servlet = noClasses()
+            .that()
+            .resideInAPackage("..application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                    "org.springframework.http..",
+                    "org.springframework.web..",
+                    "jakarta.servlet..",
+                    "javax.servlet..");
 }
