@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: "${BETTING_DB_URL:jdbc:postgresql://localhost:${BETTING_DB_PORT:5432}/${BETTING_DB_NAME:betting}}"
+    url: "${BETTING_DB_URL:jdbc:postgresql://127.0.0.1:${BETTING_DB_PORT:5433}/${BETTING_DB_NAME:betting}}"
     username: "${BETTING_DB_USER:betting}"
     password: "${BETTING_DB_PASSWORD}"
     hikari:
@@ -13,8 +13,29 @@ spring:
 betting:
   operator:
     id: "${BETTING_OPERATOR_ID:}"
+  integration:
+    j7-receiver:
+      enabled: "${BETTING_J7_RECEIVER_ENABLED:false}"
+      retention-days: "${BETTING_J7_RETENTION_DAYS:30}"
+      max-request-bytes: 5242880
+      max-ack-bytes: 16384
+      client-certificate-sha256-allowlist: "${BETTING_J7_CLIENT_CERTIFICATE_SHA256_ALLOWLIST:}"
   runtime:
     mode: control-api
 
 server:
   address: 127.0.0.1
+  compression:
+    enabled: false
+  # HTTP/8080 reste le mode local historique lorsque le receiver est désactivé.
+  # La garde INT-001 exige exactement 8444 dès que BETTING_J7_RECEIVER_ENABLED=true.
+  port: "${BETTING_CONTROL_API_PORT:8080}"
+  ssl:
+    enabled: "${BETTING_J7_RECEIVER_ENABLED:false}"
+    client-auth: need
+    key-store: "${BETTING_J7_KEY_STORE:}"
+    key-store-password: "${BETTING_J7_KEY_STORE_PASSWORD:}"
+    key-store-type: "${BETTING_J7_KEY_STORE_TYPE:PKCS12}"
+    trust-store: "${BETTING_J7_TRUST_STORE:}"
+    trust-store-password: "${BETTING_J7_TRUST_STORE_PASSWORD:}"
+    trust-store-type: "${BETTING_J7_TRUST_STORE_TYPE:PKCS12}"

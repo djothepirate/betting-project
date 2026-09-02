@@ -1,0 +1,13 @@
+package com.bettingproject.collection.application.imports;
+
+public enum J7ImportAuditReason {
+    ACCEPTED,
+    BYTE_IDENTICAL,
+    IDEMPOTENCY_KEY_DIVERGENCE,
+    EXPORT_ID_DIVERGENCE,
+    FILE_HASH_DIVERGENCE,
+    DATA_HASH_DIVERGENCE,
+    CERTIFICATE_DIVERGENCE,
+    METADATA_DIVERGENCE,
+    RETENTION_EXPIRED
+}

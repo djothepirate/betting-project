@@ -42,6 +42,15 @@ import com.bettingproject.catalog.application.ReplayQueryPort;
 import com.bettingproject.catalog.application.ReplayQueryService;
 import com.bettingproject.catalog.application.StoredRawSnapshotReader;
 import com.bettingproject.identity.application.NormalizationAnomalyLifecycleService;
+import com.bettingproject.collection.adapter.configuration.J7ClientCertificateFilter;
+import com.bettingproject.collection.adapter.persistence.JdbcJ7ImportStore;
+import com.bettingproject.collection.adapter.web.j7.J7ImportController;
+import com.bettingproject.collection.adapter.web.j7.J7ImportProblemHandler;
+import com.bettingproject.collection.adapter.web.j7.J7RequestEnvelopeFilter;
+import com.bettingproject.collection.adapter.web.j7.StrictJ7ImportParser;
+import com.bettingproject.collection.application.imports.J7ImportPurgeService;
+import com.bettingproject.collection.application.imports.J7ImportService;
+import com.bettingproject.collection.application.imports.J7ImportStore;
 import com.bettingproject.operations.adapter.web.BootstrapStatusController;
 import com.bettingproject.operations.application.RuntimeMode;
 import org.junit.jupiter.api.Test;
@@ -144,5 +153,14 @@ class ControlApiProfileTest {
         assertThat(applicationContext.getBeansOfType(CatalogCursorCodec.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(StrictCatalogCommandParser.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(CatalogProblemHandler.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(J7ImportController.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportProblemHandler.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7RequestEnvelopeFilter.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ClientCertificateFilter.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(StrictJ7ImportParser.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportPurgeService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportStore.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(JdbcJ7ImportStore.class)).isEmpty();
     }
 }

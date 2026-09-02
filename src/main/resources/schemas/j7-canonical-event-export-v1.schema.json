@@ -1,0 +1,638 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:betting-project:sofascore-local-lab:j7:canonical-event-export:v1",
+  "title": "SofaScore Local Lab J7 canonical event export v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest", "data"],
+  "properties": {
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exportId", "schemaId", "schemaVersion", "generatedAt", "generatorVersion",
+        "selectionMode", "dataSha256", "sourceSetSha256", "validation", "sources", "warnings"
+      ],
+      "properties": {
+        "exportId": {"type": "string", "format": "uuid"},
+        "schemaId": {"const": "urn:betting-project:sofascore-local-lab:j7:canonical-event-export:v1"},
+        "schemaVersion": {"const": "1.0.0"},
+        "generatedAt": {"type": "string", "format": "date-time"},
+        "generatorVersion": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z0-9._+-]+$"},
+        "selectionMode": {"const": "LATEST_AVAILABLE"},
+        "dataSha256": {"$ref": "#/$defs/sha256"},
+        "sourceSetSha256": {"$ref": "#/$defs/sha256"},
+        "validation": {"$ref": "#/$defs/validation"},
+        "sources": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {"$ref": "#/$defs/eventStateSource"},
+            {"$ref": "#/$defs/eventDetailsSource"},
+            {"$ref": "#/$defs/eventStatisticsSource"},
+            {"$ref": "#/$defs/eventIncidentsSource"},
+            {"$ref": "#/$defs/eventLineupsSource"}
+          ],
+          "items": false
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/warning"}
+        }
+      }
+    },
+    "data": {"$ref": "#/$defs/data"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullablePositiveId": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "maximum": 9223372036854775807
+    },
+    "nullableBoundedText": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]+$"
+    },
+    "validation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "decidedAt", "rejectionReason"],
+          "properties": {
+            "status": {"const": "COHERENCE_CHECKED"},
+            "decidedAt": {"type": "null"},
+            "rejectionReason": {"type": "null"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "decidedAt", "rejectionReason"],
+          "properties": {
+            "status": {"const": "HUMAN_VALIDATED"},
+            "decidedAt": {"type": "string", "format": "date-time"},
+            "rejectionReason": {"type": "null"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "decidedAt", "rejectionReason"],
+          "properties": {
+            "status": {"const": "REJECTED"},
+            "decidedAt": {"type": "string", "format": "date-time"},
+            "rejectionReason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "pattern": "^[^\\u0000-\\u001F\\u007F]+$"
+            }
+          }
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component", "availability", "observationId", "sourceKind", "sourceReference",
+        "snapshotId", "fixtureId", "sourceSha256", "normalizedSha256", "parserVersion",
+        "receivedAt", "rawPayloadState", "completeness"
+      ],
+      "properties": {
+        "component": {
+          "enum": ["EVENT_STATE", "EVENT_DETAILS", "EVENT_STATISTICS", "EVENT_INCIDENTS", "EVENT_LINEUPS"]
+        },
+        "availability": {"enum": ["PRESENT", "UNAVAILABLE", "MISSING", "EMPTY_VALID"]},
+        "observationId": {"$ref": "#/$defs/nullablePositiveId"},
+        "sourceKind": {"type": ["string", "null"], "enum": ["PROVIDER_SNAPSHOT", "SYNTHETIC_FIXTURE", null]},
+        "sourceReference": {"type": ["string", "null"], "minLength": 1, "maxLength": 120, "pattern": "^(snapshot:[1-9][0-9]*|[a-z0-9]+(?:-[a-z0-9]+)*)$"},
+        "snapshotId": {"$ref": "#/$defs/nullablePositiveId"},
+        "fixtureId": {"type": ["string", "null"], "minLength": 1, "maxLength": 100, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+        "sourceSha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "normalizedSha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "parserVersion": {"type": ["string", "null"], "minLength": 1, "maxLength": 32, "pattern": "^[A-Za-z0-9._-]+$"},
+        "receivedAt": {"type": ["string", "null"], "format": "date-time"},
+        "rawPayloadState": {"type": ["string", "null"], "enum": ["RETAINED", "PAYLOAD_PURGED", "LEGACY_ABSENT", "NOT_APPLICABLE", null]},
+        "completeness": {"anyOf": [{"$ref": "#/$defs/completeness"}, {"type": "null"}]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"availability": {"const": "MISSING"}}, "required": ["availability"]},
+          "then": {
+            "properties": {
+              "observationId": {"type": "null"},
+              "sourceKind": {"type": "null"},
+              "sourceReference": {"type": "null"},
+              "snapshotId": {"type": "null"},
+              "fixtureId": {"type": "null"},
+              "sourceSha256": {"type": "null"},
+              "normalizedSha256": {"type": "null"},
+              "parserVersion": {"type": "null"},
+              "receivedAt": {"type": "null"},
+              "rawPayloadState": {"type": "null"},
+              "completeness": {"type": "null"}
+            }
+          },
+          "else": {
+            "properties": {
+              "observationId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+              "sourceKind": {"enum": ["PROVIDER_SNAPSHOT", "SYNTHETIC_FIXTURE"]},
+              "sourceReference": {"type": "string"},
+              "sourceSha256": {"$ref": "#/$defs/sha256"},
+              "normalizedSha256": {"$ref": "#/$defs/sha256"},
+              "parserVersion": {"type": "string"},
+              "receivedAt": {"type": "string", "format": "date-time"},
+              "rawPayloadState": {"enum": ["RETAINED", "PAYLOAD_PURGED", "LEGACY_ABSENT", "NOT_APPLICABLE"]}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"sourceKind": {"const": "PROVIDER_SNAPSHOT"}}, "required": ["sourceKind"]},
+          "then": {
+            "properties": {
+              "snapshotId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+              "fixtureId": {"type": "null"},
+              "rawPayloadState": {"enum": ["RETAINED", "PAYLOAD_PURGED", "LEGACY_ABSENT"]}
+            }
+          },
+          "else": {
+            "if": {"properties": {"sourceKind": {"const": "SYNTHETIC_FIXTURE"}}, "required": ["sourceKind"]},
+            "then": {"properties": {"snapshotId": {"type": "null"}, "fixtureId": {"type": "string"}, "rawPayloadState": {"const": "NOT_APPLICABLE"}}}
+          }
+        }
+      ]
+    },
+    "eventStateSource": {
+      "allOf": [
+        {"$ref": "#/$defs/source"},
+        {"properties": {"component": {"const": "EVENT_STATE"}, "availability": {"const": "PRESENT"}, "completeness": {"type": "null"}}}
+      ]
+    },
+    "eventDetailsSource": {
+      "allOf": [
+        {"$ref": "#/$defs/source"},
+        {"properties": {"component": {"const": "EVENT_DETAILS"}, "availability": {"enum": ["PRESENT", "MISSING"]}, "completeness": {"type": "null"}}}
+      ]
+    },
+    "eventStatisticsSource": {
+      "allOf": [
+        {"$ref": "#/$defs/source"},
+        {"properties": {"component": {"const": "EVENT_STATISTICS"}}},
+        {"$ref": "#/$defs/j5SourceRules"}
+      ]
+    },
+    "eventIncidentsSource": {
+      "allOf": [
+        {"$ref": "#/$defs/source"},
+        {"properties": {"component": {"const": "EVENT_INCIDENTS"}}},
+        {"$ref": "#/$defs/j5SourceRules"}
+      ]
+    },
+    "eventLineupsSource": {
+      "allOf": [
+        {"$ref": "#/$defs/source"},
+        {"properties": {"component": {"const": "EVENT_LINEUPS"}}},
+        {"$ref": "#/$defs/j5SourceRules"}
+      ]
+    },
+    "j5SourceRules": {
+      "oneOf": [
+        {
+          "properties": {
+            "availability": {"const": "MISSING"},
+            "completeness": {"type": "null"}
+          }
+        },
+        {
+          "properties": {
+            "availability": {"const": "UNAVAILABLE"},
+            "completeness": {
+              "allOf": [
+                {"$ref": "#/$defs/completeness"},
+                {"properties": {"status": {"const": "UNAVAILABLE"}}}
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "availability": {"const": "EMPTY_VALID"},
+            "completeness": {
+              "allOf": [
+                {"$ref": "#/$defs/completeness"},
+                {"properties": {"status": {"const": "EMPTY_VALID"}}}
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "availability": {"const": "PRESENT"},
+            "completeness": {
+              "allOf": [
+                {"$ref": "#/$defs/completeness"},
+                {"properties": {"status": {"enum": ["COMPLETE", "PARTIAL"]}}}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "scorePercent", "presentSignals", "expectedSignals", "missingPaths"],
+      "properties": {
+        "status": {"enum": ["COMPLETE", "PARTIAL", "EMPTY_VALID", "UNAVAILABLE"]},
+        "scorePercent": {"type": "integer", "minimum": 0, "maximum": 100},
+        "presentSignals": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "expectedSignals": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "missingPaths": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 300, "pattern": "^[^\\u0000-\\u001F\\u007F]+$"}
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {"const": "COMPLETE"},
+            "scorePercent": {"const": 100},
+            "presentSignals": {"type": "integer", "minimum": 1},
+            "expectedSignals": {"type": "integer", "minimum": 1},
+            "missingPaths": {"type": "array", "maxItems": 0}
+          }
+        },
+        {
+          "properties": {
+            "status": {"const": "PARTIAL"},
+            "scorePercent": {"type": "integer", "minimum": 0, "maximum": 99},
+            "expectedSignals": {"type": "integer", "minimum": 1},
+            "missingPaths": {"type": "array", "minItems": 1}
+          }
+        },
+        {
+          "properties": {
+            "status": {"const": "EMPTY_VALID"},
+            "scorePercent": {"const": 100},
+            "presentSignals": {"const": 0},
+            "expectedSignals": {"const": 0},
+            "missingPaths": {"type": "array", "maxItems": 0}
+          }
+        },
+        {
+          "properties": {
+            "status": {"const": "UNAVAILABLE"},
+            "scorePercent": {"const": 0},
+            "presentSignals": {"const": 0},
+            "expectedSignals": {"const": 0},
+            "missingPaths": {"type": "array", "maxItems": 0}
+          }
+        }
+      ]
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "component"],
+      "properties": {
+        "code": {
+          "enum": [
+            "MISSING_COMPONENT", "UNAVAILABLE_COMPONENT", "PARTIAL_COMPLETENESS",
+            "SYNTHETIC_SOURCE", "MIXED_SOURCE_KINDS", "RAW_PAYLOAD_PURGED",
+            "RAW_PAYLOAD_LEGACY_ABSENT"
+          ]
+        },
+        "component": {
+          "type": ["string", "null"],
+          "enum": ["EVENT_STATE", "EVENT_DETAILS", "EVENT_STATISTICS", "EVENT_INCIDENTS", "EVENT_LINEUPS", null]
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "eventState", "eventDetails", "statistics", "incidents", "lineups"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identity"},
+        "eventState": {"$ref": "#/$defs/eventState"},
+        "eventDetails": {"$ref": "#/$defs/eventDetailsSlot"},
+        "statistics": {"$ref": "#/$defs/statisticsSlot"},
+        "incidents": {"$ref": "#/$defs/incidentsSlot"},
+        "lineups": {"$ref": "#/$defs/lineupsSlot"}
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalEventId", "provider", "providerEventId"],
+      "properties": {
+        "canonicalEventId": {"type": "string", "format": "uuid"},
+        "provider": {"const": "SOFASCORE"},
+        "providerEventId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807}
+      }
+    },
+    "team": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerTeamId", "name"],
+      "properties": {
+        "providerTeamId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+        "name": {"type": "string", "minLength": 1, "maxLength": 300}
+      }
+    },
+    "tournament": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["providerTournamentId", "name"],
+      "properties": {
+        "providerTournamentId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+        "name": {"type": "string", "minLength": 1, "maxLength": 300}
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "description"],
+      "properties": {
+        "type": {"type": "string", "minLength": 1, "maxLength": 100},
+        "description": {"$ref": "#/$defs/nullableBoundedText"}
+      }
+    },
+    "eventState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "startsAt", "homeTeam", "awayTeam", "status", "tournament"],
+      "properties": {
+        "availability": {"const": "PRESENT"},
+        "startsAt": {"type": "string", "format": "date-time"},
+        "homeTeam": {"$ref": "#/$defs/team"},
+        "awayTeam": {"$ref": "#/$defs/team"},
+        "status": {"$ref": "#/$defs/status"},
+        "tournament": {"$ref": "#/$defs/tournament"}
+      }
+    },
+    "eventDetailsSlot": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["availability", "details"],
+          "properties": {"availability": {"const": "MISSING"}, "details": {"type": "null"}}
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["availability", "details"],
+          "properties": {"availability": {"const": "PRESENT"}, "details": {"$ref": "#/$defs/eventDetails"}}
+        }
+      ]
+    },
+    "eventDetails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startsAt", "homeTeam", "awayTeam", "status", "tournament", "venue", "season", "round"],
+      "properties": {
+        "startsAt": {"type": "string", "format": "date-time"},
+        "homeTeam": {"$ref": "#/$defs/team"},
+        "awayTeam": {"$ref": "#/$defs/team"},
+        "status": {"$ref": "#/$defs/status"},
+        "tournament": {"$ref": "#/$defs/tournament"},
+        "venue": {
+          "type": ["object", "null"], "additionalProperties": false,
+          "required": ["providerVenueId", "name", "city"],
+          "properties": {
+            "providerVenueId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+            "name": {"type": "string", "minLength": 1, "maxLength": 200},
+            "city": {"type": ["string", "null"], "minLength": 1, "maxLength": 200}
+          }
+        },
+        "season": {
+          "type": ["object", "null"], "additionalProperties": false,
+          "required": ["providerSeasonId", "name"],
+          "properties": {
+            "providerSeasonId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+            "name": {"type": "string", "minLength": 1, "maxLength": 100}
+          }
+        },
+        "round": {"type": ["string", "null"], "minLength": 1, "maxLength": 64}
+      }
+    },
+    "statisticsSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "completeness", "metrics"],
+      "properties": {
+        "availability": {"enum": ["PRESENT", "UNAVAILABLE", "MISSING", "EMPTY_VALID"]},
+        "completeness": {"anyOf": [{"$ref": "#/$defs/completeness"}, {"type": "null"}]},
+        "metrics": {
+          "anyOf": [
+            {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/metric"}},
+            {"type": "null"}
+          ]
+        }
+      },
+      "allOf": [{"$ref": "#/$defs/familySlotRules"}]
+    },
+    "metric": {
+      "type": "object", "additionalProperties": false,
+      "required": ["period", "groupName", "metricCode", "metricName", "homeValue", "awayValue"],
+      "properties": {
+        "period": {"type": "string", "minLength": 1, "maxLength": 32},
+        "groupName": {"type": "string", "minLength": 1, "maxLength": 100},
+        "metricCode": {"type": "string", "minLength": 1, "maxLength": 100},
+        "metricName": {"type": "string", "minLength": 1, "maxLength": 150},
+        "homeValue": {"type": ["string", "null"], "minLength": 1, "maxLength": 100},
+        "awayValue": {"type": ["string", "null"], "minLength": 1, "maxLength": 100}
+      }
+    },
+    "incidentsSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "completeness", "incidents"],
+      "properties": {
+        "availability": {"enum": ["PRESENT", "UNAVAILABLE", "MISSING", "EMPTY_VALID"]},
+        "completeness": {"anyOf": [{"$ref": "#/$defs/completeness"}, {"type": "null"}]},
+        "incidents": {
+          "anyOf": [
+            {"type": "array", "maxItems": 10000, "items": {"$ref": "#/$defs/incident"}},
+            {"type": "null"}
+          ]
+        }
+      },
+      "allOf": [{"$ref": "#/$defs/familySlotRules"}]
+    },
+    "incident": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence", "incidentType", "minute", "addedTime", "home", "participantProviderId",
+        "playerProviderId", "playerName", "playerInProviderId", "playerInName",
+        "playerOutProviderId", "playerOutName", "homeScore", "awayScore", "incidentClass",
+        "reason", "periodText", "injury", "assistProviderId", "assistName", "goalOrigin",
+        "injuryTimeLength", "varConfirmed", "rescinded", "description", "shootoutSequence"
+      ],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 0, "maximum": 99999},
+        "incidentType": {"type": "string", "minLength": 1, "maxLength": 64},
+        "minute": {"type": ["integer", "null"], "minimum": 0, "maximum": 300},
+        "addedTime": {"type": ["integer", "null"], "minimum": 0, "maximum": 300},
+        "home": {"type": ["boolean", "null"]},
+        "participantProviderId": {"$ref": "#/$defs/nullablePositiveId"},
+        "playerProviderId": {"$ref": "#/$defs/nullablePositiveId"},
+        "playerName": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+        "playerInProviderId": {"$ref": "#/$defs/nullablePositiveId"},
+        "playerInName": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+        "playerOutProviderId": {"$ref": "#/$defs/nullablePositiveId"},
+        "playerOutName": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+        "homeScore": {"type": ["integer", "null"], "minimum": 0, "maximum": 99},
+        "awayScore": {"type": ["integer", "null"], "minimum": 0, "maximum": 99},
+        "incidentClass": {"type": ["string", "null"], "minLength": 1, "maxLength": 64},
+        "reason": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+        "periodText": {"type": ["string", "null"], "minLength": 1, "maxLength": 64},
+        "injury": {"type": ["boolean", "null"]},
+        "assistProviderId": {"$ref": "#/$defs/nullablePositiveId"},
+        "assistName": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+        "goalOrigin": {"type": ["string", "null"], "minLength": 1, "maxLength": 64},
+        "injuryTimeLength": {"type": ["integer", "null"], "minimum": 0, "maximum": 300},
+        "varConfirmed": {"type": ["boolean", "null"]},
+        "rescinded": {"type": ["boolean", "null"]},
+        "description": {"type": ["string", "null"], "minLength": 1, "maxLength": 200},
+        "shootoutSequence": {"type": ["integer", "null"], "minimum": 1, "maximum": 999}
+      }
+    },
+    "lineupsSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "completeness", "lineups"],
+      "properties": {
+        "availability": {"enum": ["PRESENT", "UNAVAILABLE", "MISSING", "EMPTY_VALID"]},
+        "completeness": {"anyOf": [{"$ref": "#/$defs/completeness"}, {"type": "null"}]},
+        "lineups": {"anyOf": [{"$ref": "#/$defs/lineups"}, {"type": "null"}]}
+      },
+      "allOf": [
+        {"$ref": "#/$defs/familySlotRules"}
+      ]
+    },
+    "lineups": {
+      "type": "object", "additionalProperties": false,
+      "required": ["confirmed", "home", "away"],
+      "properties": {
+        "confirmed": {"type": "boolean"},
+        "home": {"$ref": "#/$defs/teamLineup"},
+        "away": {"$ref": "#/$defs/teamLineup"}
+      }
+    },
+    "emptyLineups": {
+      "allOf": [
+        {"$ref": "#/$defs/lineups"},
+        {
+          "properties": {
+            "confirmed": {"const": false},
+            "home": {"properties": {"formation": {"type": "null"}, "players": {"maxItems": 0}}},
+            "away": {"properties": {"formation": {"type": "null"}, "players": {"maxItems": 0}}}
+          }
+        }
+      ]
+    },
+    "presentLineups": {
+      "allOf": [
+        {"$ref": "#/$defs/lineups"},
+        {
+          "anyOf": [
+            {"properties": {"confirmed": {"const": true}}},
+            {"properties": {"home": {"properties": {"formation": {"type": "string"}}}}},
+            {"properties": {"away": {"properties": {"formation": {"type": "string"}}}}},
+            {"properties": {"home": {"properties": {"players": {"minItems": 1}}}}},
+            {"properties": {"away": {"properties": {"players": {"minItems": 1}}}}}
+          ]
+        }
+      ]
+    },
+    "teamLineup": {
+      "type": "object", "additionalProperties": false,
+      "required": ["side", "formation", "players"],
+      "properties": {
+        "side": {"enum": ["HOME", "AWAY"]},
+        "formation": {"type": ["string", "null"], "minLength": 1, "maxLength": 32},
+        "players": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/player"}}
+      }
+    },
+    "player": {
+      "type": "object", "additionalProperties": false,
+      "required": ["providerPlayerId", "name", "shirtNumber", "position", "starter"],
+      "properties": {
+        "providerPlayerId": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+        "name": {"type": "string", "minLength": 1, "maxLength": 200},
+        "shirtNumber": {"type": ["integer", "null"], "minimum": 1, "maximum": 999},
+        "position": {"type": ["string", "null"], "minLength": 1, "maxLength": 32},
+        "starter": {"type": "boolean"}
+      }
+    },
+    "familySlotRules": {
+      "oneOf": [
+        {
+          "properties": {
+            "availability": {"const": "MISSING"},
+            "completeness": {"type": "null"},
+            "metrics": {"type": "null"},
+            "incidents": {"type": "null"},
+            "lineups": {"type": "null"}
+          }
+        },
+        {
+          "properties": {
+            "availability": {"const": "UNAVAILABLE"},
+            "completeness": {
+              "allOf": [
+                {"$ref": "#/$defs/completeness"},
+                {"properties": {"status": {"const": "UNAVAILABLE"}}}
+              ]
+            },
+            "metrics": {"type": "null"},
+            "incidents": {"type": "null"},
+            "lineups": {"type": "null"}
+          }
+        },
+        {
+          "properties": {
+            "availability": {"const": "EMPTY_VALID"},
+            "completeness": {
+              "allOf": [
+                {"$ref": "#/$defs/completeness"},
+                {"properties": {"status": {"const": "EMPTY_VALID"}}}
+              ]
+            },
+            "metrics": {"type": "array", "maxItems": 0},
+            "incidents": {"type": "array", "maxItems": 0},
+            "lineups": {"$ref": "#/$defs/emptyLineups"}
+          }
+        },
+        {
+          "properties": {
+            "availability": {"const": "PRESENT"},
+            "completeness": {
+              "allOf": [
+                {"$ref": "#/$defs/completeness"},
+                {"properties": {"status": {"enum": ["COMPLETE", "PARTIAL"]}}}
+              ]
+            },
+            "metrics": {"type": "array", "minItems": 1},
+            "incidents": {"type": "array", "minItems": 1},
+            "lineups": {"$ref": "#/$defs/presentLineups"}
+          }
+        }
+      ]
+    }
+  }
+}
