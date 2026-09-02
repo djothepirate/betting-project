@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import com.bettingproject.catalog.domain.CanonicalFixture;
 import com.bettingproject.catalog.domain.CanonicalSeason;
@@ -20,6 +21,9 @@ import com.bettingproject.identity.domain.MappingStatus;
 import com.bettingproject.identity.domain.ProviderEntityType;
 import com.bettingproject.identity.domain.ProviderMapping;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -343,6 +347,44 @@ class CalendarNormalizationIT {
         assertThat(fixtureMappings()).isZero();
         assertThat(applicationOutcomeCount("UNASSIGNED")).isEqualTo(1);
         assertThat(anomalyCount("UNASSIGNED_AUTHORITY")).isEqualTo(1);
+    }
+
+    @ParameterizedTest(name = "literal {1} in runtime {0} remains an exact value")
+    @MethodSource("wildcardLikeRuntimeAuthorityValues")
+    void wildcardLikeRuntimeAuthorityValuesArePreservedAsUnassigned(
+            String field,
+            String character,
+            String expectedJson,
+            String replacementJson,
+            String snapshotProvider,
+            String expectedStoredValue) throws IOException {
+        byte[] payload = replaceInFixture(
+                "/fixtures/cat002/calendar-v3-ordered-neutral.json",
+                expectedJson,
+                replacementJson);
+
+        NormalizationResult result = normalizationService.normalize(snapshot(
+                payload,
+                snapshotProvider,
+                "calendar/runtime-literal-authority-key",
+                "2026-09-01T15:00:01Z"));
+
+        assertThat(result.snapshotInserted()).isTrue();
+        assertThat(result.fixturesBlocked()).isEqualTo(1);
+        assertThat(result.anomalies()).isEqualTo(1);
+        assertThat(count("raw_snapshot")).isEqualTo(1);
+        assertThat(count("fixture_observation")).isEqualTo(1);
+        assertThat(count("fixture_application_log")).isEqualTo(1);
+        assertThat(count("normalization_anomaly")).isEqualTo(1);
+        assertThat(applicationOutcomeCount("UNASSIGNED")).isEqualTo(1);
+        assertThat(anomalyCount("UNASSIGNED_AUTHORITY")).isEqualTo(1);
+        assertThat(storedAuthorityValue(field)).isEqualTo(expectedStoredValue);
+        assertThat(expectedStoredValue).contains(character);
+        assertThat(count("canonical_competition")).isZero();
+        assertThat(count("canonical_season")).isZero();
+        assertThat(count("canonical_team")).isZero();
+        assertThat(count("canonical_fixture")).isZero();
+        assertThat(count("provider_mapping")).isZero();
     }
 
     @Test
@@ -1526,6 +1568,50 @@ class CalendarNormalizationIT {
                 .param("code", code)
                 .query(Long.class)
                 .single();
+    }
+
+    private String storedAuthorityValue(String field) {
+        return switch (field) {
+            case "provider" -> singleString("SELECT provider FROM fixture_observation");
+            case "providerCompetitionId" -> singleString(
+                    "SELECT provider_competition_id FROM fixture_observation");
+            case "season" -> singleString("SELECT source_season FROM fixture_observation");
+            case "phase" -> singleString("SELECT source_phase FROM fixture_observation");
+            default -> throw new IllegalArgumentException("Unsupported authority key field: " + field);
+        };
+    }
+
+    private static Stream<Arguments> wildcardLikeRuntimeAuthorityValues() {
+        return Stream.of("*", "?", "%")
+                .flatMap(character -> Stream.of(
+                        Arguments.of(
+                                "provider",
+                                character,
+                                "\"provider\": \"synthetic-provider\"",
+                                "\"provider\": \"runtime" + character + "provider\"",
+                                "runtime" + character + "provider",
+                                "runtime" + character + "provider"),
+                        Arguments.of(
+                                "providerCompetitionId",
+                                character,
+                                "\"providerCompetitionId\": \"synthetic-league\"",
+                                "\"providerCompetitionId\": \"runtime" + character + "competition\"",
+                                "synthetic-provider",
+                                "runtime" + character + "competition"),
+                        Arguments.of(
+                                "season",
+                                character,
+                                "\"season\": \"2026/2027\"",
+                                "\"season\": \"2026" + character + "2027\"",
+                                "synthetic-provider",
+                                "2026" + character + "2027"),
+                        Arguments.of(
+                                "phase",
+                                character,
+                                "\"phase\": \"REGULAR_SEASON\"",
+                                "\"phase\": \"REGULAR" + character + "SEASON\"",
+                                "synthetic-provider",
+                                "REGULAR" + character + "SEASON")));
     }
 
     private void deleteCommittedRollbackTestData() {

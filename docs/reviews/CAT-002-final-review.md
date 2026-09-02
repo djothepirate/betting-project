@@ -3,19 +3,24 @@
 ## État du dossier
 
 - **Work Order :** `CAT-002`
-- **Branche :** `codex/cat-002`
-- **HEAD et base d'exécution :** `d8205b0c1efe164c869c7408378fcbf1ee89267d`
-- **Référence locale `origin/main` au gel :** `88194d9136611fe44a809d6e1acc91945b6639b9`
-- **Écart amont constaté :** 18 commits CI-001 postérieurs à la base ; aucun rebase ou merge n'est autorisé avant la revue et les autorisations Git
-- **État :** `AWAITING_HUMAN_REVIEW`
-- **Critères avant revue :** 35 sur 36
-- **Manifeste :** [`CAT-002-review-scope.sha256`](CAT-002-review-scope.sha256)
-- **SHA-256 du manifeste :** `b6153a2ac4fd90a3c993579b58864866c334558820024b3fc5abf536b53d124e`
-- **Inventaire figé :** 194 fichiers couverts, dont 36 fichiers suivis modifiés et 158 fichiers non suivis ; 3 fichiers de contrôle exclus ; 197 chemins Git au total dans le candidat gelé.
+- **Branche :** `codex/cat-002-catalog`
+- **HEAD publié de départ :** `92c98f2de02ff1457c6718bb12a47cc78d0028af`
+- **Base historique d'exécution :** `d8205b0c1efe164c869c7408378fcbf1ee89267d`
+- **Base `main` de la Pull Request #8 :** `88194d9136611fe44a809d6e1acc91945b6639b9`
+- **État :** `APPROVED - READY_FOR_GIT - LINUX_CI_PENDING`
+- **Critères après nouvelle revue :** 36 sur 36
+- **Manifeste correctif :** [`CAT-002-review-scope-p2.sha256`](CAT-002-review-scope-p2.sha256)
+- **SHA-256 du manifeste correctif :** `b26a3d2b80cb46ea135e7cef6d3342ec3f04aee24b81936a6866310d0a0f3b46`
+- **Inventaire correctif figé :** 195 fichiers couverts, dont 159 ajoutés et 36 modifiés par rapport à la base historique ; 3 fichiers de contrôle exclus ; 198 chemins CAT-002 au total avec le nouveau manifeste.
+- **Manifeste initial historique :** [`CAT-002-review-scope.sha256`](CAT-002-review-scope.sha256), SHA-256 `b6153a2ac4fd90a3c993579b58864866c334558820024b3fc5abf536b53d124e`
 
-Le manifeste couvre les octets du worktree Windows de tous les fichiers ajoutés ou modifiés par CAT-002, y compris les fichiers non suivis, à l'exception du manifeste lui-même et des deux fichiers réservés au geste final du porteur : ce dossier d'attestation et `docs/work-orders/CAT-002.md`.
+Le manifeste correctif couvre les octets du worktree Windows de tous les fichiers ajoutés ou modifiés par CAT-002 par rapport à la base historique, y compris l'ancien manifeste et les fichiers du correctif P2. Il exclut uniquement le nouveau manifeste lui-même et les deux fichiers réservés au geste final du porteur : ce dossier d'attestation et `docs/work-orders/CAT-002.md`.
 
-`git diff` seul ne couvre pas les fichiers non suivis. La revue est valide uniquement si chaque chemin du manifeste a été lu dans Eclipse et si le recalcul final produit exactement le même manifeste.
+La première attestation ne couvre pas le correctif P2 et ne peut pas être réutilisée. La nouvelle revue est valide uniquement si chaque chemin du manifeste correctif a été lu dans Eclipse et si le recalcul final produit exactement le même manifeste.
+
+## Motif de la nouvelle revue
+
+La revue de la Pull Request `#8` a confirmé la remarque P2 `discussion_r3911480832`. Une validation placée dans `CalendarAuthorityKey` rejetait les caractères fournisseur runtime `*`, `?` et `%` avant le traitement fermé `UNASSIGNED`. Le correctif les conserve comme littéraux exacts dans la clé runtime et déplace l'interdiction vers `CalendarAuthorityAssignment`, frontière des affectations de configuration. Douze scénarios PostgreSQL couvrent les trois caractères dans le fournisseur, la référence de compétition, la saison et la phase ; ils exigent la conservation du snapshot, de l'observation, du journal et de l'anomalie, sans création canonique.
 
 ## Résumé du changement à revoir
 
@@ -23,6 +28,7 @@ Le manifeste couvre les octets du worktree Windows de tous les fichiers ajoutés
 |---|---|---|
 | Migrations V003-V005 | Chronologie et journal d'application, décisions et cycle d'anomalies, demandes et tentatives de rejeu | Backfills honnêtes, contraintes, index et absence de mutation de V001/V002 |
 | Normalisation | `observedAt`, autorité, transitions, identité ordonnée ou explicitement non ordonnée | Aucune régression du canon, aucun contrôle promu ou appliqué |
+| Correctif P2 d'autorité | Valeurs runtime littérales et affectations de configuration sans joker | `UNASSIGNED` conserve toute la preuve sans créer de référentiel ni de canon |
 | Concurrence PostgreSQL | Verrou advisory, insertions atomiques, verrous de ligne et compare-and-set | Un seul canon, mapping et résultat logique |
 | Décisions humaines | Version attendue, auteur local, justification expurgée, reçu et historique append-only | Aucun écrasement, fuite de secret ou identité fournie par HTTP |
 | Anomalies | Projection courante et événements `OPENED`/`OBSERVED`/`RESOLVED`/`REOPENED` | Résolution uniquement après évaluation complète |
@@ -34,7 +40,7 @@ Le manifeste couvre les octets du worktree Windows de tous les fichiers ajoutés
 
 ## Matrice des 36 critères
 
-| ID | Critère synthétique | État avant revue | Preuve principale |
+| ID | Critère synthétique | État après revue | Preuve principale |
 |---|---|---|---|
 | C01 | Activation du Work Order autorisée | Satisfait | décision du porteur du 2026-09-01 |
 | C02 | Lot 0 clôturé avant technique | Satisfait | décisions D01-D08 et baseline du lot 0 |
@@ -60,8 +66,8 @@ Le manifeste couvre les octets du worktree Windows de tous les fichiers ajoutés
 | C22 | Compatibilité v1/v2/v3 | Satisfait | parseur, rejeu et migrations |
 | C23 | `PRIMARY` admissible peut actualiser | Satisfait | normalisation et tampon d'autorité |
 | C24 | `CONTROL` contradictoire n'écrase jamais | Satisfait | `CONTROL_DIVERGENCE` |
-| C25 | Aucune promotion implicite | Satisfait | politique fermée `UNASSIGNED` |
-| C26 | Autorité contextualisée et versionnée | Satisfait | `CalendarAuthorityKey` et configuration classpath |
+| C25 | Aucune promotion implicite | Satisfait | politique fermée `UNASSIGNED` et douze scénarios runtime `*`/`?`/`%` |
+| C26 | Autorité contextualisée et versionnée | Satisfait | clé runtime exacte et affectations classpath sans joker |
 | C27 | Normalisations concurrentes sans doublon | Satisfait | `CalendarNormalizationConcurrencyIT` |
 | C28 | Redémarrage puis reprise sans perte | Satisfait | `ControlApiRestartIT` et scénarios de claim/reprise |
 | C29 | SQL jobs/outbox derrière un port | Satisfait | `JobOutboxRepository` |
@@ -71,18 +77,18 @@ Le manifeste couvre les octets du worktree Windows de tous les fichiers ajoutés
 | C33 | Trois profils seulement | Satisfait | tests de profils |
 | C34 | Aucun secret/payload privé/SofaScore | Satisfait | scan de secrets et contrôles finaux |
 | C35 | Documentation finale intégrée | Satisfait | contrats, runbooks, frontières et mémoire du dépôt |
-| C36 | Diff final revu humainement | **À faire par le porteur** | présente attestation liée au manifeste |
+| C36 | Diff correctif final revu humainement | Satisfait | attestation corrective `APPROVED` de `djothepirate`, liée au manifeste P2 `b26a3d2…f3b46` |
 
 ## Résultats techniques du candidat
 
 | Contrôle | Résultat |
 |---|---|
-| Tests standards Windows | 216, zéro échec, erreur ou omission |
-| PostgreSQL/Testcontainers Windows | 77, zéro échec, erreur ou omission |
+| Tests standards Windows | 219, zéro échec, erreur ou omission |
+| PostgreSQL/Testcontainers Windows | 89, zéro échec, erreur ou omission |
 | Validation Windows complète | `BUILD SUCCESS`, code de sortie `0` |
 | Scan de secrets | `PASS` |
 | `git diff --check` | propre |
-| Espaces finaux des fichiers non suivis | aucun |
+| Espaces finaux des fichiers du périmètre | aucun |
 | Index Git réel | vide |
 | V006 | absente |
 | Validation Linux complète | `PENDING_PR_CI` ; non simulée par un WSL sans Docker |
@@ -103,46 +109,52 @@ Le manifeste couvre les octets du worktree Windows de tous les fichiers ajoutés
 - Le `control-api` est interne, sans authentification, lié à `127.0.0.1` et interdit d'exposition avant OPS-001.
 - Aucun worker ou poller de rejeu n'est introduit ; la reprise reste manuelle et versionnée.
 - Aucun connecteur fournisseur, appel sportif, profil live, cote, valuebet ou placement de pari n'appartient à CAT-002.
-- La branche est fondée sur `d8205b0` alors que `origin/main` contient désormais CI-001. L'intégration au `main` courant sera vérifiée par le merge synthétique et les CI de la future PR.
-- La validation Linux/Testcontainers n'est pas acquise localement ; elle reste une porte de PR et de fusion.
+- La branche reste historiquement fondée sur `d8205b0` et la Pull Request `#8` cible `main` à partir de `88194d9`. Les premières CI du commit initial étaient vertes, mais ne couvrent pas le correctif P2.
+- La validation Linux/Testcontainers du correctif n'est pas acquise localement ; elle devra être rejouée par la CI de la PR après un éventuel push autorisé.
 
 ## Checklist de revue humaine dans Eclipse
 
-- [x] J'ai vérifié que Codex ne modifiait plus le worktree pendant ma revue.
-- [x] J'ai lu chaque chemin du manifeste, y compris les fichiers non suivis.
+- [x] J'ai vérifié que Codex ne modifiait plus le worktree pendant ma revue corrective.
+- [x] J'ai lu chaque chemin du manifeste correctif, y compris les cinq fichiers directement touchés par la P2.
 - [x] J'ai revu V003, V004 et V005 ainsi que leurs tests de migration depuis une base peuplée.
 - [x] J'ai revu chronologie, autorité, identité, concurrence et mappings.
+- [x] J'ai vérifié la distinction entre valeurs runtime littérales et jokers interdits dans la configuration.
 - [x] J'ai revu décisions humaines, cycle des anomalies, rejeu, savepoints et redémarrage.
 - [x] J'ai revu l'API interne, le parsing strict, les projections et l'absence de données sensibles.
 - [x] J'ai revu les profils, règles d'architecture, fixtures et documents.
 - [x] J'ai rejoué `.\mvnw.cmd verify` depuis Eclipse ou son terminal intégré.
 - [x] J'ai rejoué `.\mvnw.cmd -Pintegration verify` depuis Eclipse ou son terminal intégré.
-- [x] Le manifeste porte exactement l'empreinte recopiée ci-dessous.
+- [x] Le manifeste correctif porte exactement l'empreinte recopiée ci-dessous.
 
-## Attestation réservée au porteur
+## Attestation corrective réservée au porteur
 
 Ne renseigner cette section qu'après une revue complète et sans modifier un autre fichier du périmètre manifesté.
 
 - **Reviewer :** `djothepirate`
+- **Reviewed at :** `2026-09-02T09:40:08+02:00`
+- **Manifest SHA-256 :** `b26a3d2b80cb46ea135e7cef6d3342ec3f04aee24b81936a6866310d0a0f3b46`
+- **Decision :** `APPROVED`
+- **Observations :** `Périmètre b26a3d2…f3b46 approuvé conformément à la checklist complète ; 219 tests standards et 89 tests PostgreSQL/Testcontainers validés.`
+
+La décision admise pour refermer la porte est exactement `APPROVED`. Toute réserve ou tout correctif demandé laisse le lot 8 ouvert et impose un nouveau manifeste après correction.
+
+### Attestation initiale conservée comme historique
+
+- **Reviewer :** `djothepirate`
 - **Reviewed at :** `2026-09-02T02:04:00+02:00`
 - **Manifest SHA-256 :** `b6153a2ac4fd90a3c993579b58864866c334558820024b3fc5abf536b53d124e`
-- **Decision :** `APPROVED`
-- **Observations :** `Aucune réserve ; diff complet relu ; 216 tests standards et 77 tests PostgreSQL/Testcontainers rejoués avec succès.`
+- **External fingerprint :** `74f274594a8d89d0b803dc430263b7c6475f50d6c72f145d408ddd71b922cdd2`
+- **Decision :** `APPROVED - SUPERSEDED_BY_PR8_P2`
+- **Observations :** `Diff initial relu ; 216 tests standards et 77 tests PostgreSQL/Testcontainers rejoués avec succès. Cette attestation ne couvre pas le correctif P2.`
 
-La décision admise pour clôturer la porte est exactement `APPROVED`. Toute réserve ou tout correctif demandé laisse le lot 8 ouvert et impose un nouveau manifeste après correction.
+## Enregistrement de la seconde porte de revue
 
-## Modifications finales du Work Order réservées au porteur
+La décision corrective `APPROVED` a été donnée explicitement par le porteur le 2026-09-02. Seuls ce dossier d'attestation et `docs/work-orders/CAT-002.md`, tous deux exclus du manifeste, sont modifiés après le gel. Les conséquences enregistrées sont :
 
-Après décision `APPROVED`, modifier uniquement `docs/work-orders/CAT-002.md` et appliquer toutes les évolutions suivantes :
+1. le Work Order passe de `1.6-lot8-p2-review-candidate` à `1.7-lot8-p2` ;
+2. le lot 8 passe à `COMPLETED LOCALLY` et le critère C36 est fermé ;
+3. l'état devient `READY_FOR_GIT - LINUX_CI_PENDING`, sans déclarer CAT-002 accepté, fusionné ou clôturé globalement ;
+4. la même demande autorise le commit correctif et son push sur `codex/cat-002-catalog`, afin de mettre à jour la Pull Request `#8` ;
+5. les nouvelles CI Windows et Linux/Testcontainers, la résolution de la discussion P2 et la fusion restent des portes ultérieures.
 
-1. passer la version de `1.3-lot8-review-candidate` à `1.4-lot8` ;
-2. passer le statut documentaire à `Lot 8 clôturé localement après revue humaine` ;
-3. passer l'état d'exécution à `READY_FOR_GIT - LINUX_CI_PENDING` ;
-4. remplacer l'autorisation actuelle par une mention précisant que la revue est acquise mais que commit, push, Pull Request et fusion restent non autorisés ;
-5. cocher uniquement le critère C36, relatif à la revue humaine ;
-6. passer le lot 8 de `ACTIVE - AWAITING_HUMAN_REVIEW` à `COMPLETED LOCALLY` ;
-7. remplacer les mentions « 35 sur 36 » par « 36 sur 36 » dans le résultat courant ;
-8. ajouter une entrée d'historique `1.4-lot8` avec la date, le reviewer et l'empreinte du manifeste ;
-9. conserver explicitement `LINUX_CI_PENDING` et ne jamais écrire « accepté, fusionné et clôturé ».
-
-Après ce geste, Codex vérifiera en lecture seule le manifeste, les deux fichiers de contrôle, les migrations, les secrets, le diff et l'index. Aucune modification du dépôt ne sera effectuée avant une nouvelle autorisation explicite.
+Avant le commit, Codex revérifie en lecture seule le manifeste correctif, les deux fichiers de contrôle, les migrations, les secrets, le diff et l'index, puis calcule une nouvelle empreinte externe finale. L'autorisation actuelle couvre le commit et le push, mais aucune fusion ni résolution distante de discussion.

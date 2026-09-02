@@ -50,16 +50,43 @@ class ConfiguredCalendarAuthorityPolicyTest {
     }
 
     @Test
-    void rejectsWildcardsAndWhitespaceInsteadOfNormalizingKeys() {
-        assertThatThrownBy(() -> key("synthetic-*", "competition-a", "2026", "REGULAR"))
+    void runtimeKeysPreserveLiteralWildcardCharactersWithoutInterpretingThem() {
+        CalendarAuthorityKey provider = key("synthetic-*", "competition-a", "2026", "REGULAR");
+        CalendarAuthorityKey competition = key(
+                "synthetic-provider", "competition-?", "2026", "REGULAR");
+        CalendarAuthorityKey season = key(
+                "synthetic-provider", "competition-a", "20%", "REGULAR");
+        CalendarAuthorityKey phase = key(
+                "synthetic-provider", "competition-a", "2026", "REGULAR*");
+
+        assertThat(provider.provider()).isEqualTo("synthetic-*");
+        assertThat(competition.providerCompetitionId()).isEqualTo("competition-?");
+        assertThat(season.season()).isEqualTo("20%");
+        assertThat(phase.phase()).isEqualTo("REGULAR*");
+    }
+
+    @Test
+    void configuredPolicyRejectsAssignmentsContainingWildcardCharacters() {
+        assertThatThrownBy(() -> policyWithPrimaryAssignment(
+                key("synthetic-*", "competition-a", "2026", "REGULAR")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("wildcards");
-        assertThatThrownBy(() -> key("synthetic-provider", "competition-?", "2026", "REGULAR"))
+        assertThatThrownBy(() -> policyWithPrimaryAssignment(
+                key("synthetic-provider", "competition-?", "2026", "REGULAR")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("wildcards");
-        assertThatThrownBy(() -> key("synthetic-provider", "competition-a", "20%", "REGULAR"))
+        assertThatThrownBy(() -> policyWithPrimaryAssignment(
+                key("synthetic-provider", "competition-a", "20%", "REGULAR")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("wildcards");
+        assertThatThrownBy(() -> policyWithPrimaryAssignment(
+                key("synthetic-provider", "competition-a", "2026", "REGULAR*")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("wildcards");
+    }
+
+    @Test
+    void rejectsWhitespaceInsteadOfNormalizingKeys() {
         assertThatThrownBy(() -> key(" synthetic-provider", "competition-a", "2026", "REGULAR"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("whitespace");
@@ -105,5 +132,11 @@ class ConfiguredCalendarAuthorityPolicyTest {
                 season,
                 phase,
                 CalendarAuthorityDataType.CALENDAR);
+    }
+
+    private static CalendarAuthorityPolicy policyWithPrimaryAssignment(CalendarAuthorityKey key) {
+        return new ConfiguredCalendarAuthorityPolicy(
+                POLICY_VERSION,
+                List.of(new CalendarAuthorityAssignment(key, CalendarAuthorityRole.PRIMARY)));
     }
 }

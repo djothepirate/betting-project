@@ -17,8 +17,8 @@ Résultats attendus :
 
 - Maven 3.9.16 ;
 - Java 25 ;
-- 216 tests standards réussis pour le candidat CAT-002 ;
-- 77 tests PostgreSQL/Testcontainers réellement exécutés et réussis ;
+- 219 tests standards réussis pour le candidat correctif CAT-002 ;
+- 89 tests PostgreSQL/Testcontainers réellement exécutés et réussis ;
 - migrations Flyway `V001` à `V005` appliquées sans modification ;
 - aucune écriture d'un chemin Windows dans les fichiers générés ;
 - aucun secret détecté.
@@ -50,7 +50,7 @@ Les builds standard et d'intégration se sont tous deux terminés avec `BUILD SU
 
 La référence historique ci-dessus ne vaut pas validation du candidat CAT-002. Au 2 septembre 2026, la distribution WSL locale dispose de Java et Maven, mais Docker Desktop n'y expose pas `/var/run/docker.sock`. `verify-wsl.sh` peut donc vérifier le build standard et le scan de secrets, puis annoncer explicitement l'omission de Testcontainers ; ce résultat doit être enregistré comme `PARTIAL - NO_TESTCONTAINERS`.
 
-Le porteur a retenu la CI Linux de la future Pull Request comme porte complète. Cette CI devra exécuter directement :
+Le porteur a retenu la CI Linux de la Pull Request `#8` comme porte complète. Le premier passage était vert sur le commit initial, mais le correctif P2 impose une nouvelle exécution directe de :
 
 ```bash
 ./mvnw verify
@@ -58,4 +58,4 @@ Le porteur a retenu la CI Linux de la future Pull Request comme porte complète.
 ./mvnw -Pintegration verify
 ```
 
-La dernière commande devra réellement exécuter les 77 tests PostgreSQL/Testcontainers. CAT-002 pourra être `READY_FOR_GIT - LINUX_CI_PENDING` après la revue humaine locale, mais ne pourra pas être déclaré globalement accepté ou fusionnable tant que cette CI n'est pas verte.
+La dernière commande devra réellement exécuter les 89 tests PostgreSQL/Testcontainers du candidat correctif. CAT-002 pourra redevenir `READY_FOR_GIT - LINUX_CI_PENDING` après la nouvelle revue humaine locale, mais ne pourra pas être déclaré globalement accepté ou fusionnable tant que les CI du nouveau commit ne sont pas vertes.

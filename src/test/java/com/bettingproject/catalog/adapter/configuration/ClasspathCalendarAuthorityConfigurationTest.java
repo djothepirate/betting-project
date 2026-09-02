@@ -92,6 +92,18 @@ class ClasspathCalendarAuthorityConfigurationTest {
     }
 
     @Test
+    void wildcardAssignmentsFailAtLoadTimeForEverySupportedMarker() {
+        assertWildcardAssignmentRejected(
+                "synthetic-*", "competition-a", "2026", "REGULAR", "provider");
+        assertWildcardAssignmentRejected(
+                "synthetic-provider", "competition-?", "2026", "REGULAR", "providerCompetitionId");
+        assertWildcardAssignmentRejected(
+                "synthetic-provider", "competition-a", "20%", "REGULAR", "season");
+        assertWildcardAssignmentRejected(
+                "synthetic-provider", "competition-a", "2026", "REGULAR*", "phase");
+    }
+
+    @Test
     void unknownSchemaOrDataTypeFailsAtLoadTime() {
         assertThatThrownBy(() -> load("""
                 {
@@ -126,6 +138,35 @@ class ClasspathCalendarAuthorityConfigurationTest {
     private static CalendarAuthorityPolicy load(String json) {
         return ClasspathCalendarAuthorityConfiguration.load(
                 new ByteArrayResource(json.getBytes(StandardCharsets.UTF_8), "synthetic-policy.json"));
+    }
+
+    private static void assertWildcardAssignmentRejected(
+            String provider,
+            String providerCompetitionId,
+            String season,
+            String phase,
+            String rejectedField) {
+        assertThatThrownBy(() -> load("""
+                {
+                  "schemaVersion": "calendar-authority-policy-v1",
+                  "policyVersion": "synthetic-config-v1",
+                  "entries": [
+                    {
+                      "provider": "%s",
+                      "providerCompetitionId": "%s",
+                      "season": "%s",
+                      "phase": "%s",
+                      "dataType": "CALENDAR",
+                      "role": "PRIMARY"
+                    }
+                  ]
+                }
+                """.formatted(provider, providerCompetitionId, season, phase)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasRootCauseInstanceOf(IllegalArgumentException.class)
+                .satisfies(exception -> assertThat(exception.getCause())
+                        .hasMessageContaining("wildcards")
+                        .hasMessageContaining(rejectedField));
     }
 
     private static CalendarAuthorityKey key(String provider, String providerCompetitionId) {

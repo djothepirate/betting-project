@@ -96,7 +96,7 @@ La validation de présence et de type des deux attributs v3 est locale au parseu
 
 ## Application canonique depuis le lot 4
 
-Le normaliseur résout l'autorité à partir de la clé exacte `(provider, providerCompetitionId, season, phase, CALENDAR)` et journalise la version de la politique utilisée. La configuration classpath de production reste vide et fermée par défaut : une source sans affectation exacte produit `UNASSIGNED`. Le snapshot brut, l'observation, le journal d'application et l'anomalie sont conservés, mais cette source ne crée ni saison, ni rencontre canonique, ni mapping de rencontre. Aucune promotion implicite vers `PRIMARY` n'est permise.
+Le normaliseur résout l'autorité à partir de la clé exacte `(provider, providerCompetitionId, season, phase, CALENDAR)` et journalise la version de la politique utilisée. Les valeurs runtime sont comparées littéralement : `*`, `?` et `%` ne sont jamais interprétés comme des motifs et restent des caractères fournisseur ordinaires. L'interdiction des jokers s'applique uniquement aux affectations de la configuration classpath ; toute entrée configurée contenant l'un de ces caractères fait échouer le chargement. La configuration de production reste vide et fermée par défaut : une source sans affectation exacte produit `UNASSIGNED`. Le snapshot brut, l'observation, le journal d'application et l'anomalie sont conservés, mais cette source ne crée ni compétition, ni équipe, ni saison, ni rencontre canonique, ni mapping. Aucune promotion implicite vers `PRIMARY` n'est permise.
 
 Une observation `CONTROL` ne modifie jamais les faits canoniques ni le tampon d'autorité :
 

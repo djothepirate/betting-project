@@ -24,9 +24,6 @@ public record CalendarAuthorityKey(
         if (!value.equals(value.trim())) {
             throw new IllegalArgumentException(name + " must not have leading or trailing whitespace");
         }
-        if (value.indexOf('*') >= 0 || value.indexOf('?') >= 0 || value.indexOf('%') >= 0) {
-            throw new IllegalArgumentException(name + " must not contain wildcards");
-        }
         return value;
     }
 }
