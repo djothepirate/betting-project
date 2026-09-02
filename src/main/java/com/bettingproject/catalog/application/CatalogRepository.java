@@ -1,6 +1,7 @@
 package com.bettingproject.catalog.application;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -8,23 +9,24 @@ import com.bettingproject.catalog.domain.CanonicalCompetition;
 import com.bettingproject.catalog.domain.CanonicalFixture;
 import com.bettingproject.catalog.domain.CanonicalSeason;
 import com.bettingproject.catalog.domain.CanonicalTeam;
-import com.bettingproject.catalog.domain.FixtureObservation;
 
 public interface CatalogRepository {
 
     Optional<CanonicalCompetition> findCompetition(String name, String countryCode);
 
-    void insertCompetition(CanonicalCompetition competition);
+    CanonicalCompetition getOrCreateCompetition(CanonicalCompetition competition);
 
     Optional<CanonicalSeason> findSeason(UUID competitionId, String label);
 
-    void insertSeason(CanonicalSeason season);
+    CanonicalSeason getOrCreateSeason(CanonicalSeason season);
 
     Optional<CanonicalTeam> findTeam(String name, String countryCode);
 
-    void insertTeam(CanonicalTeam team);
+    CanonicalTeam getOrCreateTeam(CanonicalTeam team);
 
     Optional<CanonicalFixture> findFixture(UUID fixtureId);
+
+    Optional<CanonicalFixture> findFixtureForUpdate(UUID fixtureId);
 
     Optional<CanonicalFixture> findFixture(
             UUID competitionId,
@@ -33,9 +35,18 @@ public interface CatalogRepository {
             UUID awayTeamId,
             Instant kickoff);
 
-    void insertFixture(CanonicalFixture fixture);
+    List<CanonicalFixture> findFixtureIdentityCandidatesForUpdate(
+            UUID competitionId,
+            UUID seasonId,
+            UUID sourceHomeTeamId,
+            UUID sourceAwayTeamId,
+            Instant kickoff);
 
-    void updateFixture(CanonicalFixture fixture);
+    StoredCanonicalFixture insertOrResolveFixture(CanonicalFixture fixture);
+
+    boolean updateFixtureIfAuthorityMatches(
+            CanonicalFixture fixture,
+            UUID expectedAuthorityObservationId);
 
     boolean existsCompetition(UUID id);
 
@@ -43,5 +54,4 @@ public interface CatalogRepository {
 
     boolean existsFixture(UUID id);
 
-    boolean insertObservation(FixtureObservation observation);
 }

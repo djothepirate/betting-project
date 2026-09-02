@@ -1,11 +1,55 @@
 package com.bettingproject.bootstrap;
 
+import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAnomalyEventStore;
+import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayApplicationStore;
+import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAttemptJournal;
+import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayRequestRepository;
+import com.bettingproject.catalog.adapter.persistence.JdbcAnomalyQueryAdapter;
+import com.bettingproject.catalog.adapter.persistence.JdbcMappingQueryAdapter;
+import com.bettingproject.catalog.adapter.persistence.JdbcReplayQueryAdapter;
+import com.bettingproject.catalog.adapter.persistence.JdbcStoredRawSnapshotReader;
+import com.bettingproject.catalog.adapter.persistence.SpringNormalizationReplayAfterCommitExecutor;
+import com.bettingproject.catalog.adapter.persistence.SpringNormalizationReplaySavepoint;
+import com.bettingproject.catalog.adapter.web.AnomalyControlController;
+import com.bettingproject.catalog.adapter.web.CatalogCursorCodec;
+import com.bettingproject.catalog.adapter.web.CatalogProblemHandler;
+import com.bettingproject.catalog.adapter.web.MappingControlController;
+import com.bettingproject.catalog.adapter.web.ReplayControlController;
+import com.bettingproject.catalog.adapter.web.StrictCatalogCommandParser;
+import com.bettingproject.catalog.application.CalendarAuthorityPolicy;
+import com.bettingproject.catalog.application.AnomalyQueryPort;
+import com.bettingproject.catalog.application.AnomalyQueryService;
+import com.bettingproject.catalog.application.ControlCommandReceiptStore;
+import com.bettingproject.catalog.application.DefaultMappingDecisionReplayPlanner;
+import com.bettingproject.catalog.application.DecisionJustificationSanitizer;
+import com.bettingproject.catalog.application.MappingDecisionAnomalyStore;
+import com.bettingproject.catalog.application.ControlCommandLock;
+import com.bettingproject.catalog.application.MappingDecisionReplayPlanner;
+import com.bettingproject.catalog.application.MappingDecisionService;
+import com.bettingproject.catalog.application.MappingQueryPort;
+import com.bettingproject.catalog.application.MappingQueryService;
+import com.bettingproject.catalog.application.NormalizationReplayAfterCommitExecutor;
+import com.bettingproject.catalog.application.NormalizationReplayAnomalyEventStore;
+import com.bettingproject.catalog.application.NormalizationReplayApplicationStore;
+import com.bettingproject.catalog.application.NormalizationReplayAttemptJournal;
+import com.bettingproject.catalog.application.NormalizationReplayExecutionService;
+import com.bettingproject.catalog.application.NormalizationReplayRequestRepository;
+import com.bettingproject.catalog.application.NormalizationReplayRequestService;
+import com.bettingproject.catalog.application.NormalizationReplaySavepoint;
+import com.bettingproject.catalog.application.OperatorIdentityProvider;
+import com.bettingproject.catalog.application.ProviderMappingDecisionJournal;
+import com.bettingproject.catalog.application.ReplayQueryPort;
+import com.bettingproject.catalog.application.ReplayQueryService;
+import com.bettingproject.catalog.application.StoredRawSnapshotReader;
+import com.bettingproject.identity.application.NormalizationAnomalyLifecycleService;
 import com.bettingproject.operations.adapter.web.BootstrapStatusController;
 import com.bettingproject.operations.application.RuntimeMode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +67,15 @@ class ControlApiProfileTest {
     @Autowired
     private BootstrapStatusController controller;
 
+    @Autowired
+    private CalendarAuthorityPolicy calendarAuthorityPolicy;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private Environment environment;
+
     @Test
     void controlApiStartsFromTheMainApplication() {
         BootstrapStatusController.BootstrapStatus status = controller.status();
@@ -30,5 +83,66 @@ class ControlApiProfileTest {
         assertThat(status.application()).isEqualTo("betting-project");
         assertThat(status.mode()).isEqualTo(RuntimeMode.CONTROL_API);
         assertThat(status.activeProfiles()).containsExactly("control-api");
+        assertThat(environment.getProperty("server.address")).isEqualTo("127.0.0.1");
+        assertThat(calendarAuthorityPolicy).isNotNull();
+        assertThat(applicationContext.getBeansOfType(MappingDecisionService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(OperatorIdentityProvider.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ControlCommandReceiptStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderMappingDecisionJournal.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ControlCommandLock.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(MappingDecisionAnomalyStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(DecisionJustificationSanitizer.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationAnomalyLifecycleService.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayRequestService.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayExecutionService.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(DefaultMappingDecisionReplayPlanner.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(MappingDecisionReplayPlanner.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(StoredRawSnapshotReader.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayRequestRepository.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayAttemptJournal.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayApplicationStore.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayAnomalyEventStore.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplayAfterCommitExecutor.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(NormalizationReplaySavepoint.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcStoredRawSnapshotReader.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcNormalizationReplayRequestRepository.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcNormalizationReplayAttemptJournal.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcNormalizationReplayApplicationStore.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcNormalizationReplayAnomalyEventStore.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(SpringNormalizationReplayAfterCommitExecutor.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(SpringNormalizationReplaySavepoint.class))
+                .hasSize(1);
+        assertThat(applicationContext.getBeansOfType(AnomalyQueryPort.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(AnomalyQueryService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcAnomalyQueryAdapter.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(MappingQueryPort.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(MappingQueryService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcMappingQueryAdapter.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ReplayQueryPort.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ReplayQueryService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcReplayQueryAdapter.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(AnomalyControlController.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(MappingControlController.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ReplayControlController.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(CatalogCursorCodec.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(StrictCatalogCommandParser.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(CatalogProblemHandler.class)).hasSize(1);
     }
 }

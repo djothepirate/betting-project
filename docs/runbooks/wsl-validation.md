@@ -17,9 +17,9 @@ Résultats attendus :
 
 - Maven 3.9.16 ;
 - Java 25 ;
-- 17 tests standards réussis ;
-- 11 tests PostgreSQL/Testcontainers réussis ;
-- migrations Flyway `V001` et `V002` appliquées sans modification ;
+- 216 tests standards réussis pour le candidat CAT-002 ;
+- 77 tests PostgreSQL/Testcontainers réellement exécutés et réussis ;
+- migrations Flyway `V001` à `V005` appliquées sans modification ;
 - aucune écriture d'un chemin Windows dans les fichiers générés ;
 - aucun secret détecté.
 
@@ -45,3 +45,17 @@ La procédure complète a été validée sous Ubuntu 26.04 dans WSL2 avec :
 - 11 tests d'intégration PostgreSQL réussis.
 
 Les builds standard et d'intégration se sont tous deux terminés avec `BUILD SUCCESS`. La réserve liée à l'absence initiale de Java dans Ubuntu est levée.
+
+## Porte Linux du candidat CAT-002
+
+La référence historique ci-dessus ne vaut pas validation du candidat CAT-002. Au 2 septembre 2026, la distribution WSL locale dispose de Java et Maven, mais Docker Desktop n'y expose pas `/var/run/docker.sock`. `verify-wsl.sh` peut donc vérifier le build standard et le scan de secrets, puis annoncer explicitement l'omission de Testcontainers ; ce résultat doit être enregistré comme `PARTIAL - NO_TESTCONTAINERS`.
+
+Le porteur a retenu la CI Linux de la future Pull Request comme porte complète. Cette CI devra exécuter directement :
+
+```bash
+./mvnw verify
+./scripts/check-no-secrets.sh
+./mvnw -Pintegration verify
+```
+
+La dernière commande devra réellement exécuter les 77 tests PostgreSQL/Testcontainers. CAT-002 pourra être `READY_FOR_GIT - LINUX_CI_PENDING` après la revue humaine locale, mais ne pourra pas être déclaré globalement accepté ou fusionnable tant que cette CI n'est pas verte.

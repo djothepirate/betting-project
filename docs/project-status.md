@@ -1,4 +1,4 @@
-# État du projet au 1er septembre 2026
+# État du projet au 2 septembre 2026
 
 ## Synthèse
 
@@ -11,6 +11,7 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | Catalogue canonique | Fusionné et clôturé | CAT-001 a livré compétitions, saisons, équipes, rencontres, mappings, anomalies, provenance et normalisation idempotente. |
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
+| CAT-002 | `ACTIVE - AWAITING_HUMAN_REVIEW` | Les lots 0 à 7 sont `COMPLETED` localement sur `codex/cat-002`. L'acceptation technique du lot 8 ajoute une vraie fermeture/réouverture du `control-api`, finalise la documentation et établit une baseline Windows de 216 tests standards et 77 tests PostgreSQL/Testcontainers. Le candidat figé satisfait 35 critères sur 36 ; le dernier exige la revue et l'attestation du porteur. La CI Linux/Testcontainers de la future PR restera obligatoire avant clôture globale. Aucun endpoint public, worker, commit, push, Pull Request, fusion ou appel fournisseur n'est autorisé ou effectué. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
@@ -38,7 +39,7 @@ Le catalogue fournit :
 - migration additive Flyway `V002` ;
 - 17 tests standards et 11 tests PostgreSQL/Testcontainers validés sous Windows et Ubuntu/WSL2.
 
-CAT-001 est fusionné et clôturé. Les limites restantes — concurrence, ordre des observations, autorité primaire/contrôle et opérations humaines sur les anomalies — appartiennent à CAT-002.
+CAT-001 est fusionné et clôturé. CAT-002 traite désormais localement la concurrence, l'ordre des observations, l'autorité primaire/contrôle, les décisions humaines de mapping, le cycle de vie des anomalies et les demandes durables de rejeu. Le lot 7 expose ces cas d'usage sous `/internal/catalog` avec pagination keyset, commandes strictes, provenance expurgée et composants limités au profil `control-api`. L'acceptation technique du lot 8 prouve en plus la reprise d'une demande `PENDING` après fermeture complète puis redémarrage du contexte Spring, sans migration V006, worker ni exposition publique. Le statut final de gouvernance est porté par le Work Order et l'attestation liée au manifeste de revue.
 
 ## Benchmark fournisseurs
 
@@ -101,8 +102,10 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 
 ## Prochaines portes
 
-1. cadrer et réaliser CAT-002 avant toute ingestion planifiée en volume ;
-2. construire MVP-001 puis ENR-002 et valider un pilote local de sept jours ;
-3. ouvrir OPS-001 seulement après acceptation du pipeline local fiable.
+1. faire revoir dans Eclipse l'intégralité du candidat CAT-002 couvert par son manifeste SHA-256, puis faire signer l'attestation par le porteur ;
+2. après vérification de cette attestation, demander séparément les autorisations de commit, push et création de Pull Request ;
+3. exiger les CI Windows et Linux, dont l'intégration PostgreSQL/Testcontainers réelle sous Linux, avant toute autorisation de fusion ;
+4. ouvrir MVP-001, puis ENR-002, uniquement après la clôture réelle de CAT-002 ;
+5. ouvrir OPS-001 seulement après acceptation du pipeline local fiable.
 
-Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005.
+Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Aucun commit, push, Pull Request, fusion ou appel fournisseur n'a été autorisé ou effectué pour les lots locaux de CAT-002. Les routes du lot 7 restent internes, sans authentification, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. Après signature conforme, l'état deviendra `READY_FOR_GIT - LINUX_CI_PENDING`, jamais « accepté, fusionné et clôturé » avant la CI et la fusion effectives.

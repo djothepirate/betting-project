@@ -1,6 +1,6 @@
 # Feuille de route de Betting Project
 
-- **Baseline :** 1er septembre 2026
+- **Baseline :** 2 septembre 2026
 - **Priorité 0 :** pipeline football prématch fiable
 - **Ordre obligatoire :** DEVX-001 → ENR-001 → CAT-002 → MVP-001 → ENR-002 → OPS-001
 
@@ -67,9 +67,11 @@ Réconcilier le diff historique, préserver le collecteur comme outil de benchma
 
 Le cas `Hirnyk` conserve deux preuves distinctes : ambiguïté historique sans rapprochement textuel, et mapping explicite de la référence exacte `highlightly:TEAM:5522923` vers `FC Kryvbas Kryvyi Rih` comme `CONFIRMED_HISTORICAL_REBRAND_ALIAS`.
 
-Le commit `743aff7` a été revu avec les CI Windows et Linux vertes, puis fusionné dans `main` par la Pull Request `#3` au commit `6913cea`. ENR-001 est accepté, fusionné et clôturé ; CAT-002 est le prochain Work Order à ouvrir dans la feuille de route.
+Le commit `743aff7` a été revu avec les CI Windows et Linux vertes, puis fusionné dans `main` par la Pull Request `#3` au commit `6913cea`. ENR-001 est accepté, fusionné et clôturé ; CAT-002 est `ACTIVE - AWAITING_HUMAN_REVIEW`, avec ses lots 0 à 7 `COMPLETED` localement et son acceptation technique du lot 8 prête à être revue contre un manifeste SHA-256.
 
 ## Étape 3 — CAT-002
+
+**Statut d'exécution :** Work Order `ACTIVE - AWAITING_HUMAN_REVIEW` dans `docs/work-orders/CAT-002.md`. Les lots 0 à 7 sont `COMPLETED`, les décisions D01 à D08 sont acceptées et l'acceptation technique du lot 8 est terminée. Le candidat compte 35 critères satisfaits sur 36 ; la revue humaine reste la dernière porte locale. L'adaptateur `/internal/catalog` est strictement interne et lié à la boucle locale ; aucun endpoint public, worker CAT-002, commit, push, Pull Request, fusion ou appel fournisseur n'est autorisé ou effectué.
 
 ### Objectif
 
@@ -79,16 +81,22 @@ Rendre la normalisation sûre en volume et les anomalies réellement opérables 
 
 - replay d'un snapshot déjà stocké, ciblé par identifiant ou SHA-256, jamais par chemin HTTP arbitraire ;
 - consultation des anomalies, mappings et provenances ; confirmation ou rejet motivé d'un mapping ; replay idempotent des snapshots bloqués ;
-- terrain neutre et participants non ordonnés explicitement modélisés ;
+- terrain neutre et participants non ordonnés explicitement et séparément modélisés ; seul `participantsUnordered=true` autorise une identité insensible à l'ordre ;
 - protection contre les observations anciennes et transitions de statut invalides ;
 - autorité `PRIMARY`/`CONTROL` appliquée sans promotion silencieuse ;
 - opérations PostgreSQL sûres en concurrence ;
-- persistance des jobs déplacée derrière un port applicatif ;
-- migrations additives à partir de `V003`, sans modification de `V001` ou `V002`.
+- persistance des jobs déplacée derrière un port applicatif au lot 1, sans SQL ni JDBC dans `operations.application` ;
+- projection courante des mappings protégée par version optimiste, décisions humaines confirmées ou rejetées avec identité opérateur, justification expurgée, reçu d'idempotence global et historique append-only ;
+- projection courante et journal `OPENED`/`OBSERVED`/`RESOLVED`/`REOPENED` pour le cycle de vie des anomalies ;
+- migrations additives `V003`, `V004` et `V005`, sans modification des migrations antérieures ;
+- consultations keyset et commandes strictes sous `/internal/catalog`, sans payload brut, reçu d'idempotence ou chemin arbitraire ;
+- contrats `catalog-control-api-v1` et `stored-snapshot-replay-v1`, avec écoute limitée à `127.0.0.1` et aucune exposition avant OPS-001.
 
 ### Porte d'acceptation
 
-Tests couvrant ordre des observations, contradiction primaire/contrôle, inversion neutre/non neutre, deux normalisations concurrentes, décision humaine puis replay, et redémarrage sans perte d'observation.
+Tests couvrant ordre des observations, contradiction primaire/contrôle, inversion ordonnée/explicitement non ordonnée, neutralité indépendante de l'ordre, deux normalisations concurrentes, décision humaine puis replay, et redémarrage sans perte d'observation.
+
+Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste strict, V003 applique chronologie et journal, V004 protège les décisions humaines et historise le cycle des anomalies, et V005 ajoute les demandes et tentatives durables depuis une V004 peuplée. Le lot 6 sélectionne les snapshots par UUID ou SHA-256 unique, vérifie leur preuve avant parsing, reprend après arrêt et relie `CONFIRM` ou `REJECT` au rejeu après commit. Le lot 7 ajoute les lectures paginées, les décisions et rejeux manuels, les erreurs RFC 9457 et les projections expurgées sous le seul profil `control-api`, sans V006. Le lot 8 ajoute une preuve réelle de reprise au travers de trois contextes Spring successifs. La validation Windows complète réussit avec 216 tests standards, 77 tests PostgreSQL/Testcontainers et le code `0`. La configuration classpath de production reste volontairement vide, faute de référence fournisseur exacte prouvée. La prochaine action est la revue humaine du candidat figé ; les autorisations Git puis les CI Windows/Linux restent des portes distinctes. Aucun endpoint public, worker CAT-002, appel fournisseur ni aucune opération Git n'a été effectué.
 
 ## Étape 4 — MVP-001
 
