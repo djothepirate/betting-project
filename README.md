@@ -1,6 +1,6 @@
 # Betting Project
 
-Betting Project est un monolithe modulaire Java/Spring destiné à construire une chaîne football prématch fiable, auditable et rejouable. `main` contient le socle applicatif BOOT-001, le catalogue canonique CAT-001/CAT-002, les garde-fous DEVX-001 et le benchmark football ENR-001 acceptés. INT-001 travaille séparément sur un receiver local J7 optionnel, localement qualifié, prêt pour revue propriétaire et désactivé par défaut. La collecte planifiée, l'enrichissement de production, les cotes, les valuebets et la publication restent des étapes ultérieures.
+Betting Project est un monolithe modulaire Java/Spring destiné à construire une chaîne football prématch fiable, auditable et rejouable. `main` contient le socle applicatif BOOT-001, le catalogue canonique CAT-001/CAT-002, les garde-fous DEVX-001 et le benchmark football ENR-001 acceptés. INT-001 travaille séparément sur un receiver local J7 optionnel, localement qualifié, validé par le propriétaire et désactivé par défaut ; sa publication Git reste non autorisée. La collecte planifiée, l'enrichissement de production, les cotes, les valuebets et la publication restent des étapes ultérieures.
 
 Le projet est personnel et piloté par un humain. Il ne place aucun pari automatiquement et le profil live n'est pas autorisé.
 
@@ -19,7 +19,7 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 - DEVX-001 : accepté, fusionné dans `main` par la Pull Request `#2` et clôturé ;
 - ENR-001 : accepté, fusionné dans `main` par la Pull Request `#3` au commit de fusion `6913cea` et clôturé ;
 - CAT-002 : accepté, fusionné dans `main` par la Pull Request `#8` au commit de fusion `85dc943` et clôturé. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` conservent leurs quatre checks Windows/Linux verts, 36 critères sur 36 satisfaits et la discussion P2 résolue ;
-- INT-001 : `READY_FOR_OWNER_REVIEW - LOCALLY_QUALIFIED` sur `codex/int-001-j7-receiver`. Le receiver J7 reste désactivé par défaut, avec migrations additives `V006` à `V008` et prochain slot `V009`. Les suites standard et PostgreSQL/Testcontainers, le mTLS, le corpus synthétique ainsi qu'une sauvegarde `age` et une restauration PostgreSQL 17 fraîche et isolée sont qualifiés ; aucune livraison réelle n'est autorisée ;
+- INT-001 : `OWNER_VALIDATED - LOCALLY_QUALIFIED - NOT_PUBLISHED` sur `codex/int-001-j7-receiver`. Le propriétaire a validé la readiness locale le `2026-09-04T14:13:23.3192773Z`, soit `2026-09-04T16:13:23.3192773+02:00` en Europe/Paris. Le receiver J7 reste désactivé par défaut, avec migrations additives `V006` à `V008` et prochain slot `V009`. Les suites standard et PostgreSQL/Testcontainers, le mTLS, le corpus synthétique ainsi qu'une sauvegarde `age` et une restauration PostgreSQL 17 fraîche et isolée sont qualifiés ; push, PR, fusion et toute livraison réelle restent non autorisés ;
 - profils autorisés : `control-api`, `batch-worker` et `replay` ;
 - PostgreSQL : source de vérité ;
 - fournisseurs sportifs : aucun appel requis pour construire, tester ou rejouer le dépôt.

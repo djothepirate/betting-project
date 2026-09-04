@@ -2,7 +2,7 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
-## 2026-09-04 — INT-001 (prêt pour revue propriétaire)
+## 2026-09-04 — INT-001 (validé localement par le propriétaire)
 
 ### Périmètre localement qualifié
 
@@ -28,7 +28,7 @@ Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les crit�
 
 ### Sécurité et statut
 
-Le receiver ne dépend d'aucun code ou service du SofaScore Local Lab et n'ajoute aucun client sortant, sender, poller, scheduler, retry ou consommateur d'enrichissement. Aucune donnée réelle, clé ou certificat n'est autorisé dans Git. Le lot est `READY_FOR_OWNER_REVIEW - LOCALLY_QUALIFIED` et reste actif jusqu'à la validation explicite du propriétaire. Sa qualification n'autorise aucune livraison réelle, exposition LAN/VPS ou production.
+Le receiver ne dépend d'aucun code ou service du SofaScore Local Lab et n'ajoute aucun client sortant, sender, poller, scheduler, retry ou consommateur d'enrichissement. Aucune donnée réelle, clé ou certificat n'est autorisé dans Git. Le propriétaire a validé la readiness locale d'INT-001 le `2026-09-04T14:13:23.3192773Z`, soit `2026-09-04T16:13:23.3192773+02:00` en Europe/Paris. Le lot est `OWNER_VALIDATED - LOCALLY_QUALIFIED - NOT_PUBLISHED` : push, Pull Request, fusion, livraison réelle, exposition LAN/VPS et production restent soumis à des décisions séparées.
 
 ## 2026-09-02 — CAT-002
 

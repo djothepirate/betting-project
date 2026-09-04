@@ -2,7 +2,7 @@
 
 ## Synthèse
 
-Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 qualifie séparément un receiver local J7 optionnel, prêt pour revue propriétaire et désactivé par défaut. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
+Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 qualifie séparément un receiver local J7 optionnel, validé localement par le propriétaire, non publié et désactivé par défaut. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
 
 | Couche | État | Conclusion |
 |---|---|---|
@@ -12,7 +12,7 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
 | CAT-002 | `ACCEPTED - MERGED - CLOSED` | La Pull Request `#8` est fusionnée dans `main` au commit `85dc943`. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont présents ; les 36 critères sur 36 sont satisfaits, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. |
-| INT-001 | `READY_FOR_OWNER_REVIEW - LOCALLY_QUALIFIED` | Le receiver J7 local est implémenté sur une branche séparée avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations additives `V006` à `V008`. Les validations complètes, la purge, la sauvegarde chiffrée et la restauration isolée synthétique sont qualifiées. La clôture et toute livraison réelle restent soumises à des décisions propriétaires distinctes. |
+| INT-001 | `OWNER_VALIDATED - LOCALLY_QUALIFIED - NOT_PUBLISHED` | Le receiver J7 local est implémenté sur une branche séparée avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations additives `V006` à `V008`. Les validations complètes, la purge, la sauvegarde chiffrée et la restauration isolée synthétique sont qualifiées et reconnues par le propriétaire. Push, PR, fusion et toute livraison réelle restent soumis à des décisions distinctes. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
@@ -42,7 +42,7 @@ Le catalogue fournit :
 
 CAT-001 est fusionné et clôturé. CAT-002 traite désormais localement la concurrence, l'ordre des observations, l'autorité primaire/contrôle, les décisions humaines de mapping, le cycle de vie des anomalies et les demandes durables de rejeu. Le lot 7 expose ces cas d'usage sous `/internal/catalog` avec pagination keyset, commandes strictes, provenance expurgée et composants limités au profil `control-api`. Le lot 8 prouve en plus la reprise d'une demande `PENDING` après fermeture complète puis redémarrage du contexte Spring, sans migration V006, worker ni exposition publique. La correction P2 de la PR `#8` préserve les caractères fournisseur littéraux dans la clé d'autorité et maintient le chargement classpath fermé aux jokers de configuration. Le commit fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` ont quatre checks verts chacun ; la seconde attestation est approuvée, les 36 critères sont satisfaits et le fil P2 est résolu. La PR `#8` est fusionnée au commit `85dc943` : CAT-002 est accepté et clôturé.
 
-## Receiver local J7 — INT-001 prêt pour revue propriétaire
+## Receiver local J7 — INT-001 validé localement par le propriétaire
 
 INT-001 part de la base CAT-002 fusionnée `85dc943` et ajoute un adaptateur entrant optionnel au seul
 profil `control-api`. Le contrat est `POST /api/imports/sofascore/j7-canonical-events`, avec media
@@ -89,9 +89,9 @@ réseau mappé reste une frontière opérateur.
 
 La baseline finale réussit 303 tests standards, 98 tests PostgreSQL/Testcontainers/mTLS, 32 tests
 Pester, la validation Windows complète, le contrôle de secrets et la configuration Compose. Le lot
-est localement qualifié mais reste actif jusqu'à la décision propriétaire. INT-001 ne contient aucun
+est localement qualifié et sa readiness est validée par le propriétaire. INT-001 ne contient aucun
 sender, client sortant, appel SofaScore/Local Lab, consommateur d'enrichissement ou donnée réelle et
-n'autorise ni livraison réelle, ni réseau distant, ni VPS, ni production.
+n'autorise ni push, Pull Request, fusion, livraison réelle, réseau distant, VPS ou production.
 
 ## Benchmark fournisseurs
 
@@ -150,7 +150,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 - Budget Highlightly : 80 appels, réserve incompressible de 20.
 - Compositions : facultatives et non bloquantes ; aucune validation prématch à T0 ou après T0.
 - Aucun pari automatique, aucun appel live, aucune dépendance à SofaScore.
-- Le receiver J7 d'INT-001 est localement qualifié, reste désactivé par défaut et attend la revue propriétaire ; aucune livraison réelle n'est autorisée.
+- Le receiver J7 d'INT-001 est localement qualifié et validé par le propriétaire, reste désactivé par défaut et non publié ; aucune livraison réelle n'est autorisée.
 - La rétention J7 vaut 30 jours par défaut et ne change que par configuration opérateur explicite dans la plage `1..3650`.
 - PostgreSQL reste la source de vérité ; les preuves complètes du benchmark restent hors Git avec manifeste expurgé versionné lors d'ENR-001.
 
@@ -159,9 +159,9 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 | État externe vérifiable | Conséquence de gouvernance |
 |---|---|
 | Pull Request `#8` fusionnée et commit `85dc943` présent dans `main` | CAT-002 vaut définitivement `ACCEPTED - MERGED - CLOSED`. |
-| INT-001 est localement qualifié mais reste en branche en attente de revue propriétaire | Receiver désactivé, aucune livraison réelle, aucune exposition et aucune clôture automatique. |
-| INT-001 est ultérieurement accepté | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent des décisions et Work Orders séparés. |
+| INT-001 est localement qualifié et validé par le propriétaire, mais non publié | Receiver désactivé, aucune livraison réelle, aucune exposition et aucune publication automatique. |
+| INT-001 est ultérieurement publié et fusionné après décision séparée | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent toujours des décisions et Work Orders séparés. |
 | CAT-002 est clôturé | MVP-001 reste le prochain Work Order du pipeline produit, sans activation automatique ; ENR-002 vient ensuite. |
 | Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
 
-Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. Son commit, sa publication, sa fusion et sa clôture restent soumis à validation et décision humaines séparées.
+Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. Sa readiness locale est validée ; son commit documentaire final, sa publication, sa fusion et toute clôture après intégration restent soumis à des décisions humaines séparées.
