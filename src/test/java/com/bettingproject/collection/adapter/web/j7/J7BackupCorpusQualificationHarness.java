@@ -439,19 +439,20 @@ final class J7BackupCorpusQualificationHarness {
                 )
                 AND NOT EXISTS (
                     SELECT 1
-                    FROM pg_collation collation
-                    JOIN pg_namespace namespace ON namespace.oid = collation.collnamespace
+                    FROM pg_collation catalog_collation
+                    JOIN pg_namespace namespace
+                      ON namespace.oid = catalog_collation.collnamespace
                     WHERE namespace.nspname = 'public'
                 )
                 AND NOT EXISTS (SELECT 1 FROM pg_largeobject_metadata)
                 AND NOT EXISTS (SELECT 1 FROM pg_publication)
                 AND NOT EXISTS (
                     SELECT 1
-                    FROM pg_subscription subscription
-                    WHERE subscription.subdbid = (
-                        SELECT database.oid
-                        FROM pg_database database
-                        WHERE database.datname = current_database()
+                    FROM pg_subscription catalog_subscription
+                    WHERE catalog_subscription.subdbid = (
+                        SELECT catalog_database.oid
+                        FROM pg_database catalog_database
+                        WHERE catalog_database.datname = current_database()
                     )
                 )
                 AND NOT EXISTS (SELECT 1 FROM pg_event_trigger)
@@ -462,8 +463,8 @@ final class J7BackupCorpusQualificationHarness {
                 AND NOT EXISTS (SELECT 1 FROM pg_seclabel)
                 AND NOT EXISTS (
                     SELECT 1
-                    FROM pg_language language
-                    WHERE language.lanname NOT IN ('internal', 'c', 'sql', 'plpgsql')
+                    FROM pg_language catalog_language
+                    WHERE catalog_language.lanname NOT IN ('internal', 'c', 'sql', 'plpgsql')
                 )
                 AND NOT EXISTS (SELECT 1 FROM pg_cast WHERE oid >= 16384)
                 AND NOT EXISTS (SELECT 1 FROM pg_conversion WHERE oid >= 16384)
