@@ -100,6 +100,41 @@ Avant le dump, la qualification PostgreSQL doit avoir créé au minimum :
 Relever uniquement les compteurs, UUID synthétiques, hashes synthétiques, tailles et états utiles.
 Ne jamais copier les octets dans le rapport.
 
+Le harness explicite
+`J7BackupCorpusQualificationHarness` prépare cette matrice dans une base PostgreSQL 17 standard,
+fraîche et exclusivement synthétique. Il appartient à `src/test`, ne correspond à aucun motif de
+découverte automatique `*Test` ou `*IT`, ne crée ni base, conteneur, listener ou route et ne connaît
+qu'un endpoint construit en dur sur `127.0.0.1:5433`. L'opérateur doit créer au préalable une base
+vide nommée `int001_j7_source_[a-z0-9_]{1,40}` et fournir son mot de passe uniquement par la variable
+de processus protégée `BETTING_DB_PASSWORD`. Aucun secret ne doit être placé dans un argument Maven.
+
+Le harness refuse les sélecteurs libpq ambiants, une propriété de qualification inconnue, une base
+non standard ou déjà utilisée, une version PostgreSQL autre que 17 et toute action différente du
+jeton littéral ci-dessous. Il refuse également une horloge PostgreSQL antérieure au dernier instant
+fixe du corpus (`2026-09-03T00:04:00Z`), ce qui exclut toute preuve future. Il applique V001 à V008,
+construit trois imports par
+`J7ImportService`, produit le duplicate exact, établit l'état `DELIVERED` de l'unique outbox destinée
+à être purgée, puis appelle effectivement `J7ImportPurgeService`. Il ne remplace jamais la purge par
+une suppression SQL. Les deux autres outbox restent `PENDING`, dont celle de l'import expiré non
+purgeable.
+
+Dans un terminal protégé où `BETTING_DB_PASSWORD` a été défini sans être affiché :
+
+```powershell
+.\mvnw.cmd `
+    "-Dtest=J7BackupCorpusQualificationHarness" `
+    "-Dint001.backup.corpus.action=PREPARE_INT001_SYNTHETIC_BACKUP_CORPUS" `
+    "-Dint001.backup.corpus.database=int001_j7_source_20260904" `
+    "-Dint001.backup.corpus.username=betting" `
+    test
+```
+
+La réussite publie uniquement les compteurs expurgés suivants : trois receipts, deux payloads,
+cinq audits, trois outbox et un tombstone. Elle ne publie aucun payload, mot de passe ou détail de
+connexion. Une erreur après migration impose d'abandonner cette base et de recommencer sur une
+nouvelle base standard vide ; le harness n'efface et ne réinitialise jamais une cible partiellement
+préparée.
+
 ## Créer l'archive chiffrée
 
 Depuis la racine du worktree, ouvrir un terminal PowerShell 7 natif non transcripté. La destination
