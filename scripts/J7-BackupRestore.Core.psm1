@@ -888,8 +888,9 @@ select case when
     )
     and not exists (
         select 1
-        from pg_collation collation
-        join pg_namespace namespace on namespace.oid = collation.collnamespace
+        from pg_collation catalog_collation
+        join pg_namespace namespace
+          on namespace.oid = catalog_collation.collnamespace
         where namespace.nspname = 'public'
     )
     and not exists (
@@ -902,11 +903,11 @@ select case when
     )
     and not exists (
         select 1
-        from pg_subscription subscription
-        where subscription.subdbid = (
-            select database.oid
-            from pg_database database
-            where database.datname = current_database()
+        from pg_subscription catalog_subscription
+        where catalog_subscription.subdbid = (
+            select catalog_database.oid
+            from pg_database catalog_database
+            where catalog_database.datname = current_database()
         )
     )
     and not exists (
@@ -935,8 +936,8 @@ select case when
     )
     and not exists (
         select 1
-        from pg_language language
-        where language.lanname not in ('internal', 'c', 'sql', 'plpgsql')
+        from pg_language catalog_language
+        where catalog_language.lanname not in ('internal', 'c', 'sql', 'plpgsql')
     )
     and not exists (select 1 from pg_cast where oid >= 16384)
     and not exists (select 1 from pg_conversion where oid >= 16384)
@@ -951,8 +952,8 @@ select case when
     and not exists (select 1 from pg_ts_template where oid >= 16384)
     and not exists (
         select 1
-        from pg_extension extension
-        where extension.extname <> 'plpgsql'
+        from pg_extension catalog_extension
+        where catalog_extension.extname <> 'plpgsql'
     )
 then 'EMPTY' else 'NOT_EMPTY' end
 '@

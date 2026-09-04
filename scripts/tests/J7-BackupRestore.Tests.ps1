@@ -818,6 +818,26 @@ Describe 'INT-001 script static safety gates' {
         $source | Should Match "lanname not in \('internal', 'c', 'sql', 'plpgsql'\)"
     }
 
+    It 'does not use PostgreSQL catalog names as potentially reserved SQL aliases' {
+        $source = [IO.File]::ReadAllText((Resolve-Path $modulePath))
+        foreach ($forbiddenAlias in @(
+                'from pg_collation collation',
+                'from pg_subscription subscription',
+                'from pg_database database',
+                'from pg_language language',
+                'from pg_extension extension')) {
+            $source | Should Not Match ([regex]::Escape($forbiddenAlias))
+        }
+        foreach ($qualifiedAlias in @(
+                'from pg_collation catalog_collation',
+                'from pg_subscription catalog_subscription',
+                'from pg_database catalog_database',
+                'from pg_language catalog_language',
+                'from pg_extension catalog_extension')) {
+            $source | Should Match ([regex]::Escape($qualifiedAlias))
+        }
+    }
+
     It 'requires successful V006 V007 and V008 Flyway history and advertises V008' {
         $source = [IO.File]::ReadAllText((Resolve-Path $modulePath))
         $source | Should Match ([regex]::Escape(
