@@ -2,9 +2,9 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
-## 2026-09-02 — INT-001 (en cours)
+## 2026-09-04 — INT-001 (prêt pour revue propriétaire)
 
-### Périmètre en implémentation
+### Périmètre localement qualifié
 
 - receiver J7 entrant strict, disponible uniquement sous `control-api` et désactivé par défaut ;
 - chemin brut exactement égal à `/api/imports/sofascore/j7-canonical-events`, sans préfixe de contexte/servlet, avec refus des slashs finaux, segments supplémentaires et alias matrix ou percent-encodés ;
@@ -16,9 +16,19 @@ Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les crit�
 - sauvegarde PostgreSQL 17 complète directement envoyée vers `age --passphrase`, sans dump clair, et restauration directe vers une base standard fraîche, isolée et vide, avec manifeste `requiredMigration=V008`, contrôles de catalogues et preuves séparées des quatre tables J7 plus `outbox_message` ; l'origine standard de la base et l'absence de lecteur réseau mappé restent des frontières opérateur ;
 - rôle propriétaire PostgreSQL local conservé comme frontière de confiance de la qualification ; séparation owner de migration/rôle runtime à privilèges minimaux exigée avant toute production.
 
+### Qualification
+
+- branche réconciliée avec le `main` fusionné de CAT-002 sans rebase ni squash ;
+- 303 tests standards et 98 tests PostgreSQL/Testcontainers/mTLS réussis sous Java 25, validation Windows complète verte, contrôle de secrets et configuration Compose valides ;
+- 32 tests Pester réussis pour les scripts de sauvegarde/restauration ;
+- corpus synthétique V008 sauvegardé au format PostgreSQL custom directement sous `age --passphrase`, sans dump clair ;
+- la tentative Q1 s'est arrêtée sur un alias SQL réservé, avant déchiffrement, toute saisie propriétaire et toute mutation de la cible, puis un correctif fail-closed a été versionné ;
+- cible Q2 neuve et isolée restaurée sous PostgreSQL 17, avec égalité des comptes et empreintes des cinq familles de preuves ;
+- source et cible arrêtées, aucun listener 5433/5434/8444 ni processus natif résiduel, zéro appel fournisseur, Local Lab ou receiver réel/distant.
+
 ### Sécurité et statut
 
-Le receiver ne dépend d'aucun code ou service du SofaScore Local Lab et n'ajoute aucun client sortant, sender, poller, scheduler, retry ou consommateur d'enrichissement. Aucune donnée réelle, clé ou certificat n'est autorisé dans Git. Le lot reste `IN_PROGRESS - NOT_QUALIFIED` jusqu'aux validations standard, PostgreSQL/Testcontainers, mTLS synthétiques, purge et restauration isolée. La sauvegarde/restauration cryptographique réelle n'a pas été exécutée pendant cet alignement documentaire. Sa présence n'autorise aucune livraison réelle, exposition LAN/VPS ou production.
+Le receiver ne dépend d'aucun code ou service du SofaScore Local Lab et n'ajoute aucun client sortant, sender, poller, scheduler, retry ou consommateur d'enrichissement. Aucune donnée réelle, clé ou certificat n'est autorisé dans Git. Le lot est `READY_FOR_OWNER_REVIEW - LOCALLY_QUALIFIED` et reste actif jusqu'à la validation explicite du propriétaire. Sa qualification n'autorise aucune livraison réelle, exposition LAN/VPS ou production.
 
 ## 2026-09-02 — CAT-002
 

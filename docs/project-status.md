@@ -1,8 +1,8 @@
-# État du projet au 2 septembre 2026
+# État du projet au 4 septembre 2026
 
 ## Synthèse
 
-Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 développe séparément un receiver local J7 optionnel, encore non qualifié et désactivé par défaut. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
+Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 qualifie séparément un receiver local J7 optionnel, prêt pour revue propriétaire et désactivé par défaut. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
 
 | Couche | État | Conclusion |
 |---|---|---|
@@ -12,7 +12,7 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
 | CAT-002 | `ACCEPTED - MERGED - CLOSED` | La Pull Request `#8` est fusionnée dans `main` au commit `85dc943`. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont présents ; les 36 critères sur 36 sont satisfaits, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. |
-| INT-001 | `IN_PROGRESS - NOT_QUALIFIED` | Le receiver J7 local est implémenté sur une branche séparée avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations additives `V006` à `V008`. Les validations complètes, la purge et la restauration chiffrée isolée restent requises avant toute clôture ; aucune opération cryptographique réelle n'a encore été exécutée. Aucune livraison réelle n'est autorisée. |
+| INT-001 | `READY_FOR_OWNER_REVIEW - LOCALLY_QUALIFIED` | Le receiver J7 local est implémenté sur une branche séparée avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations additives `V006` à `V008`. Les validations complètes, la purge, la sauvegarde chiffrée et la restauration isolée synthétique sont qualifiées. La clôture et toute livraison réelle restent soumises à des décisions propriétaires distinctes. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
@@ -42,7 +42,7 @@ Le catalogue fournit :
 
 CAT-001 est fusionné et clôturé. CAT-002 traite désormais localement la concurrence, l'ordre des observations, l'autorité primaire/contrôle, les décisions humaines de mapping, le cycle de vie des anomalies et les demandes durables de rejeu. Le lot 7 expose ces cas d'usage sous `/internal/catalog` avec pagination keyset, commandes strictes, provenance expurgée et composants limités au profil `control-api`. Le lot 8 prouve en plus la reprise d'une demande `PENDING` après fermeture complète puis redémarrage du contexte Spring, sans migration V006, worker ni exposition publique. La correction P2 de la PR `#8` préserve les caractères fournisseur littéraux dans la clé d'autorité et maintient le chargement classpath fermé aux jokers de configuration. Le commit fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` ont quatre checks verts chacun ; la seconde attestation est approuvée, les 36 critères sont satisfaits et le fil P2 est résolu. La PR `#8` est fusionnée au commit `85dc943` : CAT-002 est accepté et clôturé.
 
-## Receiver local J7 — INT-001 en cours
+## Receiver local J7 — INT-001 prêt pour revue propriétaire
 
 INT-001 part de la base CAT-002 fusionnée `85dc943` et ajoute un adaptateur entrant optionnel au seul
 profil `control-api`. Le contrat est `POST /api/imports/sofascore/j7-canonical-events`, avec media
@@ -78,16 +78,20 @@ runtime ; ouvrir une telle surface exige un autre Work Order.
 Le rôle PostgreSQL local est encore propriétaire et sert à la fois à Flyway et au runtime : il reste
 une frontière de confiance de la qualification. Une cible de production devra séparer le rôle owner
 de migration du rôle runtime à privilèges minimaux, incapable de DDL, de désactiver les triggers ou
-d'invoquer une purge SQL directe. Les scripts de backup/restore prévoient un dump complet directement
+d'invoquer une purge SQL directe. Les scripts de backup/restore réalisent un dump complet directement
 chiffré et une cible PostgreSQL 17 standard, fraîche, isolée et vide, vérifiée dans les catalogues
-observables. L'absence de template personnalisé, de `pg_upgrade`, de clone et de lecteur réseau mappé
-reste une frontière opérateur. Cette preuve cryptographique demeure `NOT_EXECUTED`.
+observables. La preuve du 4 septembre a sauvegardé un corpus V008 synthétique sans dump clair. Une
+tentative Q1 s'est arrêtée sur un alias SQL réservé, avant déchiffrement, toute saisie propriétaire
+et toute mutation de la cible ; après correctif versionné, une seconde cible neuve a été restaurée et
+les hashes des cinq tables ont été
+recalculés avec succès. L'absence de template personnalisé, de `pg_upgrade`, de clone et de lecteur
+réseau mappé reste une frontière opérateur.
 
-Le lot reste non qualifié tant que les tests standard, architecture, profils,
-PostgreSQL/Testcontainers, mTLS synthétique, concurrence, rollback d'outbox, purge, contrôle de
-secrets et restauration chiffrée isolée ne sont pas tous réussis. INT-001 ne contient aucun sender,
-client sortant, appel SofaScore/Local Lab, consommateur d'enrichissement ou donnée réelle et
-n'autorise ni réseau distant, ni VPS, ni production.
+La baseline finale réussit 303 tests standards, 98 tests PostgreSQL/Testcontainers/mTLS, 32 tests
+Pester, la validation Windows complète, le contrôle de secrets et la configuration Compose. Le lot
+est localement qualifié mais reste actif jusqu'à la décision propriétaire. INT-001 ne contient aucun
+sender, client sortant, appel SofaScore/Local Lab, consommateur d'enrichissement ou donnée réelle et
+n'autorise ni livraison réelle, ni réseau distant, ni VPS, ni production.
 
 ## Benchmark fournisseurs
 
@@ -146,7 +150,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 - Budget Highlightly : 80 appels, réserve incompressible de 20.
 - Compositions : facultatives et non bloquantes ; aucune validation prématch à T0 ou après T0.
 - Aucun pari automatique, aucun appel live, aucune dépendance à SofaScore.
-- Le receiver J7 d'INT-001 reste désactivé par défaut et limité à la qualification locale synthétique ; aucune livraison réelle n'est autorisée.
+- Le receiver J7 d'INT-001 est localement qualifié, reste désactivé par défaut et attend la revue propriétaire ; aucune livraison réelle n'est autorisée.
 - La rétention J7 vaut 30 jours par défaut et ne change que par configuration opérateur explicite dans la plage `1..3650`.
 - PostgreSQL reste la source de vérité ; les preuves complètes du benchmark restent hors Git avec manifeste expurgé versionné lors d'ENR-001.
 
@@ -155,7 +159,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 | État externe vérifiable | Conséquence de gouvernance |
 |---|---|
 | Pull Request `#8` fusionnée et commit `85dc943` présent dans `main` | CAT-002 vaut définitivement `ACCEPTED - MERGED - CLOSED`. |
-| INT-001 reste en branche ou une validation manque | Receiver désactivé, aucune livraison réelle, aucune exposition et aucune clôture. |
+| INT-001 est localement qualifié mais reste en branche en attente de revue propriétaire | Receiver désactivé, aucune livraison réelle, aucune exposition et aucune clôture automatique. |
 | INT-001 est ultérieurement accepté | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent des décisions et Work Orders séparés. |
 | CAT-002 est clôturé | MVP-001 reste le prochain Work Order du pipeline produit, sans activation automatique ; ENR-002 vient ensuite. |
 | Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
