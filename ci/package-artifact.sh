@@ -86,6 +86,17 @@ if [ -n "$tag" ]; then
         fi
         exit 1
     fi
+    if [ -n "${CI_COMMIT_TAG:-}" ]; then
+        canonical_release_ref="refs/remotes/origin/release/${tag#v}"
+        if ! canonical_release_commit=$(git rev-parse --verify "${canonical_release_ref}^{commit}" 2>/dev/null); then
+            echo "FAIL: branche de promotion introuvable : $canonical_release_ref." >&2
+            exit 1
+        fi
+        if [ "$tagged_commit" != "$canonical_release_commit" ]; then
+            echo "FAIL: le tag $tag ne désigne pas le SHA promu par $canonical_release_ref." >&2
+            exit 1
+        fi
+    fi
 fi
 
 version=$(./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version)

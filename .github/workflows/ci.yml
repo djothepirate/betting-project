@@ -9,6 +9,8 @@ name: CI
     tags:
       - "v*"
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -101,7 +103,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BRANCH_NAME: ${{ github.head_ref }}
-        run: sh ci/check-branch-name.sh "$BRANCH_NAME"
+        run: sh ci/check-branch-name.sh "$BRANCH_NAME" github-pull-request
 
       - name: Tester le scanner de secrets POSIX
         run: sh scripts/tests/check-no-secrets.Tests.sh
