@@ -2,6 +2,20 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## 2026-09-05 — INT-001 (clôture locale)
+
+- état `CLOSED_LOCAL - OWNER_VALIDATED - NOT_PUBLISHED` à la demande du propriétaire, après
+  vérification des critères de terminé et de la validation acquise le 4 septembre ;
+- candidat fonctionnel conservé à `de06153` sur `codex/int-001-j7-receiver`, clôture documentaire
+  isolée sur `codex/int-001-closeout` ; aucun changement applicatif, script ou migration ;
+- rapport de préparation et ses empreintes préservés, résultats 303/98/32 réutilisés comme preuves
+  historiques ; aucune suite Maven, PostgreSQL/mTLS ou Pester relancée pour la documentation ;
+- contrôle distant : `main` à `5a8161e`, branche d'implémentation absente de GitHub et aucune PR
+  INT-001 trouvée ; publication et fusion restent distinctes de la clôture locale ;
+- [rapport de clôture](docs/reviews/INT-001-closeout-20260905.md), Work Order et synthèses synchronisés.
+
+La section du 4 septembre ci-dessous conserve l'état et les décisions à leur date initiale.
+
 ## 2026-09-04 — INT-001 (validé localement par le propriétaire)
 
 ### Périmètre localement qualifié
