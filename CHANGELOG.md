@@ -2,6 +2,15 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## 2026-09-05 — INT-001 (publication et PR autorisées)
+
+- publication de `codex/int-001-closeout` et ouverture de la
+  [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main`, explicitement
+  autorisées par le propriétaire après la clôture locale ;
+- statut courant `CLOSED_LOCAL - PUBLISHED - PR_OPEN` ; aucune fusion réalisée ou autorisée ;
+- alignement documentaire du Work Order et des synthèses, sans changement fonctionnel ni nouvelle
+  exécution des suites locales ; résultats distants à consulter sur le HEAD courant de la PR.
+
 ## 2026-09-05 — INT-001 (clôture locale)
 
 - état `CLOSED_LOCAL - OWNER_VALIDATED - NOT_PUBLISHED` à la demande du propriétaire, après
