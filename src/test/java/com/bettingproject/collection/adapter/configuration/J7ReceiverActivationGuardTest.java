@@ -1,9 +1,16 @@
 package com.bettingproject.collection.adapter.configuration;
 
+import java.nio.file.Path;
+import java.util.stream.Stream;
+
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.jdbc.autoconfigure.JdbcConnectionDetails;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -49,27 +56,51 @@ class J7ReceiverActivationGuardTest {
                 .hasMessageContaining("trust-store-password");
     }
 
-    @Test
-    void refusesNonLocalStoresAndAlternativeTlsMaterial() {
-        for (String invalidStore : java.util.List.of(
+    @ParameterizedTest(name = "{0} refuses {1}")
+    @MethodSource("invalidStoreProperties")
+    void refusesNonLocalStoresBeforeEitherActivationPhase(String key, String invalidStore) {
+        MockEnvironment environment = validEnvironment().withProperty(key, invalidStore);
+        assertThatThrownBy(() -> newGuard(validProperties(), environment).afterPropertiesSet())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(key);
+        assertThatThrownBy(() -> new J7ReceiverEarlyWebServerGuard(
+                validProperties(), environment).customize(null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(key);
+    }
+
+    private static Stream<Arguments> invalidStoreProperties() {
+        return Stream.of(
                 "relative/server.p12",
                 "classpath:server.p12",
                 "https://192.0.2.1/server.p12",
                 "\\\\synthetic-host\\share\\server.p12",
+                "//synthetic-host/share/server.p12",
                 "file:////synthetic-host/share/server.p12",
-                "file://synthetic-host/share/server.p12")) {
-            for (String key : java.util.List.of(
-                    "server.ssl.key-store",
-                    "server.ssl.trust-store")) {
-                MockEnvironment environment = validEnvironment()
-                        .withProperty(key, invalidStore);
-                assertThatThrownBy(() -> newGuard(validProperties(), environment)
-                        .afterPropertiesSet())
-                        .isInstanceOf(IllegalStateException.class)
-                        .hasMessageContaining(key);
-            }
-        }
+                "file://///synthetic-host/share/server.p12",
+                "file://synthetic-host/share/server.p12",
+                "file:///%2Fsynthetic-host/share/server.p12",
+                "file:///%5Csynthetic-host/share/server.p12",
+                "file:/%5C%5Csynthetic-host/share/server.p12")
+                .flatMap(store -> Stream.of("server.ssl.key-store", "server.ssl.trust-store")
+                        .map(key -> Arguments.of(key, store)));
+    }
 
+    @Test
+    void acceptsNativeAbsoluteFilesAndLocalFileUris(@TempDir Path directory) {
+        for (String store : java.util.List.of(
+                directory.resolve("server.p12").toString(),
+                directory.resolve("server store.p12").toUri().toString())) {
+            MockEnvironment environment = validEnvironment()
+                    .withProperty("server.ssl.key-store", store)
+                    .withProperty("server.ssl.trust-store", store);
+            newGuard(validProperties(), environment).afterPropertiesSet();
+            new J7ReceiverEarlyWebServerGuard(validProperties(), environment).customize(null);
+        }
+    }
+
+    @Test
+    void refusesAlternativeTlsMaterial() {
         for (String key : java.util.List.of(
                 "server.ssl.bundle",
                 "server.ssl.certificate",

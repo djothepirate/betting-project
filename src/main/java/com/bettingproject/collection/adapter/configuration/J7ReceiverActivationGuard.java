@@ -214,7 +214,7 @@ public class J7ReceiverActivationGuard implements InitializingBean {
         }
         String stripped = value.strip();
         try {
-            if (stripped.startsWith("\\\\") || stripped.startsWith("//")) {
+            if (isUncOrDevicePath(stripped)) {
                 throw invalidConfiguration(key + " must not use a network share");
             }
             if (isWindowsAbsolutePath(stripped)) {
@@ -223,14 +223,18 @@ public class J7ReceiverActivationGuard implements InitializingBean {
             URI uri = URI.create(stripped);
             if (uri.getScheme() == null) {
                 Path path = Path.of(stripped);
-                if (path.isAbsolute() && !isUncOrDevicePath(path)) {
+                if (path.isAbsolute() && !isUncOrDevicePath(path.toString())) {
                     return;
                 }
             }
             else if ("file".equalsIgnoreCase(uri.getScheme())
                     && (uri.getAuthority() == null || uri.getAuthority().isBlank())) {
+                // Inspect decoded separators before Path can collapse a UNC prefix on Unix.
+                if (uri.getPath() != null && isUncOrDevicePath(uri.getPath())) {
+                    throw invalidConfiguration(key + " must not use a network share");
+                }
                 Path path = Path.of(uri);
-                if (path.isAbsolute() && !isUncOrDevicePath(path)) {
+                if (path.isAbsolute() && !isUncOrDevicePath(path.toString())) {
                     return;
                 }
             }
@@ -248,8 +252,8 @@ public class J7ReceiverActivationGuard implements InitializingBean {
                 && (value.charAt(2) == '\\' || value.charAt(2) == '/');
     }
 
-    private boolean isUncOrDevicePath(Path path) {
-        String windowsForm = path.toString().replace('/', '\\');
+    private boolean isUncOrDevicePath(String path) {
+        String windowsForm = path.replace('/', '\\');
         return windowsForm.startsWith("\\\\");
     }
 
