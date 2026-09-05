@@ -48,24 +48,63 @@ validate:source:
   script:
     - |
       if [ "${CI_PIPELINE_SOURCE:-}" = merge_request_event ]; then
-        git fetch --tags origin
+        if [ -n "${CI_COMMIT_BRANCH:-}" ] \
+          || [ -n "${CI_COMMIT_TAG:-}" ] \
+          || [ -z "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-}" ] \
+          || [ -z "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]; then
+          echo 'FAIL: une Merge Request GitLab exige CI_COMMIT_BRANCH/CI_COMMIT_TAG vides et des branches source/cible MR non vides.' >&2
+          exit 1
+        fi
         project_version=$(./mvnw -q -DforceStdout help:evaluate \
           -Dexpression=project.version)
+        if [ -z "${CI_PROJECT_ID:-}" ] \
+          || [ -z "${CI_MERGE_REQUEST_PROJECT_ID:-}" ] \
+          || [ -z "${CI_MERGE_REQUEST_SOURCE_PROJECT_ID:-}" ] \
+          || [ "$CI_PROJECT_ID" != "$CI_MERGE_REQUEST_PROJECT_ID" ] \
+          || [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_MERGE_REQUEST_PROJECT_ID" ]; then
+          sh ci/check-gitlab-merge-request.sh "$project_version"
+        fi
+        sh ci/check-branch-name.sh \
+          "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" feature-integration
+        sh ci/check-branch-name.sh \
+          "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" gitlab-release
+        git fetch --force --tags origin \
+          "+refs/heads/main:refs/remotes/origin/main" \
+          "+refs/heads/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}:refs/remotes/origin/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" \
+          "+refs/heads/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}:refs/remotes/origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
       else
         project_version=
+        if [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-}" ] \
+          || [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]; then
+          echo 'FAIL: les variables de Merge Request GitLab doivent être vides hors merge_request_event.' >&2
+          exit 1
+        fi
+        if [ -n "${CI_COMMIT_BRANCH:-}" ] && [ -n "${CI_COMMIT_TAG:-}" ]; then
+          echo 'FAIL: un pipeline GitLab ne peut pas porter simultanément une branche et un tag.' >&2
+          exit 1
+        elif [ -n "${CI_COMMIT_BRANCH:-}" ]; then
+          sh ci/check-branch-name.sh "$CI_COMMIT_BRANCH" gitlab-branch
+        elif [ -n "${CI_COMMIT_TAG:-}" ]; then
+          if [ "${CI_COMMIT_REF_PROTECTED:-}" != true ]; then
+            echo "FAIL: le tag GitLab $CI_COMMIT_TAG doit être protégé." >&2
+            exit 1
+          fi
+          if ! printf '%s' "$CI_COMMIT_TAG" | grep -Eq \
+            '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
+            echo "FAIL: tag GitLab hors convention SemVer : $CI_COMMIT_TAG." >&2
+            exit 1
+          fi
+          printf 'TAG_REF=%s\n' "$CI_COMMIT_TAG"
+        else
+          echo "FAIL: source ou ref GitLab indéterminée : source=${CI_PIPELINE_SOURCE:-<vide>}." >&2
+          exit 1
+        fi
       fi
       sh ci/check-gitlab-merge-request.sh "$project_version"
     - sh scripts/tests/check-no-secrets.Tests.sh
     - sh ci/test-dependency-check.sh
     - sh ci/test-package-guards.sh
     - ./scripts/check-no-secrets.sh --scope all --base "${CI_COMMIT_BEFORE_SHA:-}"
-    - |
-      ref="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-${CI_COMMIT_BRANCH:-}}"
-      if [ -n "${CI_COMMIT_TAG:-}" ]; then
-        printf 'TAG_REF=%s\n' "$CI_COMMIT_TAG"
-      else
-        sh ci/check-branch-name.sh "$ref"
-      fi
     - |
       if [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] \
         && ! printf '%s' "$CI_COMMIT_BEFORE_SHA" | grep -Eq '^0+$' \
@@ -160,9 +199,27 @@ security:dependencies:
       -Dproject.build.outputTimestamp="$source_epoch" clean package
     - |
       if [ -n "${CI_COMMIT_TAG:-}" ]; then
-        release_branch="release/${CI_COMMIT_TAG#v}"
+        tag_version="${CI_COMMIT_TAG#v}"
+        case "$tag_version" in
+          *-rc.*)
+            tag_core="${tag_version%-rc.*}"
+            tag_rc="${tag_version##*-rc.}"
+            case "$tag_rc" in
+              ???*)
+                echo "FAIL: le tag $CI_COMMIT_TAG dépasse la plage des branches RC01..RC99." >&2
+                exit 1
+                ;;
+              [1-9]) tag_rc="0${tag_rc}" ;;
+            esac
+            branch_train="${tag_core}-RC${tag_rc}"
+            ;;
+          *) branch_train="$tag_version" ;;
+        esac
+        feature_branch="feature/V${branch_train}"
+        release_branch="release/V${branch_train}"
         git fetch --no-tags origin \
           "+refs/heads/main:refs/remotes/origin/main" \
+          "+refs/heads/${feature_branch}:refs/remotes/origin/${feature_branch}" \
           "+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}"
       fi
       sh ci/package-artifact.sh
@@ -178,7 +235,7 @@ package:snapshot:
     paths:
       - target/distribution/
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature\/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?$/'
 
 package:release:
   extends: .package

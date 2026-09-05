@@ -6,8 +6,10 @@
 - **Portée :** Tous les dépôts officiellement rattachés au Betting Project
 - **Choix validés :** 1A, 2A et 3A
 - **Work Order d'application :** CI-001
-- **Amendement :** 2026-09-02 — promotion GitLab de `main` vers `release/<SemVer>`
+- **Amendement historique :** 2026-09-02 — promotion GitLab de `main` vers
+  `release/<SemVer>`, remplacée par l'amendement CI-004 ci-dessous
 - **Amendement :** 2026-09-02 — flux JSON 2.0 public NVD sans cache inter-pipelines, corrigé par CI-003
+- **Amendement :** 2026-09-05 — trains feature/release versionnés et gouvernance des Work Orders, appliqués par CI-004
 
 ## Contexte
 
@@ -28,60 +30,94 @@ non critique ; son intégration continue ne constitue jamais une approbation de 
 
 ### 1. Dépôts et responsabilités
 
-GitHub est l'unique source canonique du code, des branches de travail, de `main`, des Pull Requests
-et des tags. Chaque dépôt officiel possède un projet GitLab privé homonyme sous
-`djothepirate-betting-project`. GitLab reçoit le SHA de `main` qualifié par GitHub, exécute la CI,
-conserve les artefacts et porte les références de promotion. Aucun développement général n'y est
-autorisé ; les seules Merge Requests GitLab admises promeuvent `main` vers une branche
-`release/<SemVer>`.
+GitHub est l'unique source canonique du code, des branches de Work Order, de `main`, des branches
+d'intégration `feature/<TRAIN>`, des Pull Requests et des tags. Chaque dépôt officiel possède un
+projet GitLab privé homonyme sous `djothepirate-betting-project`. GitLab reçoit les SHA qualifiés de
+`main` et de la branche feature d'intégration exacte, exécute la CI, conserve les artefacts et porte
+les références de promotion. Aucun développement général n'y est autorisé ; les seules Merge
+Requests GitLab admises promeuvent `feature/<TRAIN>` vers `release/<TRAIN>`.
 
 Le registre `ci/betting-project-repositories.yml` matérialise le périmètre officiel. Un nouveau
 dépôt entre dans le Betting Project uniquement après une Pull Request de ce registre approuvée par
 le porteur. Son admission n'est terminée qu'après création de son projet GitLab, synchronisation du
 SHA exact, pipeline vert, classification de livraison et configuration des protections.
 
-La synchronisation est unidirectionnelle, GitHub vers GitLab, et ne publie que `main` ou un tag
-SemVer immuable dont la CI GitHub est verte. Elle est préparée dans un lot distinct, désactivé par
-défaut, puis activée seulement après création des projets, clés par dépôt, protections et test de
-concordance des refs. Les branches `release/*` sont propres à GitLab et ne sont jamais recopiées
-vers GitHub.
+La synchronisation est unidirectionnelle, GitHub vers GitLab. Elle publie uniquement `main`, une
+branche d'intégration exacte `feature/<TRAIN>` ou un tag SemVer immuable dont la CI GitHub est
+verte ; une branche de Work Order n'est jamais synchronisée. Elle est préparée dans un lot distinct,
+désactivé par défaut, puis activée seulement après création des projets, clés par dépôt, protections
+et test de concordance des refs. Les branches `release/V*` sont propres à GitLab et ne sont jamais
+recopiées vers GitHub.
 
 ### 2. Branches
 
-`main` est la seule branche permanente de développement. Une branche de travail GitHub suit :
+Un train de branche suit exactement l'une des trois formes suivantes :
 
 ```text
-<acteur>/<work-order-sans-WO>-<slug>
+Vx.y.z
+Vx.y.z-RCnn
+Vx.y.z-RCnn-SNAPSHOT
 ```
 
-Exemples :
+Le cœur `x.y.z` respecte SemVer sans zéro initial. `nn` contient exactement deux chiffres de `01`
+à `99`. `RC00`, `RC1`, `RC001`, `RC100` et l'ancien suffixe de branche `-rc.N` sont refusés. La
+notation de branche est volontairement distincte de Maven et des tags : `RC01` correspond à
+`rc.1`, et `RC99` à `rc.99`.
+
+Au début d'un train, la branche GitLab `release/<TRAIN>` et la branche GitHub
+`feature/<TRAIN>` partent du même SHA qualifié de `main`. La release est créée sur GitLab sans push
+direct et protégée immédiatement. La branche feature est canonique sur GitHub puis synchronisée à
+l'identique vers GitLab. Tout nouveau Work Order part du HEAD exact de cette branche feature ; son
+document enregistre ce SHA avant les travaux. Sa branche suit :
 
 ```text
-codex/ci-001-gitlab-ci-bootstrap
-human/ci-001-gitlab-ci-bootstrap
-codex/ss-20260901-031-ci-bootstrap
+feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER>
 ```
 
-Les acteurs initiaux autorisés sont `codex` et `human`. Les correctifs urgents utilisent
-`hotfix/<incident-id>-<slug>` et doivent être reliés à un Work Order avant fusion. Il n'existe ni
-branche `develop`, ni branche générique nommée `release`. Toute branche de travail est fusionnée
-dans `main` par Pull Request GitHub après revue humaine, puis supprimée. Les branches ouvertes avant
-cet ADR sont tolérées jusqu'à leur clôture, sans créer de précédent.
+`CODEX` et `HUMAN` sont les seuls acteurs admis. `<WORK-ORDER>` reprend l'identifiant versionné en
+majuscules sous la forme `<TYPE>-<NNN>`, avec `TYPE` en lettres et `NNN` compris entre `001` et
+`999`, sans slug ajouté, par exemple `feature/V0.1.0-CODEX-CI-005`. Son document
+`docs/work-orders/<WORK-ORDER>.md` existe sur la branche. Une Pull Request de Work Order cible
+exclusivement `feature/<TRAIN>` de même train. La clôture d'un Work Order ou d'une suite de Work
+Orders résulte des Pull Requests correspondantes, avec CI verte, discussions résolues, revue
+humaine et merge commit ; squash, rebase et push direct vers la branche feature cible sont
+interdits par la procédure.
 
-GitLab ajoute des branches durables de promotion nommées strictement `release/X.Y.Z` ou
-`release/X.Y.Z-rc.N`, sans zéro initial et avec `N` strictement positif. Elles ne sont pas des
-branches de développement. Le motif GitLab `release/*` est le seul motif de branche protégé : seuls
-les Maintainers peuvent y fusionner une Merge Request, aucun acteur ne peut y pousser directement
-et le force-push reste désactivé. La branche GitLab `main` reste non protégée afin de recevoir la
-copie contrôlée du SHA canonique ; elle n'est jamais une cible de Merge Request GitLab.
+Une fois le train prêt, une Pull Request GitHub finale fusionne `feature/<TRAIN>` dans `main` par
+merge commit. Le garde vérifie avant fusion que la version Maven correspond exactement au train ;
+un train stable porte déjà sa version finale sans `SNAPSHOT`. Après qualification de ce merge
+commit `M`, la branche feature avance de son ancien
+sommet vers `M` par fast-forward normal, jamais par force-push. Les références GitHub `main` et
+`feature/<TRAIN>` désignent alors le même SHA `M` et sont synchronisées vers GitLab. La seule Merge
+Request GitLab admise est ensuite `feature/<TRAIN>` vers `release/<TRAIN>` du même train.
 
-Une promotion utilise exclusivement une Merge Request GitLab de `main` vers la branche
-`release/<SemVer>` correspondante. Le projet impose une fusion fast-forward, interdit le squash et
-conserve la branche source `main`, afin que la branche de release pointe exactement le SHA issu de
-GitHub. Toute impossibilité de fast-forward ou tout changement inattendu du SHA source arrête la
-promotion. Le pipeline refuse les Merge Requests issues d'un fork, une cible non protégée, une
-version Maven différente du suffixe de la branche et toute nouvelle modification d'une branche de
-release déjà scellée par son tag.
+Le motif GitLab `release/V*` est le seul motif de branche protégé : seuls les Maintainers peuvent y
+fusionner une Merge Request, aucun acteur ne peut y pousser directement et le force-push reste
+désactivé. `main` et `feature/*` restent non protégées afin de recevoir leur copie contrôlée. Une
+branche release n'existe jamais sur GitHub. Les dépôts GitHub imposent les merge commits et
+désactivent squash et rebase ; l'absence de protection des branches autres que release ne transforme
+pas un push direct en voie de clôture autorisée.
+
+Le motif de tags GitLab `v*` est protégé séparément : seuls les Maintainers ou l'identité de
+synchronisation explicitement autorisée peuvent créer un tag de release, et aucun tag existant ne
+peut être déplacé. Cette protection de tag ne crée aucune branche protégée supplémentaire et ne
+remet donc pas en cause l'unicité du motif de branche protégé `release/V*`.
+
+Le projet GitLab impose une fusion fast-forward, interdit squash et rebase et conserve la branche
+source feature, afin que la release pointe exactement le SHA commun issu de GitHub. Toute
+impossibilité de fast-forward ou tout changement inattendu du SHA source arrête la promotion. Le
+pipeline refuse les Merge Requests issues d'un fork, une cible non protégée, des trains source et
+cible différents, une version Maven différente du train converti et toute nouvelle modification
+d'une branche de release déjà scellée par son tag. Sur un historique complet et après extraction
+explicite des références distantes, il exige aussi que le SHA du pipeline, le sommet de la feature
+source et `origin/main` soient le même commit `M`, puis que la release cible soit un ancêtre de `M`.
+
+Les branches historiques `codex/*`, `human/*` et `hotfix/*` restent en lecture seule sans renommage,
+réutilisation ou suppression implicite. Une seule exception de bootstrap est admise sous l'ancienne
+convention : `codex/ci-004-version-branch-workflow` vers `main`, avec la base exacte
+`3fb224e9724698324a56b47fe5d943ecd366f197`. Le garde reçoit également le SHA de tête, vérifie que
+cette base en est un ancêtre et que leur merge-base est exactement la base déclarée ; le seul champ
+GitHub indiquant le sommet courant de `main` n'est pas une preuve de l'origine de la branche.
 
 Lorsqu'une branche possède une Merge Request ouverte, le pipeline `merge_request_event` est la
 qualification de référence et le pipeline `push` redondant de cette branche est supprimé. Cette
@@ -97,27 +133,45 @@ Chaque dépôt suit SemVer indépendamment des autres :
 - release : tag immuable `vX.Y.Z` et version Maven exacte `X.Y.Z` ;
 - snapshot distribué : `X.Y.Z-snapshot.p<id-pipeline>.g<sha-court>`.
 
-Un tag de release doit viser un commit de `main`, correspondre exactement à la version Maven et
-au sommet de la branche GitLab `release/<SemVer>` associée, puis ne jamais être déplacé. Un artefact
-est construit une fois, identifié par SHA-256, accompagné d'un SBOM CycloneDX et d'une provenance.
-Une provenance de release exclut tout identifiant de run ou de forge ; elle porte la version
-d'artefact déterminée par le tag. La production promeut ces mêmes octets ; aucun rebuild n'est
-autorisé sur le VPS. GitHub reste l'autorité de la référence de tag et compile puis teste cette ref.
-Après synchronisation du tag exact, GitLab est l'unique producteur et l'autorité de publication du
-bundle tagué.
+Le mapping entre train de branche et version Maven est déterministe :
 
-Après création du tag associé, la branche `release/<SemVer>` est scellée : aucune nouvelle Merge
+| Train de branche | Version Maven admise | Tag éventuel |
+|---|---|---|
+| `V1.2.3` | `1.2.3-SNAPSHOT` pendant le développement, puis `1.2.3` pour la promotion | `v1.2.3` |
+| `V1.2.3-RC01` | `1.2.3-rc.1` | `v1.2.3-rc.1` |
+| `V1.2.3-RC01-SNAPSHOT` | `1.2.3-rc.1-SNAPSHOT` | aucun |
+
+Le zéro de remplissage appartient uniquement au nom de branche. Les tags conservent la décision
+2A avec `rc.N` minuscule et `N` sans zéro initial. Un tag `rc.100` reste syntaxiquement SemVer, mais
+sa publication est refusée explicitement car aucun train de branche autorisé au-delà de `RC99` ne
+peut établir les références canoniques communes. Un tag portant `SNAPSHOT` est toujours interdit.
+
+Un snapshot durable est conservé uniquement depuis un pipeline `push` de la branche feature
+d'intégration exacte. Les bundles produits depuis une branche de Work Order, le merge synthétique
+d'une Pull Request ou `main` restent éphémères. Avant conservation, la CI vérifie que la version
+Maven correspond au train selon la table ci-dessus. La seule présence d'un snapshot ne constitue
+ni une approbation de production, ni une autorisation de déploiement.
+
+Un tag de release doit viser le SHA commun de `main`, de `feature/<TRAIN>` sur GitHub et de
+`release/<TRAIN>` sur GitLab, correspondre exactement à la version Maven convertie puis ne jamais
+être déplacé. Un artefact est construit une fois, identifié par SHA-256, accompagné d'un SBOM
+CycloneDX et d'une provenance. Une provenance de release exclut tout identifiant de run ou de
+forge ; elle porte la version d'artefact déterminée par le tag. La production promeut ces mêmes
+octets ; aucun rebuild n'est autorisé sur le VPS. GitHub reste l'autorité de la référence de tag et
+compile puis teste cette ref. Après synchronisation du tag exact, GitLab est l'unique producteur et
+l'autorité de publication du bundle tagué.
+
+Après création du tag associé, la branche `release/<TRAIN>` est scellée : aucune nouvelle Merge
 Request ne peut la faire avancer. Une correction passe nécessairement par une nouvelle version et
-une nouvelle branche de release.
+un nouveau train de branches.
 
-La Pull Request de préparation fixe d'abord la version Maven exacte `X.Y.Z[-rc.N]`. Tant qu'aucun
-tag ne désigne le commit, ses builds de Pull Request puis de `main` restent des snapshots
-non promouvables nommés `X.Y.Z[-rc.N]-snapshot.p<id-pipeline>.g<sha-court>` et portent un
-`source.tag` vide. Après fusion et CI GitHub verte, le SHA de `main` est synchronisé vers GitLab et
-qualifié. La Merge Request GitLab promeut ensuite ce même SHA vers `release/X.Y.Z[-rc.N]`. Le tag
-canonique `vX.Y.Z[-rc.N]` n'est créé sur GitHub qu'après cette promotion et une nouvelle revue
-humaine, puis il est synchronisé à l'identique vers GitLab ; seule son exécution GitLab produit le
-bundle de release canonique.
+La préparation finale fixe la version Maven non-SNAPSHOT avant la Pull Request
+`feature/<TRAIN>` vers `main`. Sans tag, ses builds restent des snapshots non promouvables nommés
+`X.Y.Z[-rc.N]-snapshot.p<id-pipeline>.g<sha-court>` et portent un `source.tag` vide. Après le merge
+commit GitHub vert, le fast-forward de la branche feature et la synchronisation des deux références,
+la Merge Request GitLab promeut ce SHA commun vers `release/<TRAIN>`. Le tag canonique n'est créé
+sur GitHub qu'après cette promotion et une nouvelle revue humaine, puis il est synchronisé à
+l'identique vers GitLab ; seule son exécution GitLab produit le bundle de release canonique.
 Une base Maven snapshot qui ne respecte pas exactement `X.Y.Z[-rc.N]-SNAPSHOT` est refusée avant
 toute création d'artefact.
 
@@ -153,9 +207,10 @@ production n'est accessible aux pipelines de build. Aucun runner CI généralist
 le VPS de production.
 
 Les jobs GitLab ne consomment aucun cache Maven partagé entre pipelines. Une branche contrôle sa
-propre configuration CI et ne doit donc jamais pouvoir écrire dans un cache ensuite lu par `main`
-ou par un tag. Un cache ne pourra être réintroduit qu'après qualification d'une séparation imposée
-côté GitLab/runner entre refs protégées et non protégées, indépendamment du YAML du dépôt.
+propre configuration CI et ne doit donc jamais pouvoir écrire dans un cache ensuite lu par `main`,
+une branche feature d'intégration ou un tag. Un cache ne pourra être réintroduit qu'après
+qualification d'une séparation imposée côté GitLab/runner entre refs protégées et non protégées,
+indépendamment du YAML du dépôt.
 
 CI-002 retient le flux JSON 2.0 officiel du NVD comme source externe. CI-003 retire le cache GitLab
 initialement ajouté pour sa base locale : `main` étant non protégée, le suffixe GitLab entre refs
@@ -192,8 +247,9 @@ production ou artefact VPS n'y est autorisé.
 
 ## Conséquences
 
-- La CI GitHub reste la première porte de la Pull Request ; GitLab travaille sur `main` et les tags
-  verts synchronisés, puis matérialise la promotion par Merge Request vers `release/<SemVer>`.
+- La CI GitHub reste la première porte de la Pull Request ; GitLab travaille sur `main`, la branche
+  feature d'intégration exacte et les tags verts synchronisés, puis matérialise la promotion par
+  Merge Request `feature/<TRAIN>` vers `release/<TRAIN>`.
 - Une branche de release ne peut diverger du SHA canonique : merge commit, squash et push direct
   sont incompatibles avec cette décision.
 - Les versions des dépôts peuvent évoluer sans coordination artificielle.
@@ -207,10 +263,18 @@ production ou artefact VPS n'y est autorisé.
 
 - [ ] Chaque dépôt officiel figure dans le registre et possède un miroir GitLab privé homonyme.
 - [ ] Les branches et tags GitLab correspondent au SHA GitHub attendu.
-- [ ] `main` reste non protégée et seule la règle `release/*` protège les branches GitLab avec
-  fusion réservée aux Maintainers, push direct et force-push interdits.
-- [ ] Une promotion `main` vers `release/<SemVer>` est fast-forward et le tag correspondant vise
-  exactement ce même SHA canonique.
+- [ ] `main` et `feature/*` restent non protégées sur GitLab et seule la règle `release/V*` protège
+  des branches, avec fusion réservée aux Maintainers, push direct et force-push interdits.
+- [ ] Le motif de tags `v*` est protégé séparément sur GitLab sans être compté comme une protection
+  de branche ; un tag existant ne peut jamais être déplacé.
+- [ ] Toute branche de Work Order part du HEAD documenté de `feature/<TRAIN>` et sa Pull Request
+  cible la branche feature d'intégration du même train.
+- [ ] La Pull Request finale `feature/<TRAIN>` vers `main` produit un merge commit ; la branche
+  feature porte la version Maven exacte puis est avancée normalement en fast-forward vers ce
+  commit, sans force-push.
+- [ ] Une promotion GitLab `feature/<TRAIN>` vers `release/<TRAIN>` est fast-forward et le tag
+  correspondant vise exactement le SHA commun aux trois références canoniques ; le pipeline
+  contrôle cette égalité et l'ascendance de la release cible sur un historique complet.
 - [ ] La baseline qualité mesurée est verrouillée sans régression.
 - [ ] Les snapshots et releases contiennent SBOM, provenance et SHA-256.
 - [ ] Un artefact du Local Lab indique explicitement `vps.deployable=false`.

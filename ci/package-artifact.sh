@@ -7,12 +7,20 @@ cd "$repository"
 commit_sha=${CI_COMMIT_SHA:-${SOURCE_COMMIT_SHA:-${GITHUB_SHA:-}}}
 pipeline_iid=${CI_PIPELINE_IID:-${GITHUB_RUN_NUMBER:-0}}
 tag=${CI_COMMIT_TAG:-}
+branch_ref=${CI_COMMIT_BRANCH:-}
 
 if [ -z "$commit_sha" ]; then
     commit_sha=$(git rev-parse HEAD)
 fi
 if [ -z "$tag" ] && [ "${GITHUB_REF_TYPE:-}" = tag ]; then
     tag=${GITHUB_REF_NAME:-}
+fi
+if [ -z "$branch_ref" ]; then
+    if [ -n "${GITHUB_HEAD_REF:-}" ]; then
+        branch_ref=$GITHUB_HEAD_REF
+    elif [ "${GITHUB_REF_TYPE:-}" = branch ]; then
+        branch_ref=${GITHUB_REF_NAME:-}
+    fi
 fi
 
 case "$commit_sha" in
@@ -75,19 +83,42 @@ if [ -n "$tag" ]; then
         echo "FAIL: référence canonique main introuvable : $canonical_main_ref." >&2
         exit 1
     fi
-    if git merge-base --is-ancestor "$tagged_commit" "$canonical_main_commit"; then
-        :
-    else
-        ancestry_status=$?
-        if [ "$ancestry_status" -eq 1 ]; then
-            echo "FAIL: le commit tagué $tagged_commit n'est pas atteignable depuis $canonical_main_ref." >&2
-        else
-            echo "FAIL: impossible de vérifier l'appartenance du tag $tag à $canonical_main_ref." >&2
-        fi
+    if [ "$tagged_commit" != "$canonical_main_commit" ]; then
+        echo "FAIL: le tag $tag ne désigne pas le sommet canonique de $canonical_main_ref." >&2
+        exit 1
+    fi
+
+    tag_version=${tag#v}
+    case "$tag_version" in
+        *-rc.*)
+            tag_core=${tag_version%-rc.*}
+            tag_rc=${tag_version##*-rc.}
+            case "$tag_rc" in
+                ???*)
+                    echo "FAIL: le tag $tag dépasse la plage des branches RC01..RC99." >&2
+                    exit 1
+                    ;;
+            esac
+            case "$tag_rc" in
+                [1-9]) branch_rc="0$tag_rc" ;;
+                *) branch_rc=$tag_rc ;;
+            esac
+            branch_train="${tag_core}-RC${branch_rc}"
+            ;;
+        *) branch_train=$tag_version ;;
+    esac
+
+    canonical_feature_ref="refs/remotes/origin/feature/V${branch_train}"
+    if ! canonical_feature_commit=$(git rev-parse --verify "${canonical_feature_ref}^{commit}" 2>/dev/null); then
+        echo "FAIL: branche feature canonique introuvable : $canonical_feature_ref." >&2
+        exit 1
+    fi
+    if [ "$tagged_commit" != "$canonical_feature_commit" ]; then
+        echo "FAIL: le tag $tag ne désigne pas le sommet canonique de $canonical_feature_ref." >&2
         exit 1
     fi
     if [ -n "${CI_COMMIT_TAG:-}" ]; then
-        canonical_release_ref="refs/remotes/origin/release/${tag#v}"
+        canonical_release_ref="refs/remotes/origin/release/V${branch_train}"
         if ! canonical_release_commit=$(git rev-parse --verify "${canonical_release_ref}^{commit}" 2>/dev/null); then
             echo "FAIL: branche de promotion introuvable : $canonical_release_ref." >&2
             exit 1
@@ -117,8 +148,8 @@ else
             base_version=${version%-SNAPSHOT}
             ;;
         *)
-            # La PR de préparation puis le build de main doivent pouvoir valider la
-            # version finale avant la création du tag. Sans tag, ce payload reste un
+            # La préparation feature puis le merge commit de main doivent pouvoir valider
+            # la version finale avant la création du tag. Sans tag, ce payload reste un
             # snapshot non promouvable ; seul le pipeline GitLab du tag publie la release.
             base_version=$version
             ;;
@@ -127,6 +158,50 @@ else
         '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
         echo "FAIL: version Maven snapshot hors convention SemVer : $version." >&2
         exit 1
+    fi
+    branch_train=
+    if printf '%s' "$branch_ref" | grep -Eq \
+        '^feature/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?$'; then
+        branch_train=${branch_ref#feature/V}
+    elif printf '%s' "$branch_ref" | grep -Eq \
+        '^feature/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?-(CODEX|HUMAN)-[A-Z]+-(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$'; then
+        case "$branch_ref" in
+            *-CODEX-*) branch_base=${branch_ref%%-CODEX-*} ;;
+            *-HUMAN-*) branch_base=${branch_ref%%-HUMAN-*} ;;
+        esac
+        branch_train=${branch_base#feature/V}
+    fi
+    if [ -n "$branch_train" ]; then
+        case "$branch_train" in
+            *-RC*-SNAPSHOT)
+                branch_candidate=${branch_train%-SNAPSHOT}
+                branch_core=${branch_candidate%-RC*}
+                branch_rc=${branch_candidate##*-RC}
+                branch_rc=${branch_rc#0}
+                expected_branch_version="${branch_core}-rc.${branch_rc}-SNAPSHOT"
+                if [ "$version" != "$expected_branch_version" ]; then
+                    echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
+                    exit 1
+                fi
+                ;;
+            *-RC*)
+                branch_core=${branch_train%-RC*}
+                branch_rc=${branch_train##*-RC}
+                branch_rc=${branch_rc#0}
+                expected_branch_version="${branch_core}-rc.${branch_rc}"
+                if [ "$version" != "$expected_branch_version" ]; then
+                    echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
+                    exit 1
+                fi
+                ;;
+            *)
+                if [ "$version" != "$branch_train" ] &&
+                   [ "$version" != "${branch_train}-SNAPSHOT" ]; then
+                    echo "FAIL: la branche $branch_ref exige la version Maven $branch_train ou ${branch_train}-SNAPSHOT, reçue : $version." >&2
+                    exit 1
+                fi
+                ;;
+        esac
     fi
     artifact_version="${base_version}-snapshot.p${pipeline_iid}.g${short_sha}"
 fi

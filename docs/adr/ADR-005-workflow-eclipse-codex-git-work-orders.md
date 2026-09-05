@@ -4,7 +4,8 @@
 - **Date :** 2026-08-10
 - **Décideur :** Porteur du Betting Project
 - **Portée :** Betting Project principal - Jalon 0
-- **Version :** 0.1
+- **Version :** 0.2
+- **Amendement :** 2026-09-05 — branches feature versionnées et clôture par Pull Request
 - **Documents liés :** PROJECT_BRIEF v0.1; cadrage v0.5.1
 
 ## Résumé de la décision
@@ -25,11 +26,38 @@ Eclipse est l'IDE principal pour la navigation Java, le débogage, l'exécution 
 
 Chaque changement significatif part d'un Work Order borné décrivant l'objectif, le périmètre autorisé, les exclusions, les critères d'acceptation, les commandes de test et les livrables attendus.
 
+Tout nouveau Work Order part du HEAD exact d'une branche d'intégration GitHub. Cette branche suit
+`feature/<TRAIN>`, où `<TRAIN>` vaut `Vx.y.z`, `Vx.y.z-RCnn` ou
+`Vx.y.z-RCnn-SNAPSHOT`, avec un cœur SemVer sans zéro initial et `nn` compris entre `01` et `99`.
+Le Work Order enregistre la branche et le SHA de départ avant toute modification.
+
+La branche de travail suit exactement :
+
+```text
+feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER>
+```
+
+`<WORK-ORDER>` est l'identifiant versionné en majuscules sous la forme `<TYPE>-<NNN>`, par exemple
+`CI-005`, avec `TYPE` en lettres et `NNN` compris entre `001` et `999` ; aucun slug libre n'est
+ajouté. Le document `docs/work-orders/<WORK-ORDER>.md` existe sur la branche. Une Pull Request de
+clôture fusionne cette branche dans `feature/<TRAIN>` de même version. Une suite de Work Orders est
+clôturée par ses Pull Requests traçables vers cette même branche d'intégration, pas par un push
+direct.
+
 Codex travaille dans une branche, un clone ou un worktree dédié. Le worktree utilisé par Eclipse pour la revue n'est pas modifié simultanément par l'agent.
 
 AGENTS.md décrit les commandes fiables, conventions, répertoires protégés, règles de sécurité et critères de fin applicables au dépôt.
 
-Avant fusion, le porteur lit le diff, rejoue les tests pertinents et valide le comportement dans Eclipse. Aucune fusion ni publication externe n'est implicite.
+Avant fusion, le porteur lit le diff, rejoue les tests pertinents et valide le comportement dans
+Eclipse. GitHub utilise exclusivement des merge commits : squash et rebase sont interdits. La
+Pull Request finale `feature/<TRAIN>` vers `main` est une étape distincte de la clôture des Work
+Orders et exige sa propre validation humaine. Aucune fusion ni publication externe n'est implicite.
+
+Les branches historiques `codex/*`, `human/*` et `hotfix/*` antérieures à cet amendement restent
+consultables en lecture seule. Elles ne sont ni renommées, ni réutilisées, ni supprimées par effet
+de bord. La seule exception permettant encore une source selon l'ancienne convention est le
+bootstrap CI-004 : `codex/ci-004-version-branch-workflow` vers `main`, sur la base exacte
+`3fb224e9724698324a56b47fe5d943ecd366f197`.
 
 Les décisions durables sont enregistrées dans docs/adr, les travaux dans docs/work-orders et les procédures dans docs/runbooks. La conversation reste un support de travail, pas l'unique mémoire.
 
@@ -37,6 +65,8 @@ Les décisions durables sont enregistrées dans docs/adr, les travaux dans docs/
 
 - Pas de modification simultanée d'un même worktree par le porteur et Codex.
 - Pas de commit direct sur la branche principale pour un changement significatif.
+- Pas de push direct pour clôturer un Work Order sur sa branche feature cible.
+- La branche de Work Order, la branche cible et le SHA de départ sont consignés avant travaux.
 - Pas de secret de production confié à l'agent ou copié dans le dépôt.
 - Le diff final doit rester dans le périmètre du Work Order ou expliciter tout écart.
 - Les tests requis et leurs résultats sont consignés avant la revue humaine.
@@ -109,3 +139,4 @@ Codex peut travailler sur le dépôt indépendamment de l'IDE ; aucun plugin com
 | Version | Date | Évolution |
 |---|---|---|
 | 0.1 | 2026-08-10 | Proposition initiale acceptée sans modification par le porteur. |
+| 0.2 | 2026-09-05 | Branches feature versionnées, départ au SHA exact, Pull Requests vers le train et merge commits obligatoires. |
