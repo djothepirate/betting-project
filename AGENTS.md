@@ -55,6 +55,11 @@
   `rc` minuscules.
 - Un snapshot durable provient uniquement d'un push de la branche feature d'intégration exacte,
   jamais d'une branche de Work Order, d'une Pull Request ou de `main`.
+- Le seul décalage temporaire entre le nom du train et la version Maven est le push qui crée
+  `feature/<TRAIN>` exactement au sommet canonique de `origin/main`. Sa provenance porte
+  `source.train.seed=true` ; tout push ultérieur, PR ou lancement manuel exige le mapping Maven du
+  train. Un pipeline de branche GitHub accepte `main`, les features d'intégration et les branches
+  Work Order valides, jamais `release/V*` ni un nom de feature approchant.
 - L'exception historique `codex/ci-004-version-branch-workflow` vers `main` ne vaut que pour le
   bootstrap CI-004 sur la base `3fb224e9724698324a56b47fe5d943ecd366f197`. Le SHA de tête doit
   descendre de cette base et leur merge-base doit être exactement cette base.

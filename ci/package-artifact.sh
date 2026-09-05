@@ -8,6 +8,16 @@ commit_sha=${CI_COMMIT_SHA:-${SOURCE_COMMIT_SHA:-${GITHUB_SHA:-}}}
 pipeline_iid=${CI_PIPELINE_IID:-${GITHUB_RUN_NUMBER:-0}}
 tag=${CI_COMMIT_TAG:-}
 branch_ref=${CI_COMMIT_BRANCH:-}
+source_ref_created=${SOURCE_REF_CREATED:-false}
+case "$source_ref_created" in
+    true|false) ;;
+    '') source_ref_created=false ;;
+    *)
+        echo 'FAIL: SOURCE_REF_CREATED doit valoir true ou false.' >&2
+        exit 1
+        ;;
+esac
+train_seed=false
 
 if [ -z "$commit_sha" ]; then
     commit_sha=$(git rev-parse HEAD)
@@ -56,7 +66,39 @@ case "$pipeline_iid" in
         ;;
 esac
 
+branch_creation_push=false
+zero_sha=0000000000000000000000000000000000000000
+if [ -n "${CI_PIPELINE_SOURCE:-}" ]; then
+    if [ "$CI_PIPELINE_SOURCE" = push ] &&
+       [ "${CI_COMMIT_BEFORE_SHA:-}" = "$zero_sha" ]; then
+        branch_creation_push=true
+    fi
+elif [ "${GITHUB_EVENT_NAME:-}" = push ] &&
+     [ "$source_ref_created" = true ]; then
+    branch_creation_push=true
+fi
+
 channel=snapshot
+accept_train_seed() {
+    if [ "${branch_kind:-}" != feature-integration ] ||
+       [ "$branch_creation_push" != true ]; then
+        return 1
+    fi
+    seed_main_ref=refs/remotes/origin/main
+    if ! seed_main_commit=$(git rev-parse --verify "${seed_main_ref}^{commit}" 2>/dev/null); then
+        echo "FAIL: l'amorçage du train exige la référence canonique $seed_main_ref." >&2
+        exit 1
+    fi
+    if [ "$commit_sha" != "$seed_main_commit" ]; then
+        echo "FAIL: l'amorçage du train exige que le commit source $commit_sha soit le sommet canonique exact de $seed_main_ref ($seed_main_commit)." >&2
+        exit 1
+    fi
+    train_seed=true
+    printf 'PACKAGE_VERSION_POLICY=PASS:exact-train-seed:%s@%s\n' \
+        "$branch_ref" "$commit_sha"
+    return 0
+}
+
 if [ -n "$tag" ]; then
     if ! printf '%s' "$tag" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
         echo "FAIL: tag hors convention SemVer : $tag" >&2
@@ -160,16 +202,21 @@ else
         exit 1
     fi
     branch_train=
+    branch_kind=
     if printf '%s' "$branch_ref" | grep -Eq \
         '^feature/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?$'; then
         branch_train=${branch_ref#feature/V}
+        branch_kind=feature-integration
     elif printf '%s' "$branch_ref" | grep -Eq \
         '^feature/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?-(CODEX|HUMAN)-[A-Z]+-(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$'; then
-        case "$branch_ref" in
-            *-CODEX-*) branch_base=${branch_ref%%-CODEX-*} ;;
-            *-HUMAN-*) branch_base=${branch_ref%%-HUMAN-*} ;;
-        esac
+        branch_base=$(printf '%s' "$branch_ref" | sed -E \
+            's#-(CODEX|HUMAN)-[A-Z]+-(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$##')
         branch_train=${branch_base#feature/V}
+        branch_kind=feature-work-order
+    elif [ -n "$branch_ref" ] &&
+         printf '%s' "$branch_ref" | grep -Eq '^feature/'; then
+        echo "FAIL: branche source feature invalide : $branch_ref." >&2
+        exit 1
     fi
     if [ -n "$branch_train" ]; then
         case "$branch_train" in
@@ -179,7 +226,8 @@ else
                 branch_rc=${branch_candidate##*-RC}
                 branch_rc=${branch_rc#0}
                 expected_branch_version="${branch_core}-rc.${branch_rc}-SNAPSHOT"
-                if [ "$version" != "$expected_branch_version" ]; then
+                if [ "$version" != "$expected_branch_version" ] &&
+                   ! accept_train_seed; then
                     echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
                     exit 1
                 fi
@@ -189,14 +237,16 @@ else
                 branch_rc=${branch_train##*-RC}
                 branch_rc=${branch_rc#0}
                 expected_branch_version="${branch_core}-rc.${branch_rc}"
-                if [ "$version" != "$expected_branch_version" ]; then
+                if [ "$version" != "$expected_branch_version" ] &&
+                   ! accept_train_seed; then
                     echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
                     exit 1
                 fi
                 ;;
             *)
                 if [ "$version" != "$branch_train" ] &&
-                   [ "$version" != "${branch_train}-SNAPSHOT" ]; then
+                   [ "$version" != "${branch_train}-SNAPSHOT" ] &&
+                   ! accept_train_seed; then
                     echo "FAIL: la branche $branch_ref exige la version Maven $branch_train ou ${branch_train}-SNAPSHOT, reçue : $version." >&2
                     exit 1
                 fi
@@ -407,6 +457,7 @@ source.repository=djothepirate/betting-project
 source.commit=$commit_sha
 source.epoch=$source_epoch
 source.tag=$tag
+source.train.seed=$train_seed
 maven.version=$version
 artifact.version=$artifact_version
 java.target=25

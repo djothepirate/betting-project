@@ -145,4 +145,30 @@ divergent_head=$(git -C "$fixture" commit-tree "$valid_tree" \
     fi
 )
 
+# Le type du Work Order peut lui-même valoir CODEX ou HUMAN. L'acteur est le
+# premier segment après le train et ne doit pas être recherché au joker.
+actor_fixture="$fixture/actor-parser"
+mkdir -p "$actor_fixture/ci" "$actor_fixture/docs/work-orders"
+cp "$repository/ci/check-branch-name.sh" \
+    "$repository/ci/check-github-pull-request.sh" "$actor_fixture/ci/"
+printf '# CODEX-001 — fixture\n' \
+    >"$actor_fixture/docs/work-orders/CODEX-001.md"
+printf '# HUMAN-001 — fixture\n' \
+    >"$actor_fixture/docs/work-orders/HUMAN-001.md"
+(
+    cd "$actor_fixture"
+    if ! sh ci/check-github-pull-request.sh \
+        feature/V1.2.3-HUMAN-CODEX-001 feature/V1.2.3 '' '' \
+        1.2.3-SNAPSHOT >/dev/null; then
+        echo 'FAIL: le type CODEX a été confondu avec l’acteur HUMAN.' >&2
+        exit 1
+    fi
+    if ! sh ci/check-github-pull-request.sh \
+        feature/V1.2.3-CODEX-HUMAN-001 feature/V1.2.3 '' '' \
+        1.2.3-SNAPSHOT >/dev/null; then
+        echo 'FAIL: le type HUMAN a été confondu avec l’acteur CODEX.' >&2
+        exit 1
+    fi
+)
+
 printf 'GITHUB_PR_POLICY_TESTS=PASS\n'

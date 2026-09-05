@@ -91,6 +91,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Vérifier la branche GitHub
+        if: ${{ github.event_name != 'pull_request' && github.ref_type == 'branch' }}
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: sh ci/check-branch-name.sh "$BRANCH_NAME" github-branch
+
       - name: Installer Java 25
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
@@ -135,6 +141,7 @@ jobs:
         env:
           SOURCE_COMMIT_SHA: ${{ github.sha }}
           GITHUB_HEAD_REF: ${{ github.head_ref }}
+          SOURCE_REF_CREATED: ${{ github.event.created }}
         run: sh ci/package-artifact.sh
 
       - name: Qualifier la source du snapshot durable

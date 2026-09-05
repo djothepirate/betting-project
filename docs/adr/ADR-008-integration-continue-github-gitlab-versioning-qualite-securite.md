@@ -165,8 +165,10 @@ Après création du tag associé, la branche `release/<TRAIN>` est scellée : au
 Request ne peut la faire avancer. Une correction passe nécessairement par une nouvelle version et
 un nouveau train de branches.
 
-La préparation finale fixe la version Maven non-SNAPSHOT avant la Pull Request
-`feature/<TRAIN>` vers `main`. Sans tag, ses builds restent des snapshots non promouvables nommés
+La préparation finale fixe avant la Pull Request `feature/<TRAIN>` vers `main` la version Maven
+exacte du train : `X.Y.Z`, `X.Y.Z-rc.N` ou `X.Y.Z-rc.N-SNAPSHOT`. L'exigence non-SNAPSHOT
+s'applique uniquement aux trains appelés à recevoir un tag ; un train `RCnn-SNAPSHOT` est promu
+sans tag. Sans tag, ses builds restent des snapshots non promouvables nommés
 `X.Y.Z[-rc.N]-snapshot.p<id-pipeline>.g<sha-court>` et portent un `source.tag` vide. Après le merge
 commit GitHub vert, le fast-forward de la branche feature et la synchronisation des deux références,
 la Merge Request GitLab promeut ce SHA commun vers `release/<TRAIN>`. Le tag canonique n'est créé

@@ -221,6 +221,9 @@ security:dependencies:
           "+refs/heads/main:refs/remotes/origin/main" \
           "+refs/heads/${feature_branch}:refs/remotes/origin/${feature_branch}" \
           "+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}"
+      else
+        git fetch --no-tags origin \
+          "+refs/heads/main:refs/remotes/origin/main"
       fi
       sh ci/package-artifact.sh
   artifacts:

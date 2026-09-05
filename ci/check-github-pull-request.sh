@@ -115,9 +115,10 @@ if sh "$script_dir/check-branch-name.sh" "$source_branch" \
             ;;
     esac
 
-    case "$source_branch" in
-        *-CODEX-*) work_order_id=${source_branch##*-CODEX-} ;;
-        *-HUMAN-*) work_order_id=${source_branch##*-HUMAN-} ;;
+    work_order_suffix=${source_branch#"$target_branch"-}
+    case "$work_order_suffix" in
+        CODEX-*) work_order_id=${work_order_suffix#CODEX-} ;;
+        HUMAN-*) work_order_id=${work_order_suffix#HUMAN-} ;;
         *)
             echo "FAIL: impossible d'extraire le Work Order depuis $source_branch." >&2
             exit 1

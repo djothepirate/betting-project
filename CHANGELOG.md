@@ -21,6 +21,12 @@ Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les crit�
 - aucun train distant `feature/V*` ou `release/V*` créé avant fusion du bootstrap, aucune branche
   historique renommée ou supprimée, et statut `production.approved=false` /
   `vps.deployable=false` conservé jusqu'à OPS-001.
+- amorçage d'un nouveau train rendu exécutable sans relâcher le contrôle de version : seule la
+  création de `feature/<TRAIN>` exactement sur `origin/main` tolère la version Maven héritée et
+  marque `source.train.seed=true`; les pushes ultérieurs restent stricts. Les pipelines GitHub
+  refusent désormais explicitement les noms `feature/V*` invalides et toute branche `release/V*`,
+  y compris en lancement manuel. Le découpage acteur/Work Order reste correct lorsque le type du
+  Work Order vaut lui-même `CODEX` ou `HUMAN`.
 
 Voir [CI-004](docs/work-orders/CI-004.md), [ADR-005](docs/adr/ADR-005-workflow-eclipse-codex-git-work-orders.md),
 [ADR-008](docs/adr/ADR-008-integration-continue-github-gitlab-versioning-qualite-securite.md) et le

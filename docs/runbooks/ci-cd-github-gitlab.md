@@ -79,6 +79,9 @@ les tags conserve la décision 2A :
 Le zéro de remplissage n'existe que dans la branche. Un tag `v1.2.3-rc.100` est syntaxiquement
 valide selon la décision 2A, mais son packaging échoue explicitement : aucun train autorisé ne peut
 matérialiser sa branche canonique. Aucun tag ne porte `SNAPSHOT`.
+Ainsi, `feature/V0.1.0-RC01` et `feature/V0.1.0-RC01-SNAPSHOT` sont toutes deux des branches
+d'intégration valides ; elles exigent respectivement Maven `0.1.0-rc.1` et
+`0.1.0-rc.1-SNAPSHOT` après leur amorçage borné.
 
 ## Ouverture d'un train et Work Orders
 
@@ -98,6 +101,17 @@ matérialiser sa branche canonique. Aucun tag ne porte `SNAPSHOT`.
 6. Une suite de Work Orders se clôt par autant de Pull Requests que nécessaire vers cette même
    branche feature. Les branches de Work Order restent sur GitHub et ne sont jamais synchronisées.
 
+Le premier push qui crée `feature/<TRAIN>` peut encore porter la version Maven héritée de `main`,
+mais uniquement si le SHA extrait est exactement le sommet canonique de `origin/main`. GitHub
+fournit le témoin de création de la référence ; GitLab exige conjointement `push` et un before-SHA
+nul lors de la première synchronisation. Le snapshot garde sa vraie version Maven et sa provenance
+porte `source.train.seed=true`. Dès le push suivant — ainsi que pour toute PR, exécution manuelle,
+branche Work Order ou divergence de `main` — le mapping Maven exact du train redevient bloquant.
+
+Sur GitHub, les pipelines de branche acceptent uniquement `main`, les features d'intégration et les
+branches Work Order conformes. Une branche `release/V*`, une feature mal formée ou une ancienne
+branche est refusée aussi lors d'un `workflow_dispatch` ; les releases restent GitLab-only.
+
 La seule exception à cette topologie est le bootstrap historique de CI-004 :
 `codex/ci-004-version-branch-workflow` vers `main`, sur la base exacte
 `3fb224e9724698324a56b47fe5d943ecd366f197`. Son garde reçoit le SHA de tête, prouve que cette base
@@ -108,9 +122,10 @@ réutilisées, ni supprimées implicitement.
 
 ## Finalisation GitHub et promotion GitLab
 
-1. Fixer sur `feature/<TRAIN>` la version Maven de promotion : stable sans `SNAPSHOT`, ou `rc.N`
-   minuscule obtenu par conversion de `RCnn`. Qualifier ce sommet `F`. Le garde de Pull Request
-   vérifie cette version avant que la feature puisse entrer dans `main`.
+1. Fixer sur `feature/<TRAIN>` la version Maven exacte du train : `X.Y.Z` pour un train stable,
+   `X.Y.Z-rc.N` pour `RCnn`, ou `X.Y.Z-rc.N-SNAPSHOT` pour `RCnn-SNAPSHOT`. Qualifier ce sommet
+   `F`. Le garde de Pull Request vérifie cette version avant que la feature puisse entrer dans
+   `main` ; seule une branche sans suffixe `SNAPSHOT` pourra ensuite produire un tag.
 2. Ouvrir la Pull Request GitHub finale `feature/<TRAIN>` vers `main`. Exiger CI Windows/Linux
    verte, discussions résolues, revue humaine et merge commit ; squash et rebase sont interdits.
 3. Noter le merge commit `M` produit sur `main` et le qualifier. Vérifier que `F` est un parent de

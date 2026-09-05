@@ -164,6 +164,21 @@ if ! grep -Fq 'GITHUB_HEAD_REF: ${{ github.head_ref }}' \
     echo 'FAIL: le packaging de Pull Request doit valider le train de sa branche Work Order.' >&2
     exit 1
 fi
+if ! grep -Fq 'check-branch-name.sh "$BRANCH_NAME" github-branch' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq "github.event_name != 'pull_request' && github.ref_type == 'branch'" \
+    .github/workflows/ci.yml; then
+    echo 'FAIL: tout pipeline de branche GitHub doit refuser les releases et noms hors convention.' >&2
+    exit 1
+fi
+if ! grep -Fq 'SOURCE_REF_CREATED: ${{ github.event.created }}' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq 'SOURCE_REF_CREATED' ci/package-artifact.sh ||
+   ! grep -Fq 'CI_COMMIT_BEFORE_SHA' ci/package-artifact.sh ||
+   ! grep -Fq 'source.train.seed=$train_seed' ci/package-artifact.sh; then
+    echo 'FAIL: l’amorçage d’un train doit rester borné à sa création exacte depuis main.' >&2
+    exit 1
+fi
 github_pull_request=$(awk '
     /^  pull_request:/ { in_pull_request = 1; next }
     in_pull_request && /^  workflow_dispatch:/ { exit }

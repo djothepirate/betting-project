@@ -85,6 +85,36 @@ fi
 for branch_name in \
     main \
     feature/V0.1.0 \
+    feature/V0.1.0-RC01 \
+    feature/V0.1.0-RC01-SNAPSHOT \
+    feature/V1.2.3-RC01 \
+    feature/V1.2.3-RC99-SNAPSHOT \
+    feature/V0.1.0-CODEX-CI-005 \
+    feature/V1.2.3-RC01-SNAPSHOT-HUMAN-CI-005; do
+    if ! sh ci/check-branch-name.sh "$branch_name" github-branch >/dev/null; then
+        echo "FAIL: branche GitHub valide refusée : $branch_name" >&2
+        exit 1
+    fi
+done
+
+for branch_name in \
+    release/V0.1.0 \
+    release/V1.2.3-RC01 \
+    release/V1.2.3-RC01-SNAPSHOT \
+    feature/V1.2.3-RC00 \
+    codex/ci-004-version-branch-workflow \
+    human/legacy-change; do
+    if sh ci/check-branch-name.sh "$branch_name" github-branch >/dev/null 2>&1; then
+        echo "FAIL: branche interdite acceptée par GitHub : $branch_name" >&2
+        exit 1
+    fi
+done
+
+for branch_name in \
+    main \
+    feature/V0.1.0 \
+    feature/V0.1.0-RC01 \
+    feature/V0.1.0-RC01-SNAPSHOT \
     feature/V1.2.3-RC01 \
     feature/V1.2.3-RC99-SNAPSHOT \
     release/V0.1.0 \
