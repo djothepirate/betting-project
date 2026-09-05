@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "work_order": "SKL-002",
+  "checked_at_utc": "2026-09-05T11:54:46.803063+00:00",
+  "skill_count": 5,
+  "official_validator": "C:\\Users\\geoff\\.codex\\skills\\.system\\skill-creator\\scripts\\quick_validate.py",
+  "references_checked": 45,
+  "bp_baseline_files_unchanged": 10,
+  "installed": true,
+  "files": [
+    {
+      "path": "docs/skills/local-lab/ss-work-order/SKILL.md",
+      "sha256": "07f92e9d7e35fae64b814b2d92d62538d15e298b544242d6a772400de6712700",
+      "bytes": 2325,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-work-order/SKILL.md"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-work-order/agents/openai.yaml",
+      "sha256": "db4fa13b19d4ab2246e8e699b711e07ddbcc5ec90f619152fb35c1f1ec975640",
+      "bytes": 268,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-work-order/agents/openai.yaml"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-verify/SKILL.md",
+      "sha256": "9eccf7b71f664a7d74c543b53b09fb7e58b5b2d96efe304925884c80e353b4ca",
+      "bytes": 3044,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-verify/SKILL.md"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-verify/agents/openai.yaml",
+      "sha256": "e6388d53122de0849fec45c90ebaeb854191544abbaa2407899a11ffd7da2157",
+      "bytes": 280,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-verify/agents/openai.yaml"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-postgres-change/SKILL.md",
+      "sha256": "8a89922f8cc1dd5144e054f0586d6d24f92d2a1c82264d37e00642d8376d9e2c",
+      "bytes": 2673,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-postgres-change/SKILL.md"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-postgres-change/agents/openai.yaml",
+      "sha256": "9fd81d3b0d8556d880d8827fcdae874ae00cecdc077abdf1088a66746a3b2b0e",
+      "bytes": 273,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-postgres-change/agents/openai.yaml"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-data-contract-replay/SKILL.md",
+      "sha256": "ecaffcae31979a735d2ce240b9583da0d75fa296152fc4a5fca1c211affa7ef1",
+      "bytes": 2558,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-data-contract-replay/SKILL.md"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-data-contract-replay/agents/openai.yaml",
+      "sha256": "557174a28cf0be26701c94ae8bcfc711376a11d5b2358c1245767283b1357cca",
+      "bytes": 285,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-data-contract-replay/agents/openai.yaml"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-review-closeout/SKILL.md",
+      "sha256": "781f44022cda70ce605ab8fedb6022f272e1514b588f41e3fa0d8f50223a1f32",
+      "bytes": 2702,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-review-closeout/SKILL.md"
+    },
+    {
+      "path": "docs/skills/local-lab/ss-review-closeout/agents/openai.yaml",
+      "sha256": "0d57a1ee057ed7b659f3ea589b83d257c81bb75710729a36c5a6ba2c98d79e45",
+      "bytes": 293,
+      "installed_path": "C:/Users/geoff/.agents/skills/ss-review-closeout/agents/openai.yaml"
+    }
+  ]
+}

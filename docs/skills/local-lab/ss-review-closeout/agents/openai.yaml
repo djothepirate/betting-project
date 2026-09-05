@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Lab — Revue et clôture"
+  short_description: "Clôturer un lot Lab avec les bonnes preuves et décisions"
+  default_prompt: "Utilise $ss-review-closeout pour vérifier ce lot du SofaScore Local Lab et effectuer les actions de clôture déjà autorisées."

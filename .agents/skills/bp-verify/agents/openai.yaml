@@ -1,0 +1,5 @@
+interface:
+  display_name: "Betting — Validation"
+  short_description: "Choisir les contrôles et écarter les faux verts"
+  default_prompt: "Utilise $bp-verify pour traiter ce lot du Betting Project avec ses preuves et limites."
+

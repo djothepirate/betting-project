@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Lab — Validation"
+  short_description: "Choisir les tests et diagnostiquer les faux verts"
+  default_prompt: "Utilise $ss-verify pour valider ce changement du SofaScore Local Lab et distinguer les preuves exécutées des contrôles manquants."

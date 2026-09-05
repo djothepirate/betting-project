@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "work_order": "SKL-001",
+  "base_commit": "5a8161e0070632f0b0dbbff760194e57ab4e5b1f",
+  "files": [
+    {
+      "path": ".agents/skills/bp-data-contract-replay/agents/openai.yaml",
+      "version": "0.2",
+      "sha256": "a2f994fd6417e82c5784cf45f6833e6b314cfc161619eba54e68c93ab306a1e9",
+      "bytes": 259
+    },
+    {
+      "path": ".agents/skills/bp-data-contract-replay/SKILL.md",
+      "version": "0.2",
+      "sha256": "24b7a94f348690029758b5127379c76b52ebe17c7ddb8e583206389ea1996fae",
+      "bytes": 2399
+    },
+    {
+      "path": ".agents/skills/bp-postgres-change/agents/openai.yaml",
+      "version": "0.2",
+      "sha256": "e80a5628f1c912279ff495d6c7767f4fd179b572d9ded1bcbc943514aea35137",
+      "bytes": 243
+    },
+    {
+      "path": ".agents/skills/bp-postgres-change/SKILL.md",
+      "version": "0.2",
+      "sha256": "a21728d4f22b72fdf65668fe98ff083e43596ce938439233b54ecb6d99f466c7",
+      "bytes": 2384
+    },
+    {
+      "path": ".agents/skills/bp-review-closeout/agents/openai.yaml",
+      "version": "0.1",
+      "sha256": "c3c53ffbd8abac0c5aa8de6bb963dcb3ecb2d98ac9a0ed5e34f79410324920eb",
+      "bytes": 249
+    },
+    {
+      "path": ".agents/skills/bp-review-closeout/SKILL.md",
+      "version": "0.1",
+      "sha256": "51c96db36c8142401a07ac491023ea791c37cc28c5303c5207295c09ce454ccf",
+      "bytes": 2256
+    },
+    {
+      "path": ".agents/skills/bp-verify/agents/openai.yaml",
+      "version": "0.1",
+      "sha256": "82340f01202e7a171c9d7ac9083b717069b36696ed22579fd2a00d60608cf442",
+      "bytes": 233
+    },
+    {
+      "path": ".agents/skills/bp-verify/SKILL.md",
+      "version": "0.1",
+      "sha256": "12d81e13ba950a8dcdfaa537fea14f3805a8efcd436e6560be865533ca821836",
+      "bytes": 2443
+    },
+    {
+      "path": ".agents/skills/bp-work-order/agents/openai.yaml",
+      "version": "0.1",
+      "sha256": "b796700f01b16d8fb95c5dbf02f2f35323de0c0ceeb066cd4b2d4271bedaa1d7",
+      "bytes": 238
+    },
+    {
+      "path": ".agents/skills/bp-work-order/SKILL.md",
+      "version": "0.1",
+      "sha256": "2814f4771c0d88ef36b618a60cad6dcebfcf81b21970325dca7b95fb359630af",
+      "bytes": 2154
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "work_order": "SKL-001",
+  "files": [
+    {
+      "path": "candidate-manifest.json",
+      "sha256": "34c5effb81858ea3ae459aea3bd50d6dd5364ca42291ccf7d2b7aa7d62e31dcf",
+      "bytes": 2235
+    },
+    {
+      "path": "candidates-v0.1/bp-data-contract-replay.md",
+      "sha256": "b7aa8e5cdd90b36d5d6d91865445fcd8189fafe5dafffa021eabda50ffe5736a",
+      "bytes": 2213
+    },
+    {
+      "path": "candidates-v0.1/bp-postgres-change.md",
+      "sha256": "67ae085790c4cfb563e19215d7605b4e4afe4379731874dbfc2db80ad640231a",
+      "bytes": 2199
+    },
+    {
+      "path": "results.json",
+      "sha256": "32a0bc19f84c58d91556ebe0188ce739f99ffee2339b59f42a8f912556783be7",
+      "bytes": 8358
+    },
+    {
+      "path": "review-v0.1.md",
+      "sha256": "5e69b1439cbdadaf1c72fc456f01a0699d92e0fddb372c5257433a269077c069",
+      "bytes": 7524
+    },
+    {
+      "path": "review-v0.2.md",
+      "sha256": "4a5f769b03348a67ddee80acfdf7358e4dfee18ee4a7902584078fb1893db0b7",
+      "bytes": 5287
+    },
+    {
+      "path": "T1-A.md",
+      "sha256": "5bfa6f157a066889fa01760ee90f50c26cbe0da1a46106acac7e4695c53da38c",
+      "bytes": 5953
+    },
+    {
+      "path": "T1-B.md",
+      "sha256": "8b7de6311d1acf5ce17d3dd6faf0a6bab155e350706952beef7739ff3905d624",
+      "bytes": 7103
+    },
+    {
+      "path": "T2-A.md",
+      "sha256": "0e7bcfe2d12d66cf5c4d0b304443dc12b2622c5e0027425b2c7f5082aba85856",
+      "bytes": 4949
+    },
+    {
+      "path": "T2-B.md",
+      "sha256": "c11ff68466acb33e2e748fa7323d712f10f2b73b4f4c454991a43b3a85591cae",
+      "bytes": 5538
+    },
+    {
+      "path": "T3-A.md",
+      "sha256": "59d9ff19a0e68be11a3b2ef4d06933aedce8e45ab740a2ed18c55299c94e09e8",
+      "bytes": 6272
+    },
+    {
+      "path": "T3-B-v0.2.md",
+      "sha256": "c2670b5d10c1116324966a18e61deacf2bab617098f2a7481c20d5b718debb35",
+      "bytes": 5796
+    },
+    {
+      "path": "T3-B.md",
+      "sha256": "08f5cbde24419bc2b5a95157f07bb45bbe443f34b994c54f10d8c00433a15ae8",
+      "bytes": 5837
+    },
+    {
+      "path": "T4-A.md",
+      "sha256": "9f06a5b9666936a63383ed1c905eb9e8ca3cc59cd7c28d1de6144f1ac20b1479",
+      "bytes": 6021
+    },
+    {
+      "path": "T4-B-v0.2.md",
+      "sha256": "06dfc6d3a5b650e8fb4fbc974c64bb5429ba4b2a866d3b3a96e06d8c07434f62",
+      "bytes": 5801
+    },
+    {
+      "path": "T4-B.md",
+      "sha256": "9abd6b4f29734050f91db0eb261ef293354df767b25d8113e753bc892e125b34",
+      "bytes": 5779
+    }
+  ]
+}

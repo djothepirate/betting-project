@@ -1,0 +1,442 @@
+{
+  "checked_at_utc": "2026-09-05T11:54:47.721018+00:00",
+  "method": "skills/list",
+  "forceReload": true,
+  "contexts": [
+    {
+      "cwd": "C:/Dev/BettingProject/codex/betting-sofascore-local-lab",
+      "skills": [
+        {
+          "name": "ss-data-contract-replay",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-data-contract-replay\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Contrats et replay",
+            "shortDescription": "Préserver provenance et complétude des données Lab",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-data-contract-replay pour traiter ce contrat ou replay du SofaScore Local Lab avec ses fixtures et sa provenance."
+          }
+        },
+        {
+          "name": "ss-postgres-change",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-postgres-change\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — PostgreSQL",
+            "shortDescription": "Relier migrations, provenance et preuves PostgreSQL",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-postgres-change pour traiter cette évolution PostgreSQL du SofaScore Local Lab avec ses invariants et preuves."
+          }
+        },
+        {
+          "name": "ss-review-closeout",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-review-closeout\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Revue et clôture",
+            "shortDescription": "Clôturer un lot Lab avec les bonnes preuves et décisions",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-review-closeout pour vérifier ce lot du SofaScore Local Lab et effectuer les actions de clôture déjà autorisées."
+          }
+        },
+        {
+          "name": "ss-verify",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-verify\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Validation",
+            "shortDescription": "Choisir les tests et diagnostiquer les faux verts",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-verify pour valider ce changement du SofaScore Local Lab et distinguer les preuves exécutées des contrôles manquants."
+          }
+        },
+        {
+          "name": "ss-work-order",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-work-order\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Work Order",
+            "shortDescription": "Reprendre un lot du laboratoire avec ses preuves",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-work-order pour reprendre ce lot du SofaScore Local Lab dans son worktree et établir les prochaines actions."
+          }
+        }
+      ],
+      "skill_errors": [],
+      "other_error_count": 0
+    },
+    {
+      "cwd": "C:/Dev/BettingProject/codex/betting-sofascore-local-lab/.tmp/w49",
+      "skills": [
+        {
+          "name": "ss-data-contract-replay",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-data-contract-replay\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Contrats et replay",
+            "shortDescription": "Préserver provenance et complétude des données Lab",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-data-contract-replay pour traiter ce contrat ou replay du SofaScore Local Lab avec ses fixtures et sa provenance."
+          }
+        },
+        {
+          "name": "ss-postgres-change",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-postgres-change\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — PostgreSQL",
+            "shortDescription": "Relier migrations, provenance et preuves PostgreSQL",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-postgres-change pour traiter cette évolution PostgreSQL du SofaScore Local Lab avec ses invariants et preuves."
+          }
+        },
+        {
+          "name": "ss-review-closeout",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-review-closeout\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Revue et clôture",
+            "shortDescription": "Clôturer un lot Lab avec les bonnes preuves et décisions",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-review-closeout pour vérifier ce lot du SofaScore Local Lab et effectuer les actions de clôture déjà autorisées."
+          }
+        },
+        {
+          "name": "ss-verify",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-verify\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Validation",
+            "shortDescription": "Choisir les tests et diagnostiquer les faux verts",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-verify pour valider ce changement du SofaScore Local Lab et distinguer les preuves exécutées des contrôles manquants."
+          }
+        },
+        {
+          "name": "ss-work-order",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-work-order\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Work Order",
+            "shortDescription": "Reprendre un lot du laboratoire avec ses preuves",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-work-order pour reprendre ce lot du SofaScore Local Lab dans son worktree et établir les prochaines actions."
+          }
+        }
+      ],
+      "skill_errors": [],
+      "other_error_count": 0
+    },
+    {
+      "cwd": "C:/Dev/BettingProject/codex/betting-sofascore-local-lab/.tmp/w51",
+      "skills": [
+        {
+          "name": "ss-data-contract-replay",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-data-contract-replay\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Contrats et replay",
+            "shortDescription": "Préserver provenance et complétude des données Lab",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-data-contract-replay pour traiter ce contrat ou replay du SofaScore Local Lab avec ses fixtures et sa provenance."
+          }
+        },
+        {
+          "name": "ss-postgres-change",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-postgres-change\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — PostgreSQL",
+            "shortDescription": "Relier migrations, provenance et preuves PostgreSQL",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-postgres-change pour traiter cette évolution PostgreSQL du SofaScore Local Lab avec ses invariants et preuves."
+          }
+        },
+        {
+          "name": "ss-review-closeout",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-review-closeout\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Revue et clôture",
+            "shortDescription": "Clôturer un lot Lab avec les bonnes preuves et décisions",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-review-closeout pour vérifier ce lot du SofaScore Local Lab et effectuer les actions de clôture déjà autorisées."
+          }
+        },
+        {
+          "name": "ss-verify",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-verify\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Validation",
+            "shortDescription": "Choisir les tests et diagnostiquer les faux verts",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-verify pour valider ce changement du SofaScore Local Lab et distinguer les preuves exécutées des contrôles manquants."
+          }
+        },
+        {
+          "name": "ss-work-order",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-work-order\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Work Order",
+            "shortDescription": "Reprendre un lot du laboratoire avec ses preuves",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-work-order pour reprendre ce lot du SofaScore Local Lab dans son worktree et établir les prochaines actions."
+          }
+        }
+      ],
+      "skill_errors": [],
+      "other_error_count": 0
+    },
+    {
+      "cwd": "C:/Dev/BettingProject/human/betting-sofascore-local-lab",
+      "skills": [
+        {
+          "name": "ss-data-contract-replay",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-data-contract-replay\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Contrats et replay",
+            "shortDescription": "Préserver provenance et complétude des données Lab",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-data-contract-replay pour traiter ce contrat ou replay du SofaScore Local Lab avec ses fixtures et sa provenance."
+          }
+        },
+        {
+          "name": "ss-postgres-change",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-postgres-change\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — PostgreSQL",
+            "shortDescription": "Relier migrations, provenance et preuves PostgreSQL",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-postgres-change pour traiter cette évolution PostgreSQL du SofaScore Local Lab avec ses invariants et preuves."
+          }
+        },
+        {
+          "name": "ss-review-closeout",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-review-closeout\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Revue et clôture",
+            "shortDescription": "Clôturer un lot Lab avec les bonnes preuves et décisions",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-review-closeout pour vérifier ce lot du SofaScore Local Lab et effectuer les actions de clôture déjà autorisées."
+          }
+        },
+        {
+          "name": "ss-verify",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-verify\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Validation",
+            "shortDescription": "Choisir les tests et diagnostiquer les faux verts",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-verify pour valider ce changement du SofaScore Local Lab et distinguer les preuves exécutées des contrôles manquants."
+          }
+        },
+        {
+          "name": "ss-work-order",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-work-order\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Work Order",
+            "shortDescription": "Reprendre un lot du laboratoire avec ses preuves",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-work-order pour reprendre ce lot du SofaScore Local Lab dans son worktree et établir les prochaines actions."
+          }
+        }
+      ],
+      "skill_errors": [],
+      "other_error_count": 0
+    },
+    {
+      "cwd": "C:/Users/geoff/.codex/worktrees/8922/betting-project",
+      "skills": [
+        {
+          "name": "ss-data-contract-replay",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-data-contract-replay\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Contrats et replay",
+            "shortDescription": "Préserver provenance et complétude des données Lab",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-data-contract-replay pour traiter ce contrat ou replay du SofaScore Local Lab avec ses fixtures et sa provenance."
+          }
+        },
+        {
+          "name": "ss-postgres-change",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-postgres-change\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — PostgreSQL",
+            "shortDescription": "Relier migrations, provenance et preuves PostgreSQL",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-postgres-change pour traiter cette évolution PostgreSQL du SofaScore Local Lab avec ses invariants et preuves."
+          }
+        },
+        {
+          "name": "ss-review-closeout",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-review-closeout\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Revue et clôture",
+            "shortDescription": "Clôturer un lot Lab avec les bonnes preuves et décisions",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-review-closeout pour vérifier ce lot du SofaScore Local Lab et effectuer les actions de clôture déjà autorisées."
+          }
+        },
+        {
+          "name": "ss-verify",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-verify\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Validation",
+            "shortDescription": "Choisir les tests et diagnostiquer les faux verts",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-verify pour valider ce changement du SofaScore Local Lab et distinguer les preuves exécutées des contrôles manquants."
+          }
+        },
+        {
+          "name": "ss-work-order",
+          "path": "C:\\Users\\geoff\\.agents\\skills\\ss-work-order\\SKILL.md",
+          "enabled": true,
+          "scope": "user",
+          "interface": {
+            "displayName": "Local Lab — Work Order",
+            "shortDescription": "Reprendre un lot du laboratoire avec ses preuves",
+            "iconSmall": null,
+            "iconLarge": null,
+            "iconSmallUrl": null,
+            "iconLargeUrl": null,
+            "brandColor": null,
+            "defaultPrompt": "Utilise $ss-work-order pour reprendre ce lot du SofaScore Local Lab dans son worktree et établir les prochaines actions."
+          }
+        }
+      ],
+      "skill_errors": [],
+      "other_error_count": 0
+    }
+  ]
+}

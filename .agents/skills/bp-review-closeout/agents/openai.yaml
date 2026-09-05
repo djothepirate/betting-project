@@ -1,0 +1,5 @@
+interface:
+  display_name: "Betting — Revue et clôture"
+  short_description: "Relier état du lot, preuves et candidat de revue"
+  default_prompt: "Utilise $bp-review-closeout pour traiter ce lot du Betting Project avec ses preuves et limites."
+
