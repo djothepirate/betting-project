@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Lab — PostgreSQL"
+  short_description: "Relier migrations, provenance et preuves PostgreSQL"
+  default_prompt: "Utilise $ss-postgres-change pour traiter cette évolution PostgreSQL du SofaScore Local Lab avec ses invariants et preuves."

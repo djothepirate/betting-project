@@ -2,7 +2,9 @@
 
 ## Synthèse
 
-Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 a clôturé son périmètre de receiver local J7 optionnel après qualification et validation propriétaire ; il reste désactivé par défaut et sa livraison Git est proposée dans la [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main`. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
+Outillage : les cinq skills du lot 1 sont validés par le propriétaire ; leur livraison intégrale, avec les preuves du pilote et de l'extension Lab, est autorisée. Voir [index](skills/README.md) et [SKL-003](work-orders/SKL-003.md). Ce lot ne change pas l'ordre des jalons produit.
+
+Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 a clôturé son périmètre de receiver local J7 optionnel après qualification et validation propriétaire ; il reste désactivé par défaut et sa livraison Git a été fusionnée par la [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main`. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
 
 | Couche | État | Conclusion |
 |---|---|---|
@@ -12,7 +14,7 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
 | CAT-002 | `ACCEPTED - MERGED - CLOSED` | La Pull Request `#8` est fusionnée dans `main` au commit `85dc943`. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont présents ; les 36 critères sur 36 sont satisfaits, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. |
-| INT-001 | `CLOSED_LOCAL - PUBLISHED - PR_OPEN` | Le périmètre local est clôturé le 5 septembre après qualification et revue propriétaire. Le candidat `de06153` reste sur `codex/int-001-j7-receiver`, avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations `V006` à `V008`. La clôture documentaire sur `codex/int-001-closeout` préserve les preuves qualifiées. La publication et la PR #11 vers main sont autorisées et réalisées ; fusion et campagnes réelles gardent leurs décisions propres. |
+| INT-001 | `CLOSED - MERGED` | Le périmètre local est clôturé le 5 septembre après qualification et revue propriétaire. Le candidat `de06153` reste sur `codex/int-001-j7-receiver`, avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations `V006` à `V008`. La clôture documentaire sur `codex/int-001-closeout` préserve les preuves qualifiées. La PR #11 est fusionnée dans main au commit `7f1f3aa`, après autorisation propriétaire. Les campagnes réelles gardent leurs décisions propres. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
@@ -95,7 +97,7 @@ depuis la revue, préserve le rapport historique et distingue les contrôles doc
 tests antérieurs. Le périmètre local est clôturé ; aucune nouvelle exécution de suite ni CI distante
 n'est revendiquée pour cette clôture. INT-001 ne contient aucun sender, client sortant, appel
 SofaScore/Local Lab, consommateur d'enrichissement ou donnée réelle. La clôture locale n'accorde
-aucune autorisation de publication, fusion, campagne réelle, réseau distant, VPS ou production. La décision ultérieure du propriétaire autorise spécifiquement la publication et la PR #11, désormais réalisées.
+aucune autorisation de publication, fusion, campagne réelle, réseau distant, VPS ou production. Les décisions ultérieures du propriétaire autorisent la publication, la PR #11 puis sa fusion, réalisées ; la fusion est `7f1f3aa`.
 
 ## Benchmark fournisseurs
 
@@ -154,7 +156,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 - Budget Highlightly : 80 appels, réserve incompressible de 20.
 - Compositions : facultatives et non bloquantes ; aucune validation prématch à T0 ou après T0.
 - Aucun pari automatique, aucun appel live, aucune dépendance à SofaScore.
-- Le périmètre local d'INT-001 est clôturé après qualification et validation propriétaire ; le receiver reste désactivé par défaut. La branche est publiée et la PR #11 vers `main` est ouverte. Les campagnes réelles conservent leurs propres décisions et Work Orders.
+- Le périmètre local d'INT-001 est clôturé après qualification et validation propriétaire ; le receiver reste désactivé par défaut. La branche est publiée et la PR #11 est fusionnée dans `main` au commit `7f1f3aa`. Les campagnes réelles conservent leurs propres décisions et Work Orders.
 - La rétention J7 vaut 30 jours par défaut et ne change que par configuration opérateur explicite dans la plage `1..3650`.
 - PostgreSQL reste la source de vérité ; les preuves complètes du benchmark restent hors Git avec manifeste expurgé versionné lors d'ENR-001.
 
@@ -163,9 +165,9 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 | État externe vérifiable | Conséquence de gouvernance |
 |---|---|
 | Pull Request `#8` fusionnée et commit `85dc943` présent dans `main` | CAT-002 vaut définitivement `ACCEPTED - MERGED - CLOSED`. |
-| INT-001 est clôturé localement, branche publiée et PR #11 ouverte vers `main` | Receiver désactivé par défaut ; la fusion reste à décider après examen des contrôles du candidat distant. |
-| INT-001 est ultérieurement publié et fusionné après décision séparée | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent toujours des décisions et Work Orders séparés. |
+| INT-001 est clôturé et fusionné par la PR #11 dans `main` à `7f1f3aa` | Livraison Git réalisée après autorisation propriétaire ; receiver désactivé par défaut. |
+| INT-001 livré ; une nouvelle utilisation opérationnelle est envisagée | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent toujours des décisions et Work Orders séparés. |
 | CAT-002 est clôturé | MVP-001 reste le prochain Work Order du pipeline produit, sans activation automatique ; ENR-002 vient ensuite. |
 | Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
 
-Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. La validation propriétaire est consignée dans `de06153` et la clôture locale est enregistrée sur `codex/int-001-closeout`. Le contrôle distant préalable à la publication retrouve `main` à `5a8161e`. Le propriétaire a ensuite explicitement autorisé le push et la création d'une PR vers `main` : `codex/int-001-closeout` est publiée et la [PR #11](https://github.com/djothepirate/betting-project/pull/11) est ouverte. Les contrôles CI de la PR font foi pour son candidat courant ; aucun résultat futur ni fusion n'est anticipé.
+Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. La validation propriétaire est consignée dans `de06153` et la clôture locale est enregistrée sur `codex/int-001-closeout`. Le contrôle distant préalable à la publication retrouve `main` à `5a8161e`. Le propriétaire a ensuite explicitement autorisé le push et la création d'une PR vers `main` : `codex/int-001-closeout` a été publiée, puis la [PR #11](https://github.com/djothepirate/betting-project/pull/11) a été fusionnée avec son autorisation le 5 septembre 2026 à 11:26:58 UTC, au commit `7f1f3aa`. Le main distant consulté pour SKL-003 contient cette fusion ; les preuves historiques de la qualification INT-001 restent inchangées.

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Betting — Contrats et replay"
+  short_description: "Préserver contrats, provenance et rejeu hors réseau"
+  default_prompt: "Utilise $bp-data-contract-replay pour traiter ce lot du Betting Project avec ses preuves et limites."
+

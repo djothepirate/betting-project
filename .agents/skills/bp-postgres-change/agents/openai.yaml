@@ -1,0 +1,5 @@
+interface:
+  display_name: "Betting — PostgreSQL"
+  short_description: "Fiabiliser migrations, transactions et concurrence"
+  default_prompt: "Utilise $bp-postgres-change pour traiter ce lot du Betting Project avec ses preuves et limites."
+

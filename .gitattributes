@@ -12,3 +12,11 @@
 *.ps1 text eol=crlf
 *.sql text eol=lf
 mvnw text eol=lf
+
+# Attestations historiques : les manifestes signent les octets, fins de ligne comprises.
+docs/skills/evaluations/SKL-001/** -text whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof
+docs/skills/evaluations/SKL-002/** -text whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof
+docs/skills/Inventaire-competences-et-skills-2026-09-05.md -text whitespace=blank-at-eol,space-before-tab,cr-at-eol,-blank-at-eof
+# Les versions validées contiennent parfois une ligne finale vide signée par SHA-256.
+.agents/skills/bp-*/** whitespace=blank-at-eol,space-before-tab,-blank-at-eof
+docs/skills/local-lab/ss-*/** whitespace=blank-at-eol,space-before-tab,-blank-at-eof

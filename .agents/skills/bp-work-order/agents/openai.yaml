@@ -1,0 +1,5 @@
+interface:
+  display_name: "Betting — Work Order"
+  short_description: "Reprendre le contexte et cadrer un lot vérifiable"
+  default_prompt: "Utilise $bp-work-order pour traiter ce lot du Betting Project avec ses preuves et limites."
+

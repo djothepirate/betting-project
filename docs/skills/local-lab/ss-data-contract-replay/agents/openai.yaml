@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Lab — Contrats et replay"
+  short_description: "Préserver provenance et complétude des données Lab"
+  default_prompt: "Utilise $ss-data-contract-replay pour traiter ce contrat ou replay du SofaScore Local Lab avec ses fixtures et sa provenance."

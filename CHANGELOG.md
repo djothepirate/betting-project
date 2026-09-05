@@ -2,6 +2,16 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## 2026-09-05 — SKL-001 à SKL-003 (skills validés et livraison autorisée)
+
+- cinq skills BP découverts au niveau du dépôt, avec métadonnées, inventaire, protocole, réponses et revues du pilote ;
+- dossier d'extension Lab et ses cinq sources évaluées conservés pour traçabilité ; le dépôt Lab maintient son installateur personnel ;
+- validation propriétaire des deux projets et autorisation explicite de livraison sur main consignées dans [SKL-003](docs/work-orders/SKL-003.md) ;
+- octets des preuves historiques préservés par des attributs Git ciblés ; instructions et empreintes des skills validés inchangées ;
+- [index des skills et usages](docs/skills/README.md), liens portables et décisions actuelles séparées des rapports historiques.
+
+La base de cette livraison inclut INT-001, fusionné par la [PR #11](https://github.com/djothepirate/betting-project/pull/11) au commit `7f1f3aa`. Les sections INT-001 suivantes conservent l'état à leur date de rédaction ; elles ne décrivent plus une PR actuellement ouverte.
+
 ## 2026-09-05 — INT-001 (publication et PR autorisées)
 
 - publication de `codex/int-001-closeout` et ouverture de la

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Lab — Work Order"
+  short_description: "Reprendre un lot du laboratoire avec ses preuves"
+  default_prompt: "Utilise $ss-work-order pour reprendre ce lot du SofaScore Local Lab dans son worktree et établir les prochaines actions."
