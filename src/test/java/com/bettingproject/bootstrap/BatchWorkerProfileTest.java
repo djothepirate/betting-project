@@ -42,6 +42,12 @@ import com.bettingproject.catalog.application.ReplayQueryPort;
 import com.bettingproject.catalog.application.ReplayQueryService;
 import com.bettingproject.catalog.application.StoredRawSnapshotReader;
 import com.bettingproject.identity.application.NormalizationAnomalyLifecycleService;
+import com.bettingproject.collection.adapter.configuration.J7ClientCertificateFilter;
+import com.bettingproject.collection.adapter.persistence.JdbcJ7ImportStore;
+import com.bettingproject.collection.adapter.web.j7.J7ImportController;
+import com.bettingproject.collection.adapter.web.j7.J7RequestEnvelopeFilter;
+import com.bettingproject.collection.application.imports.J7ImportService;
+import com.bettingproject.collection.application.imports.J7ImportStore;
 import com.bettingproject.operations.adapter.worker.BatchWorkerProbe;
 import com.bettingproject.operations.application.RuntimeMode;
 import org.junit.jupiter.api.Test;
@@ -135,5 +141,11 @@ class BatchWorkerProfileTest {
         assertThat(applicationContext.getBeansOfType(CatalogCursorCodec.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(StrictCatalogCommandParser.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(CatalogProblemHandler.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportController.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7RequestEnvelopeFilter.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ClientCertificateFilter.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(J7ImportStore.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(JdbcJ7ImportStore.class)).isEmpty();
     }
 }

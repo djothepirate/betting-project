@@ -2,6 +2,67 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## 2026-09-05 — INT-001 (publication et PR autorisées)
+
+- publication de `codex/int-001-closeout` et ouverture de la
+  [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main`, explicitement
+  autorisées par le propriétaire après la clôture locale ;
+- statut courant `CLOSED_LOCAL - PUBLISHED - PR_OPEN` ; aucune fusion réalisée ou autorisée ;
+- alignement documentaire du Work Order et des synthèses, sans changement fonctionnel ni nouvelle
+  exécution des suites locales ; résultats distants à consulter sur le HEAD courant de la PR.
+
+## 2026-09-05 — INT-001 (clôture locale)
+
+- état `CLOSED_LOCAL - OWNER_VALIDATED - NOT_PUBLISHED` à la demande du propriétaire, après
+  vérification des critères de terminé et de la validation acquise le 4 septembre ;
+- candidat fonctionnel conservé à `de06153` sur `codex/int-001-j7-receiver`, clôture documentaire
+  isolée sur `codex/int-001-closeout` ; aucun changement applicatif, script ou migration ;
+- rapport de préparation et ses empreintes préservés, résultats 303/98/32 réutilisés comme preuves
+  historiques ; aucune suite Maven, PostgreSQL/mTLS ou Pester relancée pour la documentation ;
+- contrôle distant : `main` à `5a8161e`, branche d'implémentation absente de GitHub et aucune PR
+  INT-001 trouvée ; publication et fusion restent distinctes de la clôture locale ;
+- [rapport de clôture](docs/reviews/INT-001-closeout-20260905.md), Work Order et synthèses synchronisés.
+
+La section du 4 septembre ci-dessous conserve l'état et les décisions à leur date initiale.
+
+## 2026-09-04 — INT-001 (validé localement par le propriétaire)
+
+### Périmètre localement qualifié
+
+- receiver J7 entrant strict, disponible uniquement sous `control-api` et désactivé par défaut ;
+- chemin brut exactement égal à `/api/imports/sofascore/j7-canonical-events`, sans préfixe de contexte/servlet, avec refus des slashs finaux, segments supplémentaires et alias matrix ou percent-encodés ;
+- contrat byte-exact de 1 à 5 Mio, validation JSON Schema Draft 2020-12, hashes fichier/data/sources et ACK v1.0 borné, sérialisé par un codec privé déterministe indépendant du Jackson MVC global ;
+- idempotence PostgreSQL `201/IMPORTED`, `200/DUPLICATE`, `409` divergent, inbox/audit/outbox transactionnels et migrations additives `V006` à `V008`, dont le refus à l'upgrade des anciennes preuves de purge datées dans le futur ; prochain slot `V009` ;
+- rétention configurable de 1 à 3 650 jours avec défaut/baseline à 30 jours, purge applicative bornée avec tombstone, sans route, scheduler ni surface runtime ;
+- activation fail-closed sur `127.0.0.1:8444`, HTTPS, client-auth `NEED`, compression serveur désactivée, stores locaux absolus non UNC, refus des alternatives bundle/PEM/SNI par une garde web prioritaire avant résolution TLS, certificat feuille en cours de validité avec EKU `clientAuth` et allowlist d'empreintes ; toutes les routes et le management partagent ce connecteur unique ;
+- bind PostgreSQL Compose et URL JDBC du receiver limités à `127.0.0.1:5433` : la garde web refuse avant création de la base/Flyway les propriétés statiques DataSource/JNDI/type, Hikari de localisation et Flyway dédiées, puis la garde bean inspecte les `JdbcConnectionDetails` et le `HikariDataSource` effectifs ;
+- sauvegarde PostgreSQL 17 complète directement envoyée vers `age --passphrase`, sans dump clair, et restauration directe vers une base standard fraîche, isolée et vide, avec manifeste `requiredMigration=V008`, contrôles de catalogues et preuves séparées des quatre tables J7 plus `outbox_message` ; l'origine standard de la base et l'absence de lecteur réseau mappé restent des frontières opérateur ;
+- rôle propriétaire PostgreSQL local conservé comme frontière de confiance de la qualification ; séparation owner de migration/rôle runtime à privilèges minimaux exigée avant toute production.
+
+### Qualification
+
+- branche réconciliée avec le `main` fusionné de CAT-002 sans rebase ni squash ;
+- 303 tests standards et 98 tests PostgreSQL/Testcontainers/mTLS réussis sous Java 25, validation Windows complète verte, contrôle de secrets et configuration Compose valides ;
+- 32 tests Pester réussis pour les scripts de sauvegarde/restauration ;
+- corpus synthétique V008 sauvegardé au format PostgreSQL custom directement sous `age --passphrase`, sans dump clair ;
+- la tentative Q1 s'est arrêtée sur un alias SQL réservé, avant déchiffrement, toute saisie propriétaire et toute mutation de la cible, puis un correctif fail-closed a été versionné ;
+- cible Q2 neuve et isolée restaurée sous PostgreSQL 17, avec égalité des comptes et empreintes des cinq familles de preuves ;
+- source et cible arrêtées, aucun listener 5433/5434/8444 ni processus natif résiduel, zéro appel fournisseur, Local Lab ou receiver réel/distant.
+
+### Sécurité et statut
+
+Le receiver ne dépend d'aucun code ou service du SofaScore Local Lab et n'ajoute aucun client sortant, sender, poller, scheduler, retry ou consommateur d'enrichissement. Aucune donnée réelle, clé ou certificat n'est autorisé dans Git. Le propriétaire a validé la readiness locale d'INT-001 le `2026-09-04T14:13:23.3192773Z`, soit `2026-09-04T16:13:23.3192773+02:00` en Europe/Paris. Le lot est `OWNER_VALIDATED - LOCALLY_QUALIFIED - NOT_PUBLISHED` : push, Pull Request, fusion, livraison réelle, exposition LAN/VPS et production restent soumis à des décisions séparées.
+
+## 2026-09-02 — CAT-002
+
+### Fusion et clôture
+
+- Pull Request `#8` fusionnée dans `main` au commit `85dc943` ;
+- correctif fonctionnel `6fb69e2` et alignement documentaire `a3b471f` présents dans la base INT-001 ;
+- 36 critères sur 36 satisfaits, seconde revue humaine acquise, discussion P2 résolue ;
+- quatre checks Windows/Linux verts sur chacun des deux commits, PostgreSQL/Testcontainers compris ;
+- état final `ACCEPTED - MERGED - CLOSED`.
+
 ## 2026-09-01 — ENR-001
 
 ### Finalisé dans le lot

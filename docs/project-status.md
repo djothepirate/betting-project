@@ -1,8 +1,8 @@
-# État du projet au 2 septembre 2026
+# État du projet au 5 septembre 2026
 
 ## Synthèse
 
-Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. Il ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
+Betting Project possède un socle applicatif, un catalogue canonique, une chaîne de validation et un benchmark football fusionnés, avec le corpus complet de benchmark conservé hors Git. INT-001 a clôturé son périmètre de receiver local J7 optionnel après qualification et validation propriétaire ; il reste désactivé par défaut et sa livraison Git est proposée dans la [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main`. Le projet ne dispose pas encore d'une chaîne de collecte planifiée et d'enrichissement exploitable de bout en bout.
 
 | Couche | État | Conclusion |
 |---|---|---|
@@ -11,7 +11,8 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | Catalogue canonique | Fusionné et clôturé | CAT-001 a livré compétitions, saisons, équipes, rencontres, mappings, anomalies, provenance et normalisation idempotente. |
 | Benchmark fournisseurs | Exécuté | INV-01, CAL-01 et ENR-001 totalisent 180 appels et établissent une baseline par capacité. |
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
-| CAT-002 | `MERGE_AUTHORIZED_IF_GREEN` avant fusion ; `ACCEPTED - MERGED - CLOSED` après fusion effective | La Pull Request `#8` contient le correctif fonctionnel publié `6fb69e2` et l'alignement documentaire publié `a3b471f`. Le premier accepte `*`, `?` et `%` comme valeurs fournisseur littérales à l'exécution tout en les refusant dans les affectations de configuration ; le second ne change aucun comportement. La seconde revue humaine est approuvée, les 36 critères sur 36 sont satisfaits, la baseline est de 219 tests standards et 89 tests PostgreSQL/Testcontainers, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. La fusion est autorisée si les checks du HEAD effectivement fusionné restent verts et si aucune nouvelle remarque ou aucun conflit n'apparaît. Dès que GitHub marque la PR `MERGED` et que cette version est présente dans `main`, CAT-002 vaut `ACCEPTED - MERGED - CLOSED`. |
+| CAT-002 | `ACCEPTED - MERGED - CLOSED` | La Pull Request `#8` est fusionnée dans `main` au commit `85dc943`. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont présents ; les 36 critères sur 36 sont satisfaits, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. |
+| INT-001 | `CLOSED_LOCAL - PUBLISHED - PR_OPEN` | Le périmètre local est clôturé le 5 septembre après qualification et revue propriétaire. Le candidat `de06153` reste sur `codex/int-001-j7-receiver`, avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations `V006` à `V008`. La clôture documentaire sur `codex/int-001-closeout` préserve les preuves qualifiées. La publication et la PR #11 vers main sont autorisées et réalisées ; fusion et campagnes réelles gardent leurs décisions propres. |
 | Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
@@ -39,7 +40,62 @@ Le catalogue fournit :
 - migration additive Flyway `V002` ;
 - 17 tests standards et 11 tests PostgreSQL/Testcontainers validés sous Windows et Ubuntu/WSL2.
 
-CAT-001 est fusionné et clôturé. CAT-002 traite désormais localement la concurrence, l'ordre des observations, l'autorité primaire/contrôle, les décisions humaines de mapping, le cycle de vie des anomalies et les demandes durables de rejeu. Le lot 7 expose ces cas d'usage sous `/internal/catalog` avec pagination keyset, commandes strictes, provenance expurgée et composants limités au profil `control-api`. Le lot 8 prouve en plus la reprise d'une demande `PENDING` après fermeture complète puis redémarrage du contexte Spring, sans migration V006, worker ni exposition publique. La correction P2 de la PR `#8` préserve les caractères fournisseur littéraux dans la clé d'autorité et maintient le chargement classpath fermé aux jokers de configuration. Le commit fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont publiés avec quatre checks verts chacun ; la seconde attestation est approuvée, les 36 critères sont satisfaits et le fil P2 est résolu. La fusion est autorisée sous maintien de checks verts sur le HEAD final, sans nouvelle remarque ni conflit.
+CAT-001 est fusionné et clôturé. CAT-002 traite désormais localement la concurrence, l'ordre des observations, l'autorité primaire/contrôle, les décisions humaines de mapping, le cycle de vie des anomalies et les demandes durables de rejeu. Le lot 7 expose ces cas d'usage sous `/internal/catalog` avec pagination keyset, commandes strictes, provenance expurgée et composants limités au profil `control-api`. Le lot 8 prouve en plus la reprise d'une demande `PENDING` après fermeture complète puis redémarrage du contexte Spring, sans migration V006, worker ni exposition publique. La correction P2 de la PR `#8` préserve les caractères fournisseur littéraux dans la clé d'autorité et maintient le chargement classpath fermé aux jokers de configuration. Le commit fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` ont quatre checks verts chacun ; la seconde attestation est approuvée, les 36 critères sont satisfaits et le fil P2 est résolu. La PR `#8` est fusionnée au commit `85dc943` : CAT-002 est accepté et clôturé.
+
+## Receiver local J7 — INT-001 clôturé localement
+
+INT-001 part de la base CAT-002 fusionnée `85dc943` et ajoute un adaptateur entrant optionnel au seul
+profil `control-api`. Le contrat est `POST /api/imports/sofascore/j7-canonical-events`, avec media
+types v1.0, corps byte-exact de 1 à 5 242 880 octets, schéma local strict, UUID/hashes corrélés et ACK
+borné. La première réception doit produire `201/IMPORTED`, une répétition exacte
+`200/DUPLICATE` et une divergence `409`. Le corps positif est produit par un codec privé
+déterministe : ses sept champs camelCase et son `Instant` restent indépendants du Jackson MVC global.
+
+Ce chemin externe est exact et ne reçoit aucun préfixe `server.servlet.context-path` ou
+`spring.mvc.servlet.path`. Le slash final, les segments supplémentaires, les paramètres matrix et
+les variantes percent-encodées ne sont pas des alias : ils sont refusés avant le contrôleur.
+
+Le receiver reste `false` par défaut. Une activation locale explicite exige le connecteur unique
+`127.0.0.1:8444`, HTTPS, client-auth `NEED`, stores hors Git, certificat feuille en cours de validité
+avec EKU `clientAuth` et allowlist d'empreintes. Catalogue, bootstrap et Actuator partagent alors le
+même connecteur mTLS, sans port de management séparé et sans compression serveur. PostgreSQL
+Compose est lié à `127.0.0.1:5433`; l'activation exige des stores locaux absolus non UNC et refuse les
+alternatives TLS bundle/PEM/SNI dans une garde web prioritaire avant résolution des ressources. Cette
+garde contrôle aussi l'URL JDBC déclarée et refuse DataSource alternative, JNDI/type, propriétés
+Hikari de localisation et configuration Flyway dédiée avant création de la base ou de Flyway. La
+garde bean répète les contrôles statiques puis inspecte les `JdbcConnectionDetails` et le
+`HikariDataSource` effectifs.
+
+`V006` ajoute l'inbox exacte, l'audit, les tombstones et l'usage transactionnel de l'outbox existante.
+`V007`, additive, relie intégralement le tombstone au reçu et impose que le tombstone et l'audit de
+purge existent avant la suppression des octets, avec des horodatages non futurs. `V008`, additive,
+refuse lors de l'upgrade toute preuve historique V006/V007 dont l'instant de purge est encore futur.
+Le prochain slot Flyway est `V009`. La rétention est configurable explicitement de 1 à 3 650 jours,
+avec défaut et baseline à 30 jours.
+La purge reste un cas d'usage transactionnel borné sans route, scheduler, SQL opérateur ou surface
+runtime ; ouvrir une telle surface exige un autre Work Order.
+
+Le rôle PostgreSQL local est encore propriétaire et sert à la fois à Flyway et au runtime : il reste
+une frontière de confiance de la qualification. Une cible de production devra séparer le rôle owner
+de migration du rôle runtime à privilèges minimaux, incapable de DDL, de désactiver les triggers ou
+d'invoquer une purge SQL directe. Les scripts de backup/restore réalisent un dump complet directement
+chiffré et une cible PostgreSQL 17 standard, fraîche, isolée et vide, vérifiée dans les catalogues
+observables. La preuve du 4 septembre a sauvegardé un corpus V008 synthétique sans dump clair. Une
+tentative Q1 s'est arrêtée sur un alias SQL réservé, avant déchiffrement, toute saisie propriétaire
+et toute mutation de la cible ; après correctif versionné, une seconde cible neuve a été restaurée et
+les hashes des cinq tables ont été
+recalculés avec succès. L'absence de template personnalisé, de `pg_upgrade`, de clone et de lecteur
+réseau mappé reste une frontière opérateur.
+
+La baseline du 4 septembre réussit 303 tests standards, 98 tests PostgreSQL/Testcontainers/mTLS,
+32 tests Pester, la validation Windows complète, le contrôle de secrets et la configuration Compose.
+Le propriétaire a validé cette qualification puis demandé la clôture le 5 septembre. Le
+[rapport de clôture](reviews/INT-001-closeout-20260905.md) constate l'absence de changement fonctionnel
+depuis la revue, préserve le rapport historique et distingue les contrôles documentaires actuels des
+tests antérieurs. Le périmètre local est clôturé ; aucune nouvelle exécution de suite ni CI distante
+n'est revendiquée pour cette clôture. INT-001 ne contient aucun sender, client sortant, appel
+SofaScore/Local Lab, consommateur d'enrichissement ou donnée réelle. La clôture locale n'accorde
+aucune autorisation de publication, fusion, campagne réelle, réseau distant, VPS ou production. La décision ultérieure du propriétaire autorise spécifiquement la publication et la PR #11, désormais réalisées.
 
 ## Benchmark fournisseurs
 
@@ -98,15 +154,18 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 - Budget Highlightly : 80 appels, réserve incompressible de 20.
 - Compositions : facultatives et non bloquantes ; aucune validation prématch à T0 ou après T0.
 - Aucun pari automatique, aucun appel live, aucune dépendance à SofaScore.
+- Le périmètre local d'INT-001 est clôturé après qualification et validation propriétaire ; le receiver reste désactivé par défaut. La branche est publiée et la PR #11 vers `main` est ouverte. Les campagnes réelles conservent leurs propres décisions et Work Orders.
+- La rétention J7 vaut 30 jours par défaut et ne change que par configuration opérateur explicite dans la plage `1..3650`.
 - PostgreSQL reste la source de vérité ; les preuves complètes du benchmark restent hors Git avec manifeste expurgé versionné lors d'ENR-001.
 
 ## Porte de fusion et règle de succession
 
 | État externe vérifiable | Conséquence de gouvernance |
 |---|---|
-| La Pull Request `#8` n'est pas encore `MERGED` | CAT-002 reste `MERGE_AUTHORIZED_IF_GREEN`. Le HEAD final ne peut être fusionné que sans changement fonctionnel non revu, avec les checks Windows et Linux/PostgreSQL/Testcontainers verts, sans remarque ouverte ni conflit. |
-| GitHub marque la Pull Request `#8` `MERGED` et cette version est présente dans `main` | CAT-002 vaut `ACCEPTED - MERGED - CLOSED`. |
-| CAT-002 est effectivement clôturé | MVP-001 devient le prochain Work Order, sans activation automatique ; ENR-002 vient ensuite. |
+| Pull Request `#8` fusionnée et commit `85dc943` présent dans `main` | CAT-002 vaut définitivement `ACCEPTED - MERGED - CLOSED`. |
+| INT-001 est clôturé localement, branche publiée et PR #11 ouverte vers `main` | Receiver désactivé par défaut ; la fusion reste à décider après examen des contrôles du candidat distant. |
+| INT-001 est ultérieurement publié et fusionné après décision séparée | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent toujours des décisions et Work Orders séparés. |
+| CAT-002 est clôturé | MVP-001 reste le prochain Work Order du pipeline produit, sans activation automatique ; ENR-002 vient ensuite. |
 | Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
 
-Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel correctif `6fb69e2` et l'alignement documentaire `a3b471f` sont publiés, leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Le porteur a autorisé le présent closeout, son commit, son push, la mise à jour de la PR et sa fusion conditionnelle. Cette règle demeure valable pour le HEAD final : checks verts, aucune nouvelle remarque et aucun conflit. Les routes du lot 7 restent internes, sans authentification, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. La fusion réelle de cette version par la PR `#8` suffit à constater CAT-002 `ACCEPTED - MERGED - CLOSED`, sans réécriture préemptive du résultat GitHub.
+Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. La validation propriétaire est consignée dans `de06153` et la clôture locale est enregistrée sur `codex/int-001-closeout`. Le contrôle distant préalable à la publication retrouve `main` à `5a8161e`. Le propriétaire a ensuite explicitement autorisé le push et la création d'une PR vers `main` : `codex/int-001-closeout` est publiée et la [PR #11](https://github.com/djothepirate/betting-project/pull/11) est ouverte. Les contrôles CI de la PR font foi pour son candidat courant ; aucun résultat futur ni fusion n'est anticipé.

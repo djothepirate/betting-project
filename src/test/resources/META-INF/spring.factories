@@ -1,0 +1,2 @@
+org.springframework.core.io.ProtocolResolver=\
+com.bettingproject.collection.adapter.configuration.J7SentinelProtocolResolver

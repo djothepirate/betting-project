@@ -95,4 +95,62 @@ Le contrat normatif est décrit dans [`catalog-control-api-v1.md`](../contracts/
 
 Le lot 8 ne modifie aucune frontière de production. Son acceptation intégrée ajoute une preuve de redémarrage qui démarre puis ferme trois contextes `control-api` successifs sur une même base PostgreSQL : la première transaction laisse une demande durable `PENDING`, la seconde instance la reprend et la termine, et la troisième confirme sa terminalité sans nouvelle observation ni nouvel effet logique. Cette preuve utilise les ports et adaptateurs existants, sans worker, poller, nouvelle migration ou profil. Le dossier de revue finale et son manifeste SHA-256 bornent ensuite le diff soumis au porteur avant toute opération Git.
 
+INT-001 ajoute une frontière d'import local optionnel dans le module `collection`, sans transformer le
+monolithe ni créer de dépendance vers le SofaScore Local Lab :
+
+- `collection.application.imports` porte les commandes, résultats, cas d'usage et ports J7. Ces types
+  ne dépendent ni de Spring HTTP, ni de Servlet, ni de JDBC ; ils expriment l'import idempotent, son
+  audit, l'événement accepté et la purge transactionnelle bornée ;
+- `collection.adapter.web.j7` porte seul la route
+  `/api/imports/sofascore/j7-canonical-events`, la lecture bornée du flux, le protocole HTTP, le JSON
+  strict, le schéma Draft 2020-12, les trois hashes, l'ACK et les `ProblemDetail` expurgés. Il exige
+  le chemin brut exact, sans préfixe de contexte/servlet, et refuse slash final, segment
+  supplémentaire, paramètres matrix et alias percent-encodés. Son codec d'ACK privé construit
+  directement les sept champs camelCase et l'`Instant` canonique sous la borne contractuelle, sans
+  dépendre de la configuration Jackson MVC globale ;
+- `collection.adapter.configuration` porte la configuration, la garde d'activation fail-closed et
+  l'allowlist d'empreintes de certificats feuilles. Le mTLS `NEED` reste une propriété du connecteur
+  serveur partagé, tandis que la validité courante, l'EKU explicite `clientAuth` et l'autorisation
+  par empreinte sont évaluées avant l'adaptateur J7. La même garde maintient la compression serveur
+  désactivée, exige des stores TLS locaux absolus non UNC et refuse les alternatives bundle/PEM/SNI.
+  Sa phase statique est exécutée par un `WebServerFactoryCustomizer` de priorité maximale avant toute
+  résolution des ressources TLS et avant la création de la base ou de Flyway. Elle contrôle l'URL
+  JDBC déclarée et refuse DataSource alternative, substitution JNDI/type, propriété Hikari de
+  localisation ou configuration Flyway dédiée. La garde bean répète ces contrôles puis inspecte les
+  `JdbcConnectionDetails` et le `HikariDataSource` effectifs afin qu'aucun assemblage runtime ne
+  contourne l'URL PostgreSQL loopback exacte ;
+- `collection.adapter.persistence.JdbcJ7ImportStore` implémente le port d'import sous le seul profil
+  `control-api`. Il porte le SQL des tables `j7_import_receipt`, `j7_import_payload`,
+  `j7_import_audit` et `j7_import_payload_tombstone`, ainsi que l'ajout minimisé dans
+  `outbox_message`, sans exposer JDBC à la couche application ;
+- les migrations additives `V006__j7_import_inbox.sql` puis
+  `V007__j7_import_purge_integrity.sql`, complétées par
+  `V008__j7_import_upgrade_evidence_time_integrity.sql`, matérialisent l'inbox, l'audit, les
+  contraintes d'unicité et d'immutabilité, renforcent la purge et refusent à l'upgrade toute preuve
+  historique datée dans le futur. V001 à V005 restent immuables et le prochain slot est V009 ;
+- le schéma J7 et le schéma d'ACK sont des ressources versionnées autonomes du Betting Project. Le
+  build et le runtime ne lisent aucun chemin, artefact ou service d'un autre dépôt ;
+- une première réception écrit inbox, audit et outbox `J7_IMPORT_ACCEPTED` dans la même transaction.
+  Une répétition exacte retrouve l'import ; une divergence n'altère ni l'inbox ni le catalogue ;
+- INT-001 ne consomme pas l'outbox et n'applique aucune donnée au `catalog`. Un futur enrichissement
+  devra dépendre d'un port applicatif explicite et d'un Work Order séparé ;
+- la purge est un cas d'usage applicatif transactionnel borné, sans route HTTP, scheduler, poller ou
+  SQL opérateur direct. INT-001 qualifie la rétention et le tombstone, mais ne livre aucune surface
+  de purge activable au runtime ; une telle surface exige un Work Order distinct ;
+- tous les composants du receiver sont absents de `batch-worker` et `replay`. Aucun client sortant,
+  callback, retry, sender ou appel fournisseur n'entre dans cette frontière.
+
+La qualification locale conserve un même rôle PostgreSQL propriétaire pour Flyway et le runtime.
+Les triggers et la fonction de purge protègent donc les chemins applicatifs normaux, mais le
+propriétaire de la base reste capable de modifier ces protections : il constitue une frontière de
+confiance explicitement acceptée pour ce laboratoire. Avant toute production, le propriétaire de
+migration doit être séparé d'un rôle runtime à privilèges minimaux, sans DDL, désactivation de
+trigger ni purge SQL directe.
+
+Le contrat normatif est décrit dans
+[`j7-import-receiver-v1.md`](../contracts/j7-import-receiver-v1.md). L'activation reste `false` par
+défaut. Lorsqu'elle est explicitement qualifiée, le connecteur unique écoute sur
+`127.0.0.1:8444` en HTTPS avec client-auth `NEED`; les routes historiques et Actuator partagent alors
+ce même connecteur et ne bénéficient d'aucun port de management ou HTTP de contournement.
+
 Le package `bootstrap` contient uniquement l'assemblage de l'application. Le package `shared` contient les primitives transverses qui ne portent pas une règle métier propre à un module.

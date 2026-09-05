@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:betting-project:j7:delivery-ack:v1",
+  "title": "Betting Project J7 delivery acknowledgement v1.0",
+  "description": "Strict, minimized acknowledgement for one optional J7 local push. Transport code enforces a maximum encoded body size of 16384 bytes before schema validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion",
+    "remoteImportId",
+    "status",
+    "exportId",
+    "fileSha256",
+    "dataSha256",
+    "receivedAt"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": "1.0"
+    },
+    "remoteImportId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "status": {
+      "enum": ["IMPORTED", "DUPLICATE"]
+    },
+    "exportId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "fileSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "dataSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time",
+      "minLength": 20,
+      "maxLength": 35
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
