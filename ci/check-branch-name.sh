@@ -5,37 +5,50 @@ branch_name=${1:-}
 context=${2:-all}
 
 case "$context" in
-    all|github-pull-request) ;;
+    all|feature-integration|feature-work-order|github-branch|gitlab-release|gitlab-branch) ;;
     *)
         echo "FAIL: contexte de validation de branche inconnu : ${context:-<vide>}." >&2
         exit 1
         ;;
 esac
 
-if [ "$branch_name" = main ]; then
-    if [ "$context" = github-pull-request ]; then
-        echo 'FAIL: main ne peut pas être une branche source de Pull Request GitHub.' >&2
-        exit 1
+semver_core='(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
+train_suffix='(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?'
+integration_pattern="^feature/V${semver_core}${train_suffix}$"
+work_order_id='[A-Z]+-(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})'
+work_order_pattern="^feature/V${semver_core}${train_suffix}-(CODEX|HUMAN)-${work_order_id}$"
+release_pattern="^release/V${semver_core}${train_suffix}$"
+
+if { [ "$context" = all ] || [ "$context" = github-branch ] ||
+     [ "$context" = gitlab-branch ]; } &&
+   [ "$branch_name" = main ]; then
+    printf 'BRANCH_NAME=PASS:main:%s\n' "$branch_name"
+    exit 0
+fi
+
+if [ "$context" = all ] || [ "$context" = feature-integration ] ||
+   [ "$context" = github-branch ] || [ "$context" = gitlab-branch ]; then
+    if printf '%s' "$branch_name" | grep -Eq "$integration_pattern"; then
+        printf 'BRANCH_NAME=PASS:feature-integration:%s\n' "$branch_name"
+        exit 0
     fi
-    printf 'BRANCH_NAME=PASS:%s\n' "$branch_name"
-    exit 0
 fi
 
-if printf '%s' "$branch_name" | grep -Eq \
-    '^release/(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
-    if [ "$context" = github-pull-request ]; then
-        echo "FAIL: une branche de promotion GitLab ne peut pas être une source de Pull Request GitHub : $branch_name." >&2
-        exit 1
+if [ "$context" = all ] || [ "$context" = feature-work-order ] ||
+   [ "$context" = github-branch ]; then
+    if printf '%s' "$branch_name" | grep -Eq "$work_order_pattern"; then
+        printf 'BRANCH_NAME=PASS:feature-work-order:%s\n' "$branch_name"
+        exit 0
     fi
-    printf 'BRANCH_NAME=PASS:%s\n' "$branch_name"
-    exit 0
 fi
 
-if printf '%s' "$branch_name" | grep -Eq \
-    '^((codex|human)/[a-z][a-z0-9]*(-[0-9]+)+-[a-z0-9]+(-[a-z0-9]+)*|hotfix/[a-z][a-z0-9]*(-[0-9]+)+-[a-z0-9]+(-[a-z0-9]+)*)$'; then
-    printf 'BRANCH_NAME=PASS:%s\n' "$branch_name"
-    exit 0
+if [ "$context" = all ] || [ "$context" = gitlab-release ] ||
+   [ "$context" = gitlab-branch ]; then
+    if printf '%s' "$branch_name" | grep -Eq "$release_pattern"; then
+        printf 'BRANCH_NAME=PASS:gitlab-release:%s\n' "$branch_name"
+        exit 0
+    fi
 fi
 
-echo "FAIL: branche hors convention 1A : $branch_name" >&2
+echo "FAIL: branche hors convention versionnée ($context) : ${branch_name:-<vide>}." >&2
 exit 1

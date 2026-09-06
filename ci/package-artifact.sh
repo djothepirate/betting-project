@@ -7,12 +7,30 @@ cd "$repository"
 commit_sha=${CI_COMMIT_SHA:-${SOURCE_COMMIT_SHA:-${GITHUB_SHA:-}}}
 pipeline_iid=${CI_PIPELINE_IID:-${GITHUB_RUN_NUMBER:-0}}
 tag=${CI_COMMIT_TAG:-}
+branch_ref=${CI_COMMIT_BRANCH:-}
+source_ref_created=${SOURCE_REF_CREATED:-false}
+case "$source_ref_created" in
+    true|false) ;;
+    '') source_ref_created=false ;;
+    *)
+        echo 'FAIL: SOURCE_REF_CREATED doit valoir true ou false.' >&2
+        exit 1
+        ;;
+esac
+train_seed=false
 
 if [ -z "$commit_sha" ]; then
     commit_sha=$(git rev-parse HEAD)
 fi
 if [ -z "$tag" ] && [ "${GITHUB_REF_TYPE:-}" = tag ]; then
     tag=${GITHUB_REF_NAME:-}
+fi
+if [ -z "$branch_ref" ]; then
+    if [ -n "${GITHUB_HEAD_REF:-}" ]; then
+        branch_ref=$GITHUB_HEAD_REF
+    elif [ "${GITHUB_REF_TYPE:-}" = branch ]; then
+        branch_ref=${GITHUB_REF_NAME:-}
+    fi
 fi
 
 case "$commit_sha" in
@@ -48,7 +66,39 @@ case "$pipeline_iid" in
         ;;
 esac
 
+branch_creation_push=false
+zero_sha=0000000000000000000000000000000000000000
+if [ -n "${CI_PIPELINE_SOURCE:-}" ]; then
+    if [ "$CI_PIPELINE_SOURCE" = push ] &&
+       [ "${CI_COMMIT_BEFORE_SHA:-}" = "$zero_sha" ]; then
+        branch_creation_push=true
+    fi
+elif [ "${GITHUB_EVENT_NAME:-}" = push ] &&
+     [ "$source_ref_created" = true ]; then
+    branch_creation_push=true
+fi
+
 channel=snapshot
+accept_train_seed() {
+    if [ "${branch_kind:-}" != feature-integration ] ||
+       [ "$branch_creation_push" != true ]; then
+        return 1
+    fi
+    seed_main_ref=refs/remotes/origin/main
+    if ! seed_main_commit=$(git rev-parse --verify "${seed_main_ref}^{commit}" 2>/dev/null); then
+        echo "FAIL: l'amorçage du train exige la référence canonique $seed_main_ref." >&2
+        exit 1
+    fi
+    if [ "$commit_sha" != "$seed_main_commit" ]; then
+        echo "FAIL: l'amorçage du train exige que le commit source $commit_sha soit le sommet canonique exact de $seed_main_ref ($seed_main_commit)." >&2
+        exit 1
+    fi
+    train_seed=true
+    printf 'PACKAGE_VERSION_POLICY=PASS:exact-train-seed:%s@%s\n' \
+        "$branch_ref" "$commit_sha"
+    return 0
+}
+
 if [ -n "$tag" ]; then
     if ! printf '%s' "$tag" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
         echo "FAIL: tag hors convention SemVer : $tag" >&2
@@ -75,19 +125,42 @@ if [ -n "$tag" ]; then
         echo "FAIL: référence canonique main introuvable : $canonical_main_ref." >&2
         exit 1
     fi
-    if git merge-base --is-ancestor "$tagged_commit" "$canonical_main_commit"; then
-        :
-    else
-        ancestry_status=$?
-        if [ "$ancestry_status" -eq 1 ]; then
-            echo "FAIL: le commit tagué $tagged_commit n'est pas atteignable depuis $canonical_main_ref." >&2
-        else
-            echo "FAIL: impossible de vérifier l'appartenance du tag $tag à $canonical_main_ref." >&2
-        fi
+    if [ "$tagged_commit" != "$canonical_main_commit" ]; then
+        echo "FAIL: le tag $tag ne désigne pas le sommet canonique de $canonical_main_ref." >&2
+        exit 1
+    fi
+
+    tag_version=${tag#v}
+    case "$tag_version" in
+        *-rc.*)
+            tag_core=${tag_version%-rc.*}
+            tag_rc=${tag_version##*-rc.}
+            case "$tag_rc" in
+                ???*)
+                    echo "FAIL: le tag $tag dépasse la plage des branches RC01..RC99." >&2
+                    exit 1
+                    ;;
+            esac
+            case "$tag_rc" in
+                [1-9]) branch_rc="0$tag_rc" ;;
+                *) branch_rc=$tag_rc ;;
+            esac
+            branch_train="${tag_core}-RC${branch_rc}"
+            ;;
+        *) branch_train=$tag_version ;;
+    esac
+
+    canonical_feature_ref="refs/remotes/origin/feature/V${branch_train}"
+    if ! canonical_feature_commit=$(git rev-parse --verify "${canonical_feature_ref}^{commit}" 2>/dev/null); then
+        echo "FAIL: branche feature canonique introuvable : $canonical_feature_ref." >&2
+        exit 1
+    fi
+    if [ "$tagged_commit" != "$canonical_feature_commit" ]; then
+        echo "FAIL: le tag $tag ne désigne pas le sommet canonique de $canonical_feature_ref." >&2
         exit 1
     fi
     if [ -n "${CI_COMMIT_TAG:-}" ]; then
-        canonical_release_ref="refs/remotes/origin/release/${tag#v}"
+        canonical_release_ref="refs/remotes/origin/release/V${branch_train}"
         if ! canonical_release_commit=$(git rev-parse --verify "${canonical_release_ref}^{commit}" 2>/dev/null); then
             echo "FAIL: branche de promotion introuvable : $canonical_release_ref." >&2
             exit 1
@@ -117,8 +190,8 @@ else
             base_version=${version%-SNAPSHOT}
             ;;
         *)
-            # La PR de préparation puis le build de main doivent pouvoir valider la
-            # version finale avant la création du tag. Sans tag, ce payload reste un
+            # La préparation feature puis le merge commit de main doivent pouvoir valider
+            # la version finale avant la création du tag. Sans tag, ce payload reste un
             # snapshot non promouvable ; seul le pipeline GitLab du tag publie la release.
             base_version=$version
             ;;
@@ -127,6 +200,58 @@ else
         '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$'; then
         echo "FAIL: version Maven snapshot hors convention SemVer : $version." >&2
         exit 1
+    fi
+    branch_train=
+    branch_kind=
+    if printf '%s' "$branch_ref" | grep -Eq \
+        '^feature/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?$'; then
+        branch_train=${branch_ref#feature/V}
+        branch_kind=feature-integration
+    elif printf '%s' "$branch_ref" | grep -Eq \
+        '^feature/V(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-RC(0[1-9]|[1-9][0-9])(-SNAPSHOT)?)?-(CODEX|HUMAN)-[A-Z]+-(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$'; then
+        branch_base=$(printf '%s' "$branch_ref" | sed -E \
+            's#-(CODEX|HUMAN)-[A-Z]+-(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2})$##')
+        branch_train=${branch_base#feature/V}
+        branch_kind=feature-work-order
+    elif [ -n "$branch_ref" ] &&
+         printf '%s' "$branch_ref" | grep -Eq '^feature/'; then
+        echo "FAIL: branche source feature invalide : $branch_ref." >&2
+        exit 1
+    fi
+    if [ -n "$branch_train" ]; then
+        case "$branch_train" in
+            *-RC*-SNAPSHOT)
+                branch_candidate=${branch_train%-SNAPSHOT}
+                branch_core=${branch_candidate%-RC*}
+                branch_rc=${branch_candidate##*-RC}
+                branch_rc=${branch_rc#0}
+                expected_branch_version="${branch_core}-rc.${branch_rc}-SNAPSHOT"
+                if [ "$version" != "$expected_branch_version" ] &&
+                   ! accept_train_seed; then
+                    echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
+                    exit 1
+                fi
+                ;;
+            *-RC*)
+                branch_core=${branch_train%-RC*}
+                branch_rc=${branch_train##*-RC}
+                branch_rc=${branch_rc#0}
+                expected_branch_version="${branch_core}-rc.${branch_rc}"
+                if [ "$version" != "$expected_branch_version" ] &&
+                   ! accept_train_seed; then
+                    echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
+                    exit 1
+                fi
+                ;;
+            *)
+                if [ "$version" != "$branch_train" ] &&
+                   [ "$version" != "${branch_train}-SNAPSHOT" ] &&
+                   ! accept_train_seed; then
+                    echo "FAIL: la branche $branch_ref exige la version Maven $branch_train ou ${branch_train}-SNAPSHOT, reçue : $version." >&2
+                    exit 1
+                fi
+                ;;
+        esac
     fi
     artifact_version="${base_version}-snapshot.p${pipeline_iid}.g${short_sha}"
 fi
@@ -332,6 +457,7 @@ source.repository=djothepirate/betting-project
 source.commit=$commit_sha
 source.epoch=$source_epoch
 source.tag=$tag
+source.train.seed=$train_seed
 maven.version=$version
 artifact.version=$artifact_version
 java.target=25

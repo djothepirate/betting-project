@@ -35,5 +35,35 @@
 
 - Tout changement significatif se rattache à un Work Order dans `docs/work-orders/`.
 - Ne pas modifier simultanément ce worktree depuis Eclipse et Codex.
-- Ne pas fusionner dans la branche principale sans revue humaine.
+- Un nouveau Work Order part du HEAD exact de sa branche d'intégration
+  `feature/Vx.y.z`, `feature/Vx.y.z-RCnn` ou `feature/Vx.y.z-RCnn-SNAPSHOT`, avec `nn`
+  compris entre `01` et `99`. Ce SHA de départ est consigné dans le Work Order.
+- Sa branche est exactement
+  `feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER>` ; l'identifiant du Work Order reste en
+  majuscules sous la forme `<TYPE>-<NNN>`, avec `TYPE` en lettres et `NNN` compris entre `001`
+  et `999`, sans slug supplémentaire. Le document `docs/work-orders/<WORK-ORDER>.md` doit exister.
+- Une Pull Request de Work Order cible la branche `feature/<TRAIN>` de même version. La Pull
+  Request finale de cette branche feature cible `main`. Les fusions GitHub utilisent un merge
+  commit ; squash et rebase sont interdits. La CI vérifie la version Maven du train et exige la
+  version stable finale avant une Pull Request `feature/Vx.y.z` vers `main`.
+- Après la fusion finale, `feature/<TRAIN>` avance en fast-forward normal sur le merge commit de
+  `main`. `main` et cette branche feature sont ensuite synchronisées vers GitLab avant la Merge
+  Request fast-forward `feature/<TRAIN>` vers la branche protégée GitLab `release/<TRAIN>`.
+- Les branches `release/V*` existent uniquement sur GitLab et sont les seules branches protégées.
+  Le motif de tags `v*` est protégé séparément sur GitLab ; une protection de tag n'est pas une
+  protection de branche. Les tags restent `vX.Y.Z` ou `vX.Y.Z-rc.N`, avec un `v` et un suffixe
+  `rc` minuscules.
+- Un snapshot durable provient uniquement d'un push de la branche feature d'intégration exacte,
+  jamais d'une branche de Work Order, d'une Pull Request ou de `main`.
+- Le seul décalage temporaire entre le nom du train et la version Maven est le push qui crée
+  `feature/<TRAIN>` exactement au sommet canonique de `origin/main`. Sa provenance porte
+  `source.train.seed=true` ; tout push ultérieur, PR ou lancement manuel exige le mapping Maven du
+  train. Un pipeline de branche GitHub accepte `main`, les features d'intégration et les branches
+  Work Order valides, jamais `release/V*` ni un nom de feature approchant.
+- L'exception historique `codex/ci-004-version-branch-workflow` vers `main` ne vaut que pour le
+  bootstrap CI-004 sur la base `3fb224e9724698324a56b47fe5d943ecd366f197`. Le SHA de tête doit
+  descendre de cette base et leur merge-base doit être exactement cette base.
+- Les anciennes branches `codex/*`, `human/*` et `hotfix/*` restent des références historiques en
+  lecture seule ; ne pas les renommer, les réutiliser ou les supprimer implicitement.
+- Ne pas fusionner dans `main`, une branche feature ou une release sans revue humaine.
 - Le rapport de fin indique les fichiers modifiés, tests exécutés, limites et décisions ouvertes.

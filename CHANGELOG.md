@@ -2,6 +2,36 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## 2026-09-05 — CI-004 (trains feature/release versionnés, réalisation locale)
+
+- convention exécutable pour les trains `Vx.y.z`, `Vx.y.z-RCnn` et
+  `Vx.y.z-RCnn-SNAPSHOT`, avec `nn` borné à `01..99` et mapping Maven/tag `rc.N` minuscule ;
+- branches de Work Order `feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER>` issues du HEAD documenté de
+  leur feature d'intégration, avec `<WORK-ORDER>=<TYPE>-<NNN>` (`NNN=001..999`) et document
+  versionné, puis Pull Requests GitHub exclusivement vers cette feature de même train ;
+- finalisation GitHub `feature/<TRAIN>` vers `main` par merge commit, puis avance fast-forward de la
+  feature et promotion GitLab `feature/<TRAIN>` vers la release protégée du même train ;
+- snapshots durables limités aux pushes des features d'intégration exactes ; contrôles renforcés
+  pour la version Maven des PR et Work Orders, le graphe Git des PR/MR, les SHA canoniques de
+  release et l'exception de bootstrap CI-004, bornée aussi à `0.1.0-SNAPSHOT` ; pipelines de branche
+  GitLab limités à `main`, aux features d'intégration et aux releases exactes, avec voies MR/tag
+  strictement exclusives et refus des refs indéterminées ; validation fail-closed des tags non
+  protégés ou hors grammaire SemVer, indépendamment de la sélection du job de packaging ; protection
+  GitLab distincte des tags `v*` ;
+- aucun train distant `feature/V*` ou `release/V*` créé avant fusion du bootstrap, aucune branche
+  historique renommée ou supprimée, et statut `production.approved=false` /
+  `vps.deployable=false` conservé jusqu'à OPS-001.
+- amorçage d'un nouveau train rendu exécutable sans relâcher le contrôle de version : seule la
+  création de `feature/<TRAIN>` exactement sur `origin/main` tolère la version Maven héritée et
+  marque `source.train.seed=true`; les pushes ultérieurs restent stricts. Les pipelines GitHub
+  refusent désormais explicitement les noms `feature/V*` invalides et toute branche `release/V*`,
+  y compris en lancement manuel. Le découpage acteur/Work Order reste correct lorsque le type du
+  Work Order vaut lui-même `CODEX` ou `HUMAN`.
+
+Voir [CI-004](docs/work-orders/CI-004.md), [ADR-005](docs/adr/ADR-005-workflow-eclipse-codex-git-work-orders.md),
+[ADR-008](docs/adr/ADR-008-integration-continue-github-gitlab-versioning-qualite-securite.md) et le
+[runbook CI/CD](docs/runbooks/ci-cd-github-gitlab.md).
+
 ## 2026-09-05 — SKL-001 à SKL-003 (skills validés et livraison autorisée)
 
 - cinq skills BP découverts au niveau du dépôt, avec métadonnées, inventaire, protocole, réponses et revues du pilote ;

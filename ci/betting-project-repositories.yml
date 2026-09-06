@@ -1,13 +1,45 @@
 schema_version: 1
-ci_contract_version: "1.0"
+ci_contract_version: "2.0"
 canonical_forge: github
 gitlab_namespace: djothepirate-betting-project
+
+branching_contract:
+  train: "Vx.y.z, Vx.y.z-RCnn or Vx.y.z-RCnn-SNAPSHOT; nn=01..99"
+  integration_branch: "feature/<TRAIN>"
+  work_order_branch: "feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER>"
+  release_branch: "release/<TRAIN>"
+  release_tag: "vX.Y.Z or vX.Y.Z-rc.N"
+  rc_mapping: "branch RCnn maps to Maven/tag rc.N; SNAPSHOT branches have no tag"
+  github:
+    canonical_branches:
+      - main
+      - feature/<TRAIN>
+    pull_request_routes:
+      - "feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER> -> feature/<TRAIN>"
+      - "feature/<TRAIN> -> main"
+    merge_method: merge_commit
+    release_branches: forbidden
+  gitlab:
+    synchronized_branches:
+      - main
+      - feature/<TRAIN>
+    merge_request_route: "feature/<TRAIN> -> release/<TRAIN>"
+    merge_method: fast_forward
+    squash: forbidden
+    rebase: forbidden
+    protected_branches:
+      - release/V*
+    protected_tags:
+      - v*
+  durable_snapshot_source: "push of exact feature/<TRAIN> integration branch only"
+  legacy_branches: read_only
 
 official_repositories:
   - github: djothepirate/betting-project
     gitlab: djothepirate-betting-project/betting-project
     default_branch: main
     classification: vps-deployable
+    work_order_id: "TYPE-NNN; TYPE=[A-Z]+ and NNN=001..999"
     build:
       java: "25"
       standard: "./mvnw verify"
@@ -24,6 +56,7 @@ official_repositories:
     gitlab: djothepirate-betting-project/betting-sofascore-local-lab
     default_branch: main
     classification: local-only
+    work_order_id: "WO-SS-YYYYMMDD-NNN"
     build:
       java: "25"
       standard: "./mvnw clean verify"
@@ -45,4 +78,5 @@ onboarding_requirements:
   - gitlab_ci_green_on_same_sha
   - one_way_mirror_tested
   - branch_and_tag_protections_reviewed
+  - version_branch_topology_qualified
   - credentials_scoped_per_repository

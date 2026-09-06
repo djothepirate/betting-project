@@ -1,16 +1,19 @@
 name: CI
 
 "on":
-  # Les branches de travail sont qualifiées sur leur merge synthétique via la PR.
-  # Ne pas ajouter ici leurs motifs : un run push ne doit jamais remplacer ce contrôle.
+  # Les branches de Work Order sont qualifiées sur leur merge synthétique via la PR.
+  # Le motif large feature/V* permet aussi de qualifier la branche d'intégration ;
+  # seul le garde regex ancré autorise ensuite la conservation d'un snapshot.
   push:
     branches:
       - main
+      - "feature/V*"
     tags:
       - "v*"
   pull_request:
     branches:
       - main
+      - "feature/V*"
   workflow_dispatch:
 
 permissions:
@@ -88,6 +91,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Vérifier la branche GitHub
+        if: ${{ github.event_name != 'pull_request' && github.ref_type == 'branch' }}
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: sh ci/check-branch-name.sh "$BRANCH_NAME" github-branch
+
       - name: Installer Java 25
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
@@ -99,11 +108,19 @@ jobs:
       - name: Vérifier le Maven Wrapper
         run: ./mvnw -version
 
-      - name: Vérifier la convention de branche 1A
+      - name: Vérifier la topologie de la Pull Request
         if: ${{ github.event_name == 'pull_request' }}
         env:
-          BRANCH_NAME: ${{ github.head_ref }}
-        run: sh ci/check-branch-name.sh "$BRANCH_NAME" github-pull-request
+          PR_SOURCE_BRANCH: ${{ github.head_ref }}
+          PR_TARGET_BRANCH: ${{ github.base_ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          project_version=$(./mvnw -q -DforceStdout help:evaluate \
+            -Dexpression=project.version)
+          sh ci/check-github-pull-request.sh \
+            "$PR_SOURCE_BRANCH" "$PR_TARGET_BRANCH" \
+            "$PR_BASE_SHA" "$PR_HEAD_SHA" "$project_version"
 
       - name: Tester le scanner de secrets POSIX
         run: sh scripts/tests/check-no-secrets.Tests.sh
@@ -123,11 +140,26 @@ jobs:
       - name: Produire le snapshot ou valider le bundle tagué
         env:
           SOURCE_COMMIT_SHA: ${{ github.sha }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+          SOURCE_REF_CREATED: ${{ github.event.created }}
         run: sh ci/package-artifact.sh
 
-      # Les bundles exécutables issus des PR restent éphémères dans le workspace du runner.
-      - name: Publier le snapshot issu de main
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - name: Qualifier la source du snapshot durable
+        id: snapshot-source
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          durable=false
+          if [ "$EVENT_NAME" = push ] &&
+             sh ci/check-branch-name.sh "$REF_NAME" feature-integration >/dev/null 2>&1; then
+            durable=true
+          fi
+          printf 'durable=%s\n' "$durable" >>"$GITHUB_OUTPUT"
+
+      # Les bundles de PR, de Work Order et de main restent éphémères.
+      - name: Publier le snapshot issu de la branche feature d'intégration
+        if: ${{ steps.snapshot-source.outputs.durable == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: betting-project-${{ github.run_id }}-${{ github.sha }}

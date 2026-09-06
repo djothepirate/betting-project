@@ -10,7 +10,11 @@ canonical_main_ref=refs/remotes/origin/main
 original_main=$(git rev-parse --verify "${canonical_main_ref}^{commit}" 2>/dev/null || true)
 test_tag="v999999.999999.$$-rc.1"
 test_tag_ref="refs/tags/$test_tag"
-canonical_release_ref="refs/remotes/origin/release/${test_tag#v}"
+test_core=${test_tag#v}
+test_core=${test_core%-rc.*}
+canonical_feature_ref="refs/remotes/origin/feature/V${test_core}-RC01"
+original_feature=$(git rev-parse --verify "${canonical_feature_ref}^{commit}" 2>/dev/null || true)
+canonical_release_ref="refs/remotes/origin/release/V${test_core}-RC01"
 original_release=$(git rev-parse --verify "${canonical_release_ref}^{commit}" 2>/dev/null || true)
 
 if git show-ref --verify --quiet "$test_tag_ref"; then
@@ -24,6 +28,11 @@ cleanup() {
         git update-ref "$canonical_main_ref" "$original_main" >/dev/null 2>&1 || true
     else
         git update-ref -d "$canonical_main_ref" >/dev/null 2>&1 || true
+    fi
+    if [ -n "$original_feature" ]; then
+        git update-ref "$canonical_feature_ref" "$original_feature" >/dev/null 2>&1 || true
+    else
+        git update-ref -d "$canonical_feature_ref" >/dev/null 2>&1 || true
     fi
     if [ -n "$original_release" ]; then
         git update-ref "$canonical_release_ref" "$original_release" >/dev/null 2>&1 || true
@@ -66,7 +75,7 @@ assert_rejected 'référence canonique main introuvable' \
     sh ci/package-artifact.sh
 
 git update-ref "$canonical_main_ref" "$parent_commit"
-assert_rejected "n'est pas atteignable depuis" \
+assert_rejected "ne désigne pas le sommet canonique de $canonical_main_ref" \
     env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
     sh ci/package-artifact.sh
 
@@ -77,6 +86,17 @@ assert_rejected 'ne désigne pas le commit source' \
 
 git update-ref "$test_tag_ref" "$head_commit"
 git update-ref "$canonical_main_ref" "$head_commit"
+git update-ref -d "$canonical_feature_ref"
+assert_rejected "branche feature canonique introuvable : $canonical_feature_ref" \
+    env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
+    sh ci/package-artifact.sh
+
+git update-ref "$canonical_feature_ref" "$parent_commit"
+assert_rejected "ne désigne pas le sommet canonique de $canonical_feature_ref" \
+    env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
+    sh ci/package-artifact.sh
+
+git update-ref "$canonical_feature_ref" "$head_commit"
 git update-ref -d "$canonical_release_ref"
 assert_rejected "branche de promotion introuvable : $canonical_release_ref" \
     env CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG="$test_tag" CI_PIPELINE_IID=1 \
@@ -117,33 +137,68 @@ if grep -Fq 'target/*.jar' .gitlab-ci.yml; then
     echo 'FAIL: un JAR exécutable ne doit pas être conservé depuis les tests GitLab de branches ou MR.' >&2
     exit 1
 fi
-if ! grep -Fq "github.event_name == 'push' && github.ref == 'refs/heads/main'" \
+if grep -Fq "github.event_name == 'push' && github.ref == 'refs/heads/main'" \
     .github/workflows/ci.yml; then
-    echo 'FAIL: GitHub ne doit conserver un snapshot exécutable que depuis un push de main.' >&2
+    echo 'FAIL: GitHub ne doit plus conserver de snapshot depuis main.' >&2
     exit 1
 fi
-if ! grep -Fq 'check-branch-name.sh "$BRANCH_NAME" github-pull-request' \
+if ! grep -Fq 'check-branch-name.sh "$REF_NAME" feature-integration' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq "steps.snapshot-source.outputs.durable == 'true'" \
     .github/workflows/ci.yml; then
-    echo 'FAIL: les Pull Requests GitHub doivent exclure les branches de promotion GitLab.' >&2
+    echo 'FAIL: GitHub doit borner le snapshot durable à une branche feature d’intégration exacte.' >&2
     exit 1
 fi
-if ! awk '
+if ! grep -Fq 'sh ci/check-github-pull-request.sh' .github/workflows/ci.yml ||
+   ! grep -Fq 'PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq '"$PR_BASE_SHA" "$PR_HEAD_SHA" "$project_version"' \
+    .github/workflows/ci.yml; then
+    echo 'FAIL: la topologie, le graphe et la version des Pull Requests GitHub doivent être contrôlés.' >&2
+    exit 1
+fi
+if ! grep -Fq 'GITHUB_HEAD_REF: ${{ github.head_ref }}' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq 'GITHUB_HEAD_REF' ci/package-artifact.sh ||
+   ! grep -Fq -- '-(CODEX|HUMAN)-[A-Z]+' ci/package-artifact.sh; then
+    echo 'FAIL: le packaging de Pull Request doit valider le train de sa branche Work Order.' >&2
+    exit 1
+fi
+if ! grep -Fq 'check-branch-name.sh "$BRANCH_NAME" github-branch' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq "github.event_name != 'pull_request' && github.ref_type == 'branch'" \
+    .github/workflows/ci.yml; then
+    echo 'FAIL: tout pipeline de branche GitHub doit refuser les releases et noms hors convention.' >&2
+    exit 1
+fi
+if ! grep -Fq 'SOURCE_REF_CREATED: ${{ github.event.created }}' \
+    .github/workflows/ci.yml ||
+   ! grep -Fq 'SOURCE_REF_CREATED' ci/package-artifact.sh ||
+   ! grep -Fq 'CI_COMMIT_BEFORE_SHA' ci/package-artifact.sh ||
+   ! grep -Fq 'source.train.seed=$train_seed' ci/package-artifact.sh; then
+    echo 'FAIL: l’amorçage d’un train doit rester borné à sa création exacte depuis main.' >&2
+    exit 1
+fi
+github_pull_request=$(awk '
     /^  pull_request:/ { in_pull_request = 1; next }
-    in_pull_request && /^    branches:/ { has_branches = 1; next }
-    in_pull_request && /^      - main$/ { has_main = 1; exit }
-    in_pull_request && /^[^ ]/ { exit }
-    END { if (!has_branches || !has_main) exit 1 }
-' .github/workflows/ci.yml; then
-    echo 'FAIL: les Pull Requests GitHub doivent cibler exclusivement main.' >&2
+    in_pull_request && /^  workflow_dispatch:/ { exit }
+    in_pull_request { print }
+' .github/workflows/ci.yml)
+if ! printf '%s\n' "$github_pull_request" | grep -Fqx '      - main' ||
+   ! printf '%s\n' "$github_pull_request" | grep -Fqx '      - "feature/V*"' ||
+   printf '%s\n' "$github_pull_request" | grep -Fq 'release/'; then
+    echo 'FAIL: les Pull Requests GitHub doivent cibler main ou feature/V*, jamais release/V*.' >&2
     exit 1
 fi
 if grep -Fq "!startsWith(github.ref, 'refs/tags/')" .github/workflows/ci.yml; then
     echo 'FAIL: GitHub doit valider le bundle d’un tag sans le téléverser.' >&2
     exit 1
 fi
-if ! grep -Fq '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH' \
+if grep -Fq '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH' \
+    .gitlab-ci.yml ||
+   ! grep -Fq '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature\/V' \
     .gitlab-ci.yml; then
-    echo 'FAIL: GitLab ne doit conserver un snapshot que depuis un push de la branche par défaut.' >&2
+    echo 'FAIL: GitLab ne doit conserver un snapshot que depuis une branche feature d’intégration exacte.' >&2
     exit 1
 fi
 if ! grep -Fq '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~' \
@@ -151,18 +206,33 @@ if ! grep -Fq '$CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_TAG =~' \
     echo 'FAIL: une release GitLab exige un tag protégé.' >&2
     exit 1
 fi
-if ! grep -Fq '+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}' \
+if ! grep -Fq '+refs/heads/${feature_branch}:refs/remotes/origin/${feature_branch}' \
+    .gitlab-ci.yml ||
+   ! grep -Fq '+refs/heads/${release_branch}:refs/remotes/origin/${release_branch}' \
     .gitlab-ci.yml; then
-    echo 'FAIL: le pipeline de tag GitLab doit extraire la branche de promotion correspondante.' >&2
+    echo 'FAIL: le pipeline de tag GitLab doit extraire les branches feature et release correspondantes.' >&2
     exit 1
 fi
-if ! grep -Fq 'git fetch --tags origin' .gitlab-ci.yml ||
+if ! grep -Fq 'git fetch --force --tags origin' .gitlab-ci.yml ||
+   ! grep -Fq '+refs/heads/main:refs/remotes/origin/main' .gitlab-ci.yml ||
+   ! grep -Fq '${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}:refs/remotes/origin/${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}' \
+    .gitlab-ci.yml ||
+   ! grep -Fq '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}:refs/remotes/origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}' \
+    .gitlab-ci.yml ||
    ! grep -Fq 'check-gitlab-merge-request.sh "$project_version"' .gitlab-ci.yml; then
-    echo 'FAIL: le pipeline de MR GitLab doit contrôler la version et les tags déjà publiés.' >&2
+    echo 'FAIL: le pipeline de MR GitLab doit extraire puis contrôler tags, main, source et cible.' >&2
+    exit 1
+fi
+if ! grep -Fq 'rev-parse --is-shallow-repository' \
+    ci/check-gitlab-merge-request.sh ||
+   ! grep -Fq 'refs/remotes/origin/main' ci/check-gitlab-merge-request.sh ||
+   ! grep -Fq 'merge-base --is-ancestor' ci/check-gitlab-merge-request.sh; then
+    echo 'FAIL: le garde MR GitLab doit contrôler l’historique complet et le graphe de promotion.' >&2
     exit 1
 fi
 
 sh ci/test-branch-name.sh
+sh ci/test-github-pull-request.sh
 sh ci/test-gitlab-workflow.sh
 sh ci/test-gitlab-merge-request.sh
 sh ci/test-release-reproducibility.sh
