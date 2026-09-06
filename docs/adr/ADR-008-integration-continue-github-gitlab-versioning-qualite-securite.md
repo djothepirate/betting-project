@@ -10,6 +10,7 @@
   `release/<SemVer>`, remplacée par l'amendement CI-004 ci-dessous
 - **Amendement :** 2026-09-02 — flux JSON 2.0 public NVD sans cache inter-pipelines, corrigé par CI-003
 - **Amendement :** 2026-09-05 — trains feature/release versionnés et gouvernance des Work Orders, appliqués par CI-004
+- **Amendement :** 2026-09-06 — développement RC sous POM versionné `rc.N-SNAPSHOT`, finalisation par PR avant promotion, appliqué par CI-005
 
 ## Contexte
 
@@ -128,17 +129,17 @@ manuel, ni un pipeline déclenché par API ou par un autre pipeline.
 
 Chaque dépôt suit SemVer indépendamment des autres :
 
-- développement Maven : `X.Y.Z-SNAPSHOT` ;
+- développement Maven : `X.Y.Z-SNAPSHOT` ou `X.Y.Z-rc.N-SNAPSHOT` pour un train RC ;
 - release candidate facultative : tag `vX.Y.Z-rc.N` ;
 - release : tag immuable `vX.Y.Z` et version Maven exacte `X.Y.Z` ;
-- snapshot distribué : `X.Y.Z-snapshot.p<id-pipeline>.g<sha-court>`.
+- snapshot distribué : `X.Y.Z[-rc.N]-snapshot.p<id-pipeline>.g<sha-court>`.
 
 Le mapping entre train de branche et version Maven est déterministe :
 
 | Train de branche | Version Maven admise | Tag éventuel |
 |---|---|---|
 | `V1.2.3` | `1.2.3-SNAPSHOT` pendant le développement, puis `1.2.3` pour la promotion | `v1.2.3` |
-| `V1.2.3-RC01` | `1.2.3-rc.1` | `v1.2.3-rc.1` |
+| `V1.2.3-RC01` | `1.2.3-rc.1-SNAPSHOT` pendant les travaux, puis `1.2.3-rc.1` avant la PR finale et la MR | `v1.2.3-rc.1` |
 | `V1.2.3-RC01-SNAPSHOT` | `1.2.3-rc.1-SNAPSHOT` | aucun |
 
 Le zéro de remplissage appartient uniquement au nom de branche. Les tags conservent la décision
@@ -146,11 +147,23 @@ Le zéro de remplissage appartient uniquement au nom de branche. Les tags conser
 sa publication est refusée explicitement car aucun train de branche autorisé au-delà de `RC99` ne
 peut établir les références canoniques communes. Un tag portant `SNAPSHOT` est toujours interdit.
 
+Le POM du train RC est versionné dans Git. Ses builds et Pull Requests de Work Order acceptent
+la version `rc.N-SNAPSHOT` aussi longtemps que les travaux continuent, sans plafond de rebuilds
+ni recours à l'exception d'amorçage. Une Pull Request de préparation vers la même feature fixe
+ensuite `rc.N` dans le POM ; la PR finale vers `main`, la MR GitLab vers la release identique et
+le packaging du tag refusent un POM encore SNAPSHOT. Aucun script de promotion ne réécrit la
+version après les tests. La variante explicite `RCnn-SNAPSHOT` conserve son mapping exact et
+reste sans tag.
+
 Un snapshot durable est conservé uniquement depuis un pipeline `push` de la branche feature
 d'intégration exacte. Les bundles produits depuis une branche de Work Order, le merge synthétique
 d'une Pull Request ou `main` restent éphémères. Avant conservation, la CI vérifie que la version
 Maven correspond au train selon la table ci-dessus. La seule présence d'un snapshot ne constitue
 ni une approbation de production, ni une autorisation de déploiement.
+L'absence de plafond de rebuilds ne change pas les durées de rétention des forges. Un lancement
+autonome `workflow_dispatch` ou GitLab `web` ne crée pas de snapshot durable ; le rejeu d'un
+pipeline conserve son événement source et reste donc admissible s'il provient d'un push feature.
+La provenance des builds RC ordinaires porte `source.train.seed=false`.
 
 Un tag de release doit viser le SHA commun de `main`, de `feature/<TRAIN>` sur GitHub et de
 `release/<TRAIN>` sur GitLab, correspondre exactement à la version Maven convertie puis ne jamais

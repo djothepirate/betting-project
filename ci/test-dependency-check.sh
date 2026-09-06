@@ -4,12 +4,18 @@ set -eu
 repository=$(git rev-parse --show-toplevel)
 cd "$repository"
 
+# Les chemins attendus appartiennent à la fixture, même lorsque le runner définit
+# MAVEN_USER_HOME (GitLab) ou un répertoire Dependency-Check explicite.
+unset MAVEN_USER_HOME DEPENDENCY_CHECK_DATA_DIRECTORY
+
 sandbox=$(mktemp -d "${TMPDIR:-/tmp}/dependency-check-arguments.XXXXXX")
 cleanup() {
     rm -f \
         "$sandbox/unset.log" \
         "$sandbox/empty.log" \
         "$sandbox/configured.log" \
+        "$sandbox/maven-home.log" \
+        "$sandbox/explicit-directory.log" \
         "$sandbox/ci/run-dependency-check.sh" \
         "$sandbox/mvnw"
     rmdir "$sandbox/ci" "$sandbox" 2>/dev/null || true
@@ -70,6 +76,19 @@ assert_argument '-Dformats=HTML,JSON,GITLAB' "$unset_log"
 assert_argument '-DfailOnError=true' "$unset_log"
 assert_argument '-DfailBuildOnCVSS=7' "$unset_log"
 assert_argument 'org.owasp:dependency-check-maven:12.2.2:check' "$unset_log"
+
+maven_home_log="$sandbox/maven-home.log"
+MAVEN_USER_HOME="$sandbox/maven cache" ARGUMENT_LOG="$maven_home_log" \
+    sh "$sandbox/ci/run-dependency-check.sh"
+assert_argument "-DdataDirectory=$sandbox/maven cache/dependency-check-data" "$maven_home_log"
+assert_no_api_key_option "$maven_home_log"
+
+explicit_directory_log="$sandbox/explicit-directory.log"
+MAVEN_USER_HOME="$sandbox/maven cache" \
+    DEPENDENCY_CHECK_DATA_DIRECTORY="$sandbox/explicit cache" \
+    ARGUMENT_LOG="$explicit_directory_log" sh "$sandbox/ci/run-dependency-check.sh"
+assert_argument "-DdataDirectory=$sandbox/explicit cache" "$explicit_directory_log"
+assert_no_api_key_option "$explicit_directory_log"
 
 if grep -Eq '^[[:space:]]+NVD_API_KEY:' .gitlab-ci.yml; then
     echo 'FAIL: NVD_API_KEY ne doit jamais être déclarée dans le dépôt.' >&2

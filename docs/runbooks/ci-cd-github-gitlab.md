@@ -73,15 +73,16 @@ les tags conserve la décision 2A :
 | Train | Version Maven | Tag éventuel |
 |---|---|---|
 | `V1.2.3` | `1.2.3-SNAPSHOT`, puis `1.2.3` pour la promotion | `v1.2.3` |
-| `V1.2.3-RC01` | `1.2.3-rc.1` | `v1.2.3-rc.1` |
+| `V1.2.3-RC01` | `1.2.3-rc.1-SNAPSHOT`, puis `1.2.3-rc.1` avant la PR finale et la MR | `v1.2.3-rc.1` |
 | `V1.2.3-RC01-SNAPSHOT` | `1.2.3-rc.1-SNAPSHOT` | aucun |
 
 Le zéro de remplissage n'existe que dans la branche. Un tag `v1.2.3-rc.100` est syntaxiquement
 valide selon la décision 2A, mais son packaging échoue explicitement : aucun train autorisé ne peut
 matérialiser sa branche canonique. Aucun tag ne porte `SNAPSHOT`.
 Ainsi, `feature/V0.1.0-RC01` et `feature/V0.1.0-RC01-SNAPSHOT` sont toutes deux des branches
-d'intégration valides ; elles exigent respectivement Maven `0.1.0-rc.1` et
-`0.1.0-rc.1-SNAPSHOT` après leur amorçage borné.
+d'intégration valides. La première accepte Maven `0.1.0-rc.1-SNAPSHOT` pendant les travaux et
+`0.1.0-rc.1` pour la finalisation ; la seconde exige `0.1.0-rc.1-SNAPSHOT` après son amorçage
+borné et ne reçoit jamais de tag.
 
 ## Ouverture d'un train et Work Orders
 
@@ -100,6 +101,13 @@ d'intégration valides ; elles exigent respectivement Maven `0.1.0-rc.1` et
    rebase et push direct vers la cible ne constituent pas une clôture valide.
 6. Une suite de Work Orders se clôt par autant de Pull Requests que nécessaire vers cette même
    branche feature. Les branches de Work Order restent sur GitHub et ne sont jamais synchronisées.
+
+Pour `feature/V0.1.0-RC01`, versionner le POM `0.1.0-rc.1-SNAPSHOT` dans la PR d'ouverture
+des travaux. Les pushes suivants et leurs rebuilds conservent cette version sans incrémenter RC01.
+Ils produisent des snapshots `0.1.0-rc.1-snapshot.p<id-pipeline>.g<sha-court>` avec
+`source.train.seed=false`. La conservation reste limitée aux pipelines push feature et aux
+durées configurées sur chaque forge. Un lancement autonome `workflow_dispatch` ou GitLab `web`
+ne crée pas de publication durable ; le rejeu d'un pipeline push conserve son événement source.
 
 Le premier push qui crée `feature/<TRAIN>` peut encore porter la version Maven héritée de `main`,
 mais uniquement si le SHA extrait est exactement le sommet canonique de `origin/main`. GitHub
@@ -122,10 +130,12 @@ réutilisées, ni supprimées implicitement.
 
 ## Finalisation GitHub et promotion GitLab
 
-1. Fixer sur `feature/<TRAIN>` la version Maven exacte du train : `X.Y.Z` pour un train stable,
+1. Faire fusionner une PR de préparation vers `feature/<TRAIN>` qui versionne dans le POM la
+   version Maven exacte du train : `X.Y.Z` pour un train stable,
    `X.Y.Z-rc.N` pour `RCnn`, ou `X.Y.Z-rc.N-SNAPSHOT` pour `RCnn-SNAPSHOT`. Qualifier ce sommet
    `F`. Le garde de Pull Request vérifie cette version avant que la feature puisse entrer dans
-   `main` ; seule une branche sans suffixe `SNAPSHOT` pourra ensuite produire un tag.
+   `main` ; seule une branche sans suffixe `SNAPSHOT` pourra ensuite produire un tag. Cette
+   préparation est un changement Git revu, jamais une réécriture du POM par le pipeline GitLab.
 2. Ouvrir la Pull Request GitHub finale `feature/<TRAIN>` vers `main`. Exiger CI Windows/Linux
    verte, discussions résolues, revue humaine et merge commit ; squash et rebase sont interdits.
 3. Noter le merge commit `M` produit sur `main` et le qualifier. Vérifier que `F` est un parent de

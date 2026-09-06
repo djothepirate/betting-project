@@ -1,5 +1,5 @@
 schema_version: 1
-ci_contract_version: "2.0"
+ci_contract_version: "2.1"
 canonical_forge: github
 gitlab_namespace: djothepirate-betting-project
 
@@ -9,7 +9,7 @@ branching_contract:
   work_order_branch: "feature/<TRAIN>-(CODEX|HUMAN)-<WORK-ORDER>"
   release_branch: "release/<TRAIN>"
   release_tag: "vX.Y.Z or vX.Y.Z-rc.N"
-  rc_mapping: "branch RCnn maps to Maven/tag rc.N; SNAPSHOT branches have no tag"
+  rc_mapping: "RCnn feature/WO: Maven rc.N-SNAPSHOT then rc.N; final PR/MR/tag: rc.N only; RCnn-SNAPSHOT branch: rc.N-SNAPSHOT only, no tag"
   github:
     canonical_branches:
       - main

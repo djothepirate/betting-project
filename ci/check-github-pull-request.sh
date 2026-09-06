@@ -100,13 +100,15 @@ if sh "$script_dir/check-branch-name.sh" "$source_branch" \
     source_train=${source_version#V}
     expected_version=$(train_to_maven "$source_train")
     case "$source_train" in
-        *-RC*)
+        *-RC*-SNAPSHOT)
             if [ "$project_version" != "$expected_version" ]; then
                 echo "FAIL: la branche de Work Order $source_branch exige la version Maven $expected_version, reçue : ${project_version:-<vide>}." >&2
                 exit 1
             fi
             ;;
         *)
+            # Stable et RC non suffixée : développement SNAPSHOT, puis version
+            # finale versionnée avant la PR distincte du train vers main.
             if [ "$project_version" != "$expected_version" ] &&
                [ "$project_version" != "${expected_version}-SNAPSHOT" ]; then
                 echo "FAIL: la branche de Work Order $source_branch exige la version Maven $expected_version ou ${expected_version}-SNAPSHOT, reçue : ${project_version:-<vide>}." >&2

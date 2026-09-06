@@ -375,6 +375,68 @@ chmod +x "$fixture/mvnw"
         GITHUB_REF_TYPE=branch GITHUB_REF_NAME=feature/V1.2.3-RC01-SNAPSHOT \
         sh ci/package-artifact.sh >/dev/null
 
+    # Un RC en développement se reconstruit avec la même version, hors seed et
+    # même lorsque main ne désigne plus son sommet : seul le train reste pertinent.
+    git update-ref refs/remotes/origin/main "$parent_commit"
+    for rc_pipeline_iid in 110 111; do
+        for rc_forge in github gitlab; do
+            if [ "$rc_forge" = github ]; then
+                env -i PATH="$PATH" FIXTURE_MAVEN_VERSION=1.2.3-rc.1-SNAPSHOT \
+                    SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER="$rc_pipeline_iid" \
+                    GITHUB_EVENT_NAME=push SOURCE_REF_CREATED=false \
+                    GITHUB_REF_TYPE=branch GITHUB_REF_NAME=feature/V1.2.3-RC01 \
+                    sh ci/package-artifact.sh >/dev/null
+            else
+                env -i PATH="$PATH" FIXTURE_MAVEN_VERSION=1.2.3-rc.1-SNAPSHOT \
+                    CI_COMMIT_SHA="$head_commit" CI_PIPELINE_IID="$rc_pipeline_iid" \
+                    CI_PIPELINE_SOURCE=push CI_COMMIT_BEFORE_SHA="$parent_commit" \
+                    CI_COMMIT_BRANCH=feature/V1.2.3-RC01 \
+                    sh ci/package-artifact.sh >/dev/null
+            fi
+            rc_artifact_version="1.2.3-rc.1-snapshot.p${rc_pipeline_iid}.g$(printf '%.12s' "$head_commit")"
+            rc_bundle="target/distribution/betting-project-${rc_artifact_version}.tar.gz"
+            tar -xOf "$rc_bundle" ./provenance.properties >rc-rebuild.properties
+            if ! grep -Fxq 'source.train.seed=false' rc-rebuild.properties ||
+               ! grep -Fxq 'maven.version=1.2.3-rc.1-SNAPSHOT' rc-rebuild.properties ||
+               ! grep -Fxq "artifact.version=$rc_artifact_version" rc-rebuild.properties ||
+               ! grep -Fxq 'artifact.channel=snapshot' rc-rebuild.properties ||
+               ! grep -Fxq 'source.tag=' rc-rebuild.properties; then
+                echo "FAIL: rebuild RC $rc_forge/$rc_pipeline_iid sans seed mal qualifié." >&2
+                exit 1
+            fi
+        done
+    done
+    env -i PATH="$PATH" FIXTURE_MAVEN_VERSION=1.2.3-rc.1-SNAPSHOT \
+        SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=112 \
+        GITHUB_EVENT_NAME=pull_request SOURCE_REF_CREATED=false \
+        GITHUB_REF_TYPE=branch GITHUB_REF_NAME=127/merge \
+        GITHUB_HEAD_REF=feature/V1.2.3-RC01-CODEX-CI-005 \
+        sh ci/package-artifact.sh >/dev/null
+    git update-ref refs/remotes/origin/main "$head_commit"
+
+    for rc_invalid_version in 1.2.3-rc.2-SNAPSHOT 1.2.4-rc.1-SNAPSHOT \
+        1.2.3-rc.1-SNAPSHOT-SNAPSHOT; do
+        rc_failure=$(mktemp)
+        if env -i PATH="$PATH" FIXTURE_MAVEN_VERSION="$rc_invalid_version" \
+            SOURCE_COMMIT_SHA="$head_commit" GITHUB_RUN_NUMBER=113 \
+            GITHUB_EVENT_NAME=push SOURCE_REF_CREATED=false \
+            GITHUB_REF_TYPE=branch GITHUB_REF_NAME=feature/V1.2.3-RC01 \
+            sh ci/package-artifact.sh >"$rc_failure" 2>&1; then
+            echo "FAIL: le rebuild RC accepte une version incompatible : $rc_invalid_version." >&2
+            exit 1
+        fi
+        case "$rc_invalid_version" in
+            *-SNAPSHOT-SNAPSHOT) rc_expected_failure='version Maven snapshot hors convention SemVer' ;;
+            *) rc_expected_failure='exige la version Maven 1.2.3-rc.1 ou 1.2.3-rc.1-SNAPSHOT' ;;
+        esac
+        if ! grep -Fq "$rc_expected_failure" "$rc_failure"; then
+            echo "FAIL: le refus du rebuild RC ne prouve pas le contrôle de version : $rc_invalid_version." >&2
+            cat "$rc_failure" >&2
+            exit 1
+        fi
+        rm -f "$rc_failure"
+    done
+
     # Une PR de préparation porte déjà la version Maven finale, mais elle reste
     # non taguée : le bundle doit être un snapshot, jamais une release implicite.
     umask 077
@@ -477,6 +539,20 @@ chmod +x "$fixture/mvnw"
     cp target/distribution/betting-project-1.2.3-rc.1.tar.gz release-rc-github.tar.gz
 
     git update-ref refs/remotes/origin/release/V1.2.3-RC01 "$head_commit"
+    rc_tag_failure=$(mktemp)
+    if env -i PATH="$PATH" FIXTURE_MAVEN_VERSION=1.2.3-rc.1-SNAPSHOT \
+        CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG=v1.2.3-rc.1 \
+        CI_PIPELINE_IID=909 sh ci/package-artifact.sh >"$rc_tag_failure" 2>&1; then
+        echo 'FAIL: un tag RC a accepté un POM encore SNAPSHOT.' >&2
+        exit 1
+    fi
+    if ! grep -Fq 'ne correspond pas à la version Maven 1.2.3-rc.1-SNAPSHOT' \
+        "$rc_tag_failure"; then
+        echo 'FAIL: le refus du tag RC ne prouve pas la finalisation du POM.' >&2
+        cat "$rc_tag_failure" >&2
+        exit 1
+    fi
+    rm -f "$rc_tag_failure"
     env -i PATH="$PATH" FIXTURE_MAVEN_VERSION=1.2.3-rc.1 \
         CI_COMMIT_SHA="$head_commit" CI_COMMIT_TAG=v1.2.3-rc.1 \
         CI_PIPELINE_IID=910 sh ci/package-artifact.sh >/dev/null
