@@ -40,7 +40,7 @@ Depuis le lot 3 de CAT-002, les décisions de catalogue sont également isolées
 - `FixtureChronologyPolicy` compare l'instant d'observation source, tous les faits canoniques et la matrice de transitions, sans Spring ni JDBC ; l'absence de tampon sur une ligne historique n'entraîne l'invention d'aucun instant d'autorité ;
 - `FixtureIdentityPolicy` reconnaît l'ordre exact et n'autorise une inversion que lorsque l'observation porte explicitement `participantsUnordered=true` ; `neutralVenue` n'intervient jamais dans cette permission ;
 - le port applicatif `CalendarAuthorityPolicy` résout une clé exacte et typée vers `PRIMARY`, `CONTROL` ou `UNASSIGNED`, avec sa version de politique ;
-- `ClasspathCalendarAuthorityConfiguration`, limité à `control-api` et `batch-worker`, charge une configuration classpath versionnée. Sa baseline est vide et fermée par défaut afin de ne pas inventer de référence fournisseur ; le profil `replay` ne charge pas ce port ;
+- `ClasspathCalendarAuthorityConfiguration`, limité à `control-api` et `batch-worker`, assemble le port d'autorité. Le chargement CAT-002 historique est remplacé au lot 1 de MVP-001 par le registre décrit ci-dessous, sans fallback ; le profil `replay` ne charge pas ce port ;
 - ces politiques restent indépendantes de Spring, JDBC et des adaptateurs ; leur raccordement transactionnel appartient au service d'application.
 
 Depuis le lot 4 de CAT-002, `CalendarNormalizationService` applique effectivement ces politiques et les ports de persistance protègent le catalogue contre les écritures concurrentes :
@@ -54,6 +54,17 @@ Depuis le lot 4 de CAT-002, `CalendarNormalizationService` applique effectivemen
 - chaque évaluation journalise le rôle, la version de politique et l'autorité précédente dans la même transaction que l'observation et l'éventuelle mutation canonique.
 
 Le lot 4 réutilise intégralement le schéma `V003` et n'ajoute aucune migration propre.
+
+Depuis le lot 1 de MVP-001, `collection.domain.capability` définit les clés fournisseur et routes
+logiques exactes, la couverture, l'autorité distincte et les preuves de capacité. Les ports et
+le routage pur sont dans `collection.application.capability`. Le parseur strict et l'assemblage
+classpath restent dans `collection.adapter.configuration`, sans modifier Jackson globalement.
+`catalog.application.RegistryCalendarAuthorityPolicy` consulte uniquement le port de registre :
+la dépendance va de `catalog` vers `collection`, jamais dans l'autre sens. Le SHA-256 du document
+devient la version de politique du journal et du watermark existants. Registre, routeur et politique
+sont limités à `control-api` et `batch-worker`, absents sous `replay`. La baseline réelle reste vide.
+Le routage ne réalise aucun HTTP, réservation budgétaire, mapping automatique ou travail planifié.
+Voir le [contrat du registre](../contracts/provider-capability-registry-v1.md).
 
 Depuis le lot 5 de CAT-002, le module `catalog` porte également le cas d'usage de décision humaine et le module `identity` sépare l'état courant des mappings et anomalies de leur historique :
 

@@ -3,8 +3,12 @@
 MVP-001 est validé en `ACTIVE - IMPLEMENTATION` à la demande du porteur. Sa branche
 `feature/V0.1.0-RC01-CODEX-MVP-001` part du SHA exact
 `5e4b05b5a1a7cfa66850643db31d9612192e7281` de `feature/V0.1.0-RC01`.
-Le [Work Order](work-orders/MVP-001.md) consigne le périmètre, les lots et les critères ; le lot 0
-est terminé ; le lot 1 est prochain. Chaque lot terminé sera commité, poussé et contrôlé par CI.
+Le [Work Order](work-orders/MVP-001.md) consigne le périmètre, les lots et les critères ; les lots 0
+et 1 sont terminés ; le lot 2 est prochain et `PENDING`. Le lot 0 est publié à `c96e45d` avec CI
+Windows/Linux verte. Le lot 1 est qualifié localement avec 352 tests standards et 118 tests
+PostgreSQL/Testcontainers, sans échec ni omission. Chaque lot terminé est commité, poussé puis
+contrôlé par CI sur son SHA. Le registre et le routage sont démontrés avec des références
+synthétiques ; la baseline réelle reste vide et inactive. Trois critères sur vingt sont satisfaits.
 La clôture de MVP-001 dépendra de la revue et de la fusion de sa PR vers cette branche
 d'intégration. Les états historiques ci-dessous ne constituent pas une validation de MVP-001.
 
@@ -175,7 +179,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 | Pull Request `#8` fusionnée et commit `85dc943` présent dans `main` | CAT-002 vaut définitivement `ACCEPTED - MERGED - CLOSED`. |
 | INT-001 est clôturé et fusionné par la PR #11 dans `main` à `7f1f3aa` | Livraison Git réalisée après autorisation propriétaire ; receiver désactivé par défaut. |
 | INT-001 livré ; une nouvelle utilisation opérationnelle est envisagée | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent toujours des décisions et Work Orders séparés. |
-| CAT-002 est clôturé | MVP-001 reste le prochain Work Order du pipeline produit, sans activation automatique ; ENR-002 vient ensuite. |
+| CAT-002 est clôturé et MVP-001 est explicitement validé par le porteur | MVP-001 est actif ; lots 0 et 1 terminés, lot 2 prochain. ENR-002 vient après sa clôture réelle. |
 | Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
 
 Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. La validation propriétaire est consignée dans `de06153` et la clôture locale est enregistrée sur `codex/int-001-closeout`. Le contrôle distant préalable à la publication retrouve `main` à `5a8161e`. Le propriétaire a ensuite explicitement autorisé le push et la création d'une PR vers `main` : `codex/int-001-closeout` a été publiée, puis la [PR #11](https://github.com/djothepirate/betting-project/pull/11) a été fusionnée avec son autorisation le 5 septembre 2026 à 11:26:58 UTC, au commit `7f1f3aa`. Le main distant consulté pour SKL-003 contient cette fusion ; les preuves historiques de la qualification INT-001 restent inchangées.

@@ -1,5 +1,11 @@
 package com.bettingproject.bootstrap;
 
+import com.bettingproject.catalog.application.CalendarAuthorityPolicy;
+import com.bettingproject.catalog.application.RegistryCalendarAuthorityPolicy;
+import com.bettingproject.collection.adapter.configuration.ClasspathProviderCapabilityConfiguration;
+import com.bettingproject.collection.application.capability.ProviderCapabilityRegistry;
+import com.bettingproject.collection.application.capability.ProviderRoutingService;
+
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAnomalyEventStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayApplicationStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAttemptJournal;
@@ -82,6 +88,11 @@ class BatchWorkerProfileTest {
     void batchWorkerStartsFromTheMainApplication() {
         assertThat(workerProbe.runtimeProperties().mode()).isEqualTo(RuntimeMode.BATCH_WORKER);
         assertThat(calendarAuthorityPolicy).isNotNull();
+        assertThat(applicationContext.getBeansOfType(CalendarAuthorityPolicy.class)).hasSize(1);
+        assertThat(applicationContext.getBean(CalendarAuthorityPolicy.class)).isInstanceOf(RegistryCalendarAuthorityPolicy.class);
+        assertThat(applicationContext.getBeansOfType(ProviderCapabilityRegistry.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderRoutingService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ClasspathProviderCapabilityConfiguration.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(MappingDecisionService.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(OperatorIdentityProvider.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ControlCommandReceiptStore.class)).isEmpty();

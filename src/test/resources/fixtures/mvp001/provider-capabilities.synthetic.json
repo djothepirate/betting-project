@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "provider-capability-registry-v1",
+  "registryVersion": "synthetic-mvp-001-v1",
+  "entries": [
+    {
+      "key": {
+        "provider": "synthetic-primary",
+        "providerCompetitionId": "synthetic-ppl",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "PPL",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "PRIMARY",
+      "authorityRole": "PRIMARY",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-PPL-PRIMARY",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-control",
+        "providerCompetitionId": "synthetic-ppl",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "PPL",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "CONTROL",
+      "authorityRole": "CONTROL",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-PPL-CONTROL",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-primary",
+        "providerCompetitionId": "synthetic-pd",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "PD",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "CALENDAR_ONLY",
+      "authorityRole": "PRIMARY",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-PD-PRIMARY",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-control",
+        "providerCompetitionId": "synthetic-pd",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "PD",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "CALENDAR_ONLY",
+      "authorityRole": "CONTROL",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-PD-CONTROL",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-primary",
+        "providerCompetitionId": "synthetic-ded",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "DED",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "PRIMARY",
+      "authorityRole": "PRIMARY",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-DED-PRIMARY",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-control",
+        "providerCompetitionId": "synthetic-ded",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "DED",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "CONTROL",
+      "authorityRole": "CONTROL",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-DED-CONTROL",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-primary",
+        "providerCompetitionId": "synthetic-elc",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "ELC",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "PRIMARY",
+      "authorityRole": "PRIMARY",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-ELC-PRIMARY",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-control",
+        "providerCompetitionId": "synthetic-elc",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "ELC",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "CONTROL",
+      "authorityRole": "CONTROL",
+      "enabled": true,
+      "evidence": [
+        {
+          "logicalId": "SYNTHETIC-ELC-CONTROL",
+          "observedAt": "2026-09-06T10:00:00Z",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "key": {
+        "provider": "synthetic-inactive",
+        "providerCompetitionId": "synthetic-ppl",
+        "sourceSeason": "2026/2027",
+        "sourcePhase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "route": {
+        "competitionCode": "PPL",
+        "season": "2026/2027",
+        "phase": "REGULAR_SEASON",
+        "dataType": "CALENDAR"
+      },
+      "status": "PRIMARY",
+      "authorityRole": "PRIMARY",
+      "enabled": false,
+      "evidence": []
+    }
+  ]
+}
