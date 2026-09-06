@@ -32,14 +32,24 @@ assert_allowed feature/V0.1.0-CODEX-CI-001 feature/V0.1.0 0.1.0-SNAPSHOT
 assert_allowed feature/V0.1.0-HUMAN-DEVX-001 feature/V0.1.0 0.1.0
 assert_allowed feature/V1.2.3-RC01-CODEX-CI-004 feature/V1.2.3-RC01 \
     1.2.3-rc.1
+assert_allowed feature/V1.2.3-RC01-CODEX-CI-004 feature/V1.2.3-RC01 \
+    1.2.3-rc.1-SNAPSHOT
+assert_allowed feature/V0.1.0-RC01-HUMAN-CI-005 feature/V0.1.0-RC01 \
+    0.1.0-rc.1-SNAPSHOT
 assert_allowed feature/V1.2.3-RC02-SNAPSHOT-HUMAN-CI-003 \
     feature/V1.2.3-RC02-SNAPSHOT 1.2.3-rc.2-SNAPSHOT
 
 assert_rejected feature/V0.1.0-CODEX-CI-001 feature/V0.1.0 0.2.0-SNAPSHOT
 assert_rejected feature/V1.2.3-RC01-CODEX-CI-004 feature/V1.2.3-RC01 \
-    1.2.3-rc.1-SNAPSHOT
+    1.2.3-rc.2-SNAPSHOT
+assert_rejected feature/V1.2.3-RC01-CODEX-CI-004 feature/V1.2.3-RC01 \
+    1.2.4-rc.1-SNAPSHOT
+assert_rejected feature/V1.2.3-RC01-CODEX-CI-004 feature/V1.2.3-RC01 \
+    1.2.3-rc.1-SNAPSHOT-SNAPSHOT
 assert_rejected feature/V1.2.3-RC02-SNAPSHOT-HUMAN-CI-003 \
     feature/V1.2.3-RC02-SNAPSHOT 1.2.3-rc.2
+assert_rejected feature/V1.2.3-RC02-SNAPSHOT-HUMAN-CI-003 \
+    feature/V1.2.3-RC02-SNAPSHOT 1.2.3-rc.2-SNAPSHOT-SNAPSHOT
 
 # Finalisation : la version stable doit déjà être finale ; RC et RC-SNAPSHOT sont exacts.
 assert_allowed feature/V0.1.0 main 0.1.0

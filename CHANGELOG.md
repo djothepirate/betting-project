@@ -2,6 +2,22 @@
 
 Ce fichier recense les lots fonctionnels du dépôt. Il ne remplace ni les critères d'acceptation détaillés des Work Orders, ni l'historique Git.
 
+## Non publié — CI-005 (développement du premier train RC)
+
+- POM versionné `0.1.0-rc.1-SNAPSHOT` sur le train `feature/V0.1.0-RC01` ; les Work Orders
+  et builds d'un train RC non suffixé acceptent `rc.N-SNAPSHOT` pendant les travaux et `rc.N`
+  lors de la préparation finale, sans renommer la branche ni limiter les rebuilds ;
+- la PR finale vers `main`, la MR vers la release GitLab identique et le tag conservent leur
+  exigence de POM final exact. Cette version sera fixée dans une future PR vers la feature ;
+- contre-épreuves des rebuilds ordinaires GitHub/GitLab sans seed, de la provenance, des versions
+  RC divergentes et du suffixe doublé ; variante de branche `RCnn-SNAPSHOT` préservée ;
+- fixture Dependency-Check isolée de `MAVEN_USER_HOME` et du répertoire de données hérités du
+  runner, avec contrôle explicite de leur priorité et des chemins contenant des espaces ;
+- snapshots durables toujours réservés aux pushes des features d'intégration ; limites de
+  conservation des forges et interdiction de déploiement avant OPS-001 inchangées.
+
+Voir [CI-005](docs/work-orders/CI-005.md).
+
 ## 2026-09-05 — CI-004 (trains feature/release versionnés, réalisation locale)
 
 - convention exécutable pour les trains `Vx.y.z`, `Vx.y.z-RCnn` et

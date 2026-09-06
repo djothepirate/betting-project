@@ -238,8 +238,9 @@ else
                 branch_rc=${branch_rc#0}
                 expected_branch_version="${branch_core}-rc.${branch_rc}"
                 if [ "$version" != "$expected_branch_version" ] &&
+                   [ "$version" != "${expected_branch_version}-SNAPSHOT" ] &&
                    ! accept_train_seed; then
-                    echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version, reçue : $version." >&2
+                    echo "FAIL: la branche $branch_ref exige la version Maven $expected_branch_version ou ${expected_branch_version}-SNAPSHOT, reçue : $version." >&2
                     exit 1
                 fi
                 ;;

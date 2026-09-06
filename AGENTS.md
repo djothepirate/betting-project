@@ -46,6 +46,12 @@
   Request finale de cette branche feature cible `main`. Les fusions GitHub utilisent un merge
   commit ; squash et rebase sont interdits. La CI vérifie la version Maven du train et exige la
   version stable finale avant une Pull Request `feature/Vx.y.z` vers `main`.
+- Un train `feature/Vx.y.z-RCnn` et ses Work Orders admettent Maven `x.y.z-rc.N-SNAPSHOT`
+  pendant les travaux, puis `x.y.z-rc.N`. Le POM est versionné : une PR de préparation vers
+  la feature fixe la version finale avant la PR feature vers `main` et la MR GitLab, qui
+  refusent encore le suffixe `SNAPSHOT`. Le même train RC peut être reconstruit sans changer
+  sa version de développement ni emprunter l'exception de seed. Le train explicitement
+  `RCnn-SNAPSHOT` conserve son mapping exact `rc.N-SNAPSHOT` et n'est jamais tagué.
 - Après la fusion finale, `feature/<TRAIN>` avance en fast-forward normal sur le merge commit de
   `main`. `main` et cette branche feature sont ensuite synchronisées vers GitLab avant la Merge
   Request fast-forward `feature/<TRAIN>` vers la branche protégée GitLab `release/<TRAIN>`.
@@ -55,6 +61,9 @@
   `rc` minuscules.
 - Un snapshot durable provient uniquement d'un push de la branche feature d'intégration exacte,
   jamais d'une branche de Work Order, d'une Pull Request ou de `main`.
+  Un lancement autonome `workflow_dispatch` ou GitLab `web` ne crée pas de canal durable ; le
+  rejeu d'un pipeline conserve son événement source. Les règles de conservation des forges
+  restent applicables, sans borne artificielle sur le nombre de builds du même train.
 - Le seul décalage temporaire entre le nom du train et la version Maven est le push qui crée
   `feature/<TRAIN>` exactement au sommet canonique de `origin/main`. Sa provenance porte
   `source.train.seed=true` ; tout push ultérieur, PR ou lancement manuel exige le mapping Maven du

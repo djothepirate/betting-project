@@ -13,7 +13,7 @@
 
     <groupId>com.bettingproject</groupId>
     <artifactId>betting-project</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0-rc.1-SNAPSHOT</version>
     <name>Betting Project</name>
     <description>Monolithe modulaire pour la chaîne de données football prématch.</description>
     <url>https://github.com/djothepirate/betting-project</url>

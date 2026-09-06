@@ -144,6 +144,8 @@ assert_rejected feature/V1.2.3 release/V1.2.3 1.2.4
 assert_rejected feature/V1.2.3 release/V1.2.3 1.2.3-SNAPSHOT
 assert_rejected feature/V1.2.3-RC01 release/V1.2.3-RC01 1.2.3-RC01
 assert_rejected feature/V1.2.3-RC01 release/V1.2.3-RC01 1.2.3-rc.01
+assert_rejected feature/V1.2.3-RC01 release/V1.2.3-RC01 1.2.3-rc.1-SNAPSHOT
+assert_rejected feature/V1.2.3-RC01 release/V1.2.3-RC01 1.2.3-rc.2
 assert_rejected feature/V1.2.3-RC01-SNAPSHOT \
     release/V1.2.3-RC01-SNAPSHOT 1.2.3-rc.1
 assert_rejected feature/V1.2.3 release/V1.2.3 1.2.3 200 100 100 true
