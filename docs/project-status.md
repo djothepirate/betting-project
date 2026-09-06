@@ -1,4 +1,12 @@
-# État du projet au 5 septembre 2026
+# État du projet au 6 septembre 2026
+
+MVP-001 est validé en `ACTIVE - IMPLEMENTATION` à la demande du porteur. Sa branche
+`feature/V0.1.0-RC01-CODEX-MVP-001` part du SHA exact
+`5e4b05b5a1a7cfa66850643db31d9612192e7281` de `feature/V0.1.0-RC01`.
+Le [Work Order](work-orders/MVP-001.md) consigne le périmètre, les lots et les critères ; le lot 0
+est terminé ; le lot 1 est prochain. Chaque lot terminé sera commité, poussé et contrôlé par CI.
+La clôture de MVP-001 dépendra de la revue et de la fusion de sa PR vers cette branche
+d'intégration. Les états historiques ci-dessous ne constituent pas une validation de MVP-001.
 
 ## Synthèse
 

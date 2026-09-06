@@ -100,6 +100,12 @@ Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste str
 
 ## Étape 4 — MVP-001
 
+**Ouverture du 6 septembre 2026 :** [MVP-001](work-orders/MVP-001.md) est
+`ACTIVE - IMPLEMENTATION`, lot 0 terminé et lot 1 prochain. La branche
+`feature/V0.1.0-RC01-CODEX-MVP-001` part de
+`feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281` ; sa PR de clôture
+ciblera `feature/V0.1.0-RC01`. Les critères techniques restent à démontrer.
+
 ### Objectif
 
 Implémenter le registre de capacités, le routage, les budgets, les adaptateurs de production et les jobs persistants de collecte calendrier.
