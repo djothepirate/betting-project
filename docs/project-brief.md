@@ -13,6 +13,20 @@ Le produit doit privilégier la qualité mesurée, la provenance et le replay pl
 
 ## Périmètre du prochain jalon
 
+### Clarification produit du 6 septembre — cible et baseline distinctes
+
+La [journée COV-002](benchmark/mvp-001-cov002-clarification-20260906.md) mesure quinze rencontres
+du top 5 et le coût réel des contrôles. Le porteur précise une cible quotidienne top 5 + UEFA,
+avec PT/NL/TR éventuels, et un mode étendu optionnel alimenté par J7. Le Lab n'est donc plus
+limité au rôle de comparateur, sans devenir une API directe ou une dépendance obligatoire.
+Les futures compositions normales ciblent T-30 puis T-15 conditionnel, avec DETAIL T0 distinct ;
+le contrôle T+45 souhaité reste à contractualiser. Le consommateur métier J7 n'est pas encore livré.
+
+Les tableaux et règles ci-dessous restent la baseline opérationnelle historique : leur élargissement
+doit être réconcilié avec les critères du Work Order, les preuves par capacité et le budget.
+La campagne 100/0 était une dérogation datée et ne généralise pas la suppression de réserve.
+Le live minute reste une expérimentation séparée, sans profil live autorisé dans ce dépôt.
+
 Le prochain jalon majeur livre un pipeline football fiable. Il ne regroupe pas encore les cotes, les probabilités, les valuebets ou la publication.
 
 ### Compétitions

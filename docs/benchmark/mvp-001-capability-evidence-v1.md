@@ -5,6 +5,19 @@ Les conclusions d'août ne valent pas qualification d'une nouvelle saison ou d'u
 
 ## Sources versionnées
 
+### Journée COV-002 auditée — non intégrée aux affectations
+
+La [clarification COV-002](mvp-001-cov002-clarification-20260906.md) et son
+[index expurgé](evidence/mvp-001-cov002-20260906-2307-index.json) relèvent le point de mesure
+de 23:07 Europe/Paris : 100 appels Highlightly, 37 football-data.org et un diagnostic historique
+API-FOOTBALL ; 138 SHA-256 conformes et JSON lisibles vérifiés hors réseau. Les familles dédiées
+restent partiellement différées ; ce n'est ni un replay de production, ni une qualification métier
+exhaustive. Les comparaisons Lab restent des observations rapportées, sans audit de ses octets.
+Rapport et échantillon sources résident dans l'autre worktree ; leurs empreintes sont consignées
+dans la note, sans copie des payloads. Aucune clé exécutable ou fixture n'est activée par cet index.
+
+### Sources déjà présentes dans ce dépôt
+
 - [S1 - échantillon ENR](enrichment-sample-v0.1.json), objets ENR-P08, ENR-P10 et ENR-P11 :
   références de compétition, rencontre et phase métier de l'échantillon réel.
 - [S2 - bilan accepté](weekly-provider-scorecard-and-mvp-scope-v0.1.md), sections 3.1 et 4.3 :

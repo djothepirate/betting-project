@@ -66,6 +66,41 @@ sont limités à `control-api` et `batch-worker`, absents sous `replay`. La base
 Le routage ne réalise aucun HTTP, réservation budgétaire, mapping automatique ou travail planifié.
 Voir le [contrat du registre](../contracts/provider-capability-registry-v1.md).
 
+Depuis le lot 2 de MVP-001, `collection.domain.budget` porte les fenêtres, intentions unitaires,
+observations de quota, incidents, événements et calculs conservateurs, sans dépendance vers le
+catalogue. Les trois bornes budgétaires utilisent les intentions persistées et leur couverture
+explicite ; aucune réponse fournisseur ne réécrit un second compteur local. La cadence est une
+contrainte indépendante, évaluée au passage avant envoi sur toutes les fenêtres du même périmètre.
+
+- `ProviderBudgetRepository` est un port de `collection.application.budget` ;
+  `JdbcProviderBudgetRepository` porte seul le SQL de V009, sous `control-api` et `batch-worker`.
+- `ProviderBudgetService` et `ProviderBudgetAdministration` sont des façades `Propagation.NEVER` :
+  elles refusent une transaction appelante ouverte et délèguent à des composants transactionnels
+  distincts. Une nouvelle autorisation d'envoi n'est observable qu'après leur commit effectif.
+  Aucun client HTTP n'est appelé dans ces transactions.
+- Les verrous suivent l'ordre périmètre, fenêtre, intention ; les écritures sont non destructives
+  et protégées par version. Le verrou global de normalisation calendrier n'est pas réutilisé.
+  Réservation, résultat, incident, observation et événement associé sont atomiques.
+- Les opérations courantes et la persistance sont disponibles sous `control-api` et `batch-worker`.
+  L'initialisation et les réconciliations administratives, leur identité locale et leur expurgation
+  sont limitées à `control-api`. Les ports d'identité et d'expurgation restent propres à `collection`,
+  sans dépendance vers les services du catalogue.
+- Le passage avant envoi conserve son coût après interruption ; une répétition ne délivre pas de
+  seconde autorisation. `UNCERTAIN` ne suspend pas les autres intentions, tandis que HTTP 401/403/429
+  suspend la fenêtre concernée. La réconciliation n'efface aucun débit ni incident historique.
+- V009 ajoute les périmètres, fenêtres, intentions, observations, liens de couverture, incidents
+  et événements. Les preuves et le journal sont append-only par les ports ; les clés étrangères
+  composées imposent leur provenance dans la même fenêtre. V001–V008 restent immuables et aucune
+  ligne de fournisseur réel n'est initialisée.
+- Tous les composants budgétaires persistants sont absents de `replay`. Aucun endpoint, worker,
+  poller, ordonnanceur, appel fournisseur ou dispatch d'outbox n'est ajouté par le lot 2.
+  Le collecteur ENR et `provider_call_audit` restent distincts et inchangés.
+
+Le contrat normatif [provider-budget-v1](../contracts/provider-budget-v1.md) distingue les preuves
+de compteur, l'empreinte canonique du résultat budgétaire et les futurs hashes d'octets fournisseur.
+Les connecteurs du lot 3 devront conserver les octets avant parsing ; l'orchestration du lot 4
+devra utiliser l'autorisation commitée sans réexpédier une intention déjà engagée.
+
 Depuis le lot 5 de CAT-002, le module `catalog` porte également le cas d'usage de décision humaine et le module `identity` sépare l'état courant des mappings et anomalies de leur historique :
 
 - `MappingDecisionService`, chargé uniquement sous `control-api`, reçoit une commande typée avec version attendue et clé d'idempotence. L'identité opérateur provient du port `OperatorIdentityProvider` et n'est jamais fournie par la commande ;
@@ -138,7 +173,8 @@ monolithe ni créer de dépendance vers le SofaScore Local Lab :
   `V007__j7_import_purge_integrity.sql`, complétées par
   `V008__j7_import_upgrade_evidence_time_integrity.sql`, matérialisent l'inbox, l'audit, les
   contraintes d'unicité et d'immutabilité, renforcent la purge et refusent à l'upgrade toute preuve
-  historique datée dans le futur. V001 à V005 restent immuables et le prochain slot est V009 ;
+  historique datée dans le futur. V001 à V005 restent immuables ; V009, alors prochain slot,
+  est maintenant utilisé par le budget de MVP-001 décrit ci-dessus ;
 - le schéma J7 et le schéma d'ACK sont des ressources versionnées autonomes du Betting Project. Le
   build et le runtime ne lisent aucun chemin, artefact ou service d'un autre dépôt ;
 - une première réception écrit inbox, audit et outbox `J7_IMPORT_ACCEPTED` dans la même transaction.

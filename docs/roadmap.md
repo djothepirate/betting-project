@@ -100,21 +100,32 @@ Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste str
 
 ## Étape 4 — MVP-001
 
-**Ouverture du 6 septembre 2026 :** [MVP-001](work-orders/MVP-001.md) est
-`ACTIVE - IMPLEMENTATION`, lots 0 et 1 terminés et lot 2 prochain, maintenu `PENDING`. La branche
+**État au 13 septembre 2026, après l'ouverture du 6 septembre :** [MVP-001](work-orders/MVP-001.md)
+reste `ACTIVE - IMPLEMENTATION`, lots 0 à 2 terminés. Le
+[rapport du lot 2](work-orders/MVP-001-lot2-execution.md) qualifie le budget durable, les
+réservations concurrentes, la cadence et les incidents internes avec V009. Le lot 3 est prochain ;
+les lots 3 à 6 restent `PENDING`. La branche
 `feature/V0.1.0-RC01-CODEX-MVP-001` part de
 `feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281` ; sa PR de clôture
-ciblera `feature/V0.1.0-RC01`. Trois critères sur vingt sont démontrés : registre fermé,
-routage synthétique du noyau et protection du canon contre le contrôle. La baseline réelle
-reste inactive. Le lot 0 est publié à `c96e45d` avec CI Windows/Linux verte ; le lot 1 est
-validé localement par 352 tests standards et 118 tests PostgreSQL/Testcontainers sans échec
-ni omission. Chaque lot fait l'objet d'un commit, d'un push et d'une vérification de sa CI.
+ciblera `feature/V0.1.0-RC01`. Cinq critères sur vingt sont démontrés : registre fermé,
+routage synthétique, protection du canon, réservations durables et compteurs incertains.
+La baseline réelle reste inactive. Qualification du lot 2 : **413 tests standards et 157 tests
+PostgreSQL/Testcontainers**, sans échec ni omission. Les preuves 352/118 et la CI du lot 1
+restent historiques ; chaque lot fait l'objet d'un commit, d'un push et d'une vérification de
+sa CI sur le SHA publié. Aucun appel HTTP, endpoint ou worker n'est introduit par le lot 2.
 
 ### Objectif
 
 Implémenter le registre de capacités, le routage, les budgets, les adaptateurs de production et les jobs persistants de collecte calendrier.
 
 ### Contrats minimaux
+
+La [clarification COV-002](benchmark/mvp-001-cov002-clarification-20260906.md) prépare la révision
+du périmètre cible vers calendrier quotidien top 5 + UEFA et alimentation J7 optionnelle.
+La journée mesurée ne garantit pas quinze enrichissements exhaustifs sous 100 appels.
+Le budget du lot 2 reste indépendant de la largeur du calendrier ; les compléments J7 métier,
+la traduction des observations T0/T+45 et les fréquences nécessitent un cadrage explicite avant
+réalisation des lots concernés. Aucun live minute ou fournisseur réel n'est activé par cette note.
 
 - clé du registre : `provider × competition × season × phase × dataType` ;
 - données : `CALENDAR`, `MATCH_DETAIL`, `LINEUP`, `TEAM_STATS`, `EVENTS`, `PLAYER_STATS` ;

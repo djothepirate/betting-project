@@ -1,5 +1,13 @@
 package com.bettingproject.bootstrap;
 
+import com.bettingproject.collection.adapter.persistence.JdbcProviderBudgetRepository;
+import com.bettingproject.collection.application.budget.BudgetJustificationSanitizer;
+import com.bettingproject.collection.application.budget.BudgetOperatorIdentityProvider;
+import com.bettingproject.collection.application.budget.ProviderBudgetAdministration;
+import com.bettingproject.collection.application.budget.ProviderBudgetAdministrationTransactions;
+import com.bettingproject.collection.application.budget.ProviderBudgetRepository;
+import com.bettingproject.collection.application.budget.ProviderBudgetService;
+import com.bettingproject.collection.application.budget.ProviderBudgetTransactions;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAnomalyEventStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayApplicationStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAttemptJournal;
@@ -94,6 +102,14 @@ class ReplayProfileTest {
         assertThat(applicationContext.getBeansOfType(ProviderCapabilityRegistry.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ProviderRoutingService.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ClasspathProviderCapabilityConfiguration.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetTransactions.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetRepository.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(JdbcProviderBudgetRepository.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetAdministration.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetAdministrationTransactions.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(BudgetOperatorIdentityProvider.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(BudgetJustificationSanitizer.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(CalendarNormalizationLock.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(MappingDecisionService.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(OperatorIdentityProvider.class)).isEmpty();

@@ -1,5 +1,13 @@
 package com.bettingproject.bootstrap;
 
+import com.bettingproject.collection.adapter.persistence.JdbcProviderBudgetRepository;
+import com.bettingproject.collection.application.budget.BudgetJustificationSanitizer;
+import com.bettingproject.collection.application.budget.BudgetOperatorIdentityProvider;
+import com.bettingproject.collection.application.budget.ProviderBudgetAdministration;
+import com.bettingproject.collection.application.budget.ProviderBudgetAdministrationTransactions;
+import com.bettingproject.collection.application.budget.ProviderBudgetRepository;
+import com.bettingproject.collection.application.budget.ProviderBudgetService;
+import com.bettingproject.collection.application.budget.ProviderBudgetTransactions;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAnomalyEventStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayApplicationStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAttemptJournal;
@@ -102,6 +110,14 @@ class ControlApiProfileTest {
         assertThat(applicationContext.getBeansOfType(ProviderCapabilityRegistry.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ProviderRoutingService.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ClasspathProviderCapabilityConfiguration.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcProviderBudgetRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetAdministration.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetAdministrationTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(BudgetOperatorIdentityProvider.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(BudgetJustificationSanitizer.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(MappingDecisionService.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(OperatorIdentityProvider.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ControlCommandReceiptStore.class)).hasSize(1);
