@@ -127,6 +127,13 @@ validité. Les transports et le registre réels restent fermés ; l'orchestratio
 
 ## Livraison par lot
 
+Le lot 4 du 19 septembre ajoute les jobs et reprises selon
+[collection-jobs-v1](collection-jobs-v1.md) : planification datée explicite, claim PostgreSQL,
+bail/jeton, historique et backoff bornés. L'outbox dédiée ne consomme ni publication ni J7.
+L'exécution gérée reprend les preuves acquises mais jamais un envoi incertain ; registre et
+parseur sont figés par job. La boucle `batch-worker` est opt-in et livrée désactivée. Il n'y a
+ni renouvellement automatique des fenêtres, ni activation de fournisseur, ni enrichissement.
+
 Chaque lot terminé est validé, commité et poussé sur feature/V0.1.0-RC01-CODEX-MVP-001, puis les
 checks du SHA publié sont examinés. Un échec pertinent est corrigé avant progression. Ces pushes
 ne créent pas de snapshot durable du train. La PR finale cible feature/V0.1.0-RC01 ; une revue

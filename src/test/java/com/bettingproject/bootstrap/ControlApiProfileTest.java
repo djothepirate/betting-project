@@ -99,6 +99,13 @@ class ControlApiProfileTest {
 
     @Test
     void controlApiStartsFromTheMainApplication() {
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobPlanningService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobInputStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobHandler.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.adapter.worker.CollectionWorkerLoop.class)).isEmpty();
         BootstrapStatusController.BootstrapStatus status = controller.status();
 
         assertThat(status.application()).isEqualTo("betting-project");

@@ -243,3 +243,24 @@ défaut. Lorsqu'elle est explicitement qualifiée, le connecteur unique écoute 
 ce même connecteur et ne bénéficient d'aucun port de management ou HTTP de contournement.
 
 Le package `bootstrap` contient uniquement l'assemblage de l'application. Le package `shared` contient les primitives transverses qui ne portent pas une règle métier propre à un module.
+
+## MVP-001 lot 4 : exécution des jobs
+
+- `operations.domain.JobModel` reste JDK pur ; `operations.application.jobs` définit ports,
+  transactions de claims/fencing et orchestration du tick, sans JDBC ni connaissance du catalogue.
+- `JdbcJobRepository` porte le SQL V011, l'horloge PostgreSQL, `SKIP LOCKED`, les baux et les
+  événements. Il n'enrôle aucun ancien job et ne consomme que l'outbox `COLLECTION_JOB`.
+- `collection` dépend de ces ports d'opérations pour ses handlers, jamais l'inverse. Les entrées
+  typées et le plan exact restent dans `collection.application.calendar`, le SQL dans son adaptateur.
+- `CalendarCollectionService` conserve son chemin manuel et partage la logique avec l'exécution
+  gérée. `CalendarExecution` encadre ses écritures par un token de job ; le budget transactionnel
+  commit avant le transport. `CalendarDerivationService` peut rejoindre la transaction protégée.
+  Ses échecs de parsing typés conservent leur journal, sans rendre le commit implicitement rollback-only.
+- Les handlers et `JobWorker` sont exclusivement sous `batch-worker`. La boucle programmée n'est
+  assemblée qu'avec le flag explicite, absent/false par défaut. Le `control-api` peut planifier
+  les commandes internes ; il ne démarre pas le worker. Aucun composant durable n'entre dans `replay`.
+- Le replay de page native possède une quittance d'effet atomique avec l'application. Les demandes
+  CAT-002 restent manuelles et inchangées. L'observation, le mapping et le normaliseur restent uniques.
+
+Contrat : [collection-jobs-v1](../contracts/collection-jobs-v1.md). V011 est additive ; aucune
+migration antérieure, aucun contrat JSON calendrier et aucun composant du receiver J7 n'est modifié.

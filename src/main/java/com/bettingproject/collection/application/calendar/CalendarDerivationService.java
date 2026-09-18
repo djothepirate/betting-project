@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Profile({"control-api", "batch-worker"})
-@Transactional(propagation = Propagation.NEVER)
+@Transactional(propagation = Propagation.SUPPORTS)
 public class CalendarDerivationService {
     private final CalendarCollectionStore store;
     private final List<CalendarPageParser> parsers;
@@ -25,6 +25,7 @@ public class CalendarDerivationService {
         this.transactions = transactions;
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS, noRollbackFor = CalendarPageParseException.class)
     public ParsedCalendarPage parse(CalendarCollectionRecord collection, CalendarPageRecord page) {
         var parser = parser(collection.capability().provider());
         if (!"RECEIVED".equals(page.responseCode()) || page.rawSnapshotId() == null) {
@@ -70,4 +71,6 @@ public class CalendarDerivationService {
         return parsers.stream().filter(parser -> parser.provider().equals(provider)).findFirst()
                 .orElseThrow(() -> new CalendarPageParseException("INCOMPATIBLE"));
     }
+
+    public String parserVersion(String provider) { return parser(provider).version(); }
 }

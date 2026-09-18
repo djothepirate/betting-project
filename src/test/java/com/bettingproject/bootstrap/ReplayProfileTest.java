@@ -96,6 +96,13 @@ class ReplayProfileTest {
 
     @Test
     void replayStartsOfflineWithoutDatabaseInfrastructure() {
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobHandler.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobPlanningService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobInputStore.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.adapter.worker.CollectionWorkerLoop.class)).isEmpty();
         assertThat(replayService).isNotNull();
         assertThat(runtimeProperties.mode()).isEqualTo(RuntimeMode.REPLAY);
         assertThat(applicationContext.getBeansOfType(JdbcClient.class)).isEmpty();

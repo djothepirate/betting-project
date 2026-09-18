@@ -62,7 +62,7 @@ Planificateur
 - Les effets externes utilisent des clés d'idempotence et l'outbox.
 - PostgreSQL est la source de vérité. Les migrations partagées sont immuables ; les corrections sont additives.
 - Les tests de persistance utilisent PostgreSQL/Testcontainers, jamais H2.
-- Le profil `replay` reste hors réseau, sans DataSource, sans Flyway et sans PostgreSQL ; il rejoue des fichiers ou octets en mémoire. Le rejeu d'un snapshot PostgreSQL passe exclusivement par un cas d'usage interne du `control-api`.
+- Le profil `replay` reste hors réseau, sans DataSource, sans Flyway et sans PostgreSQL ; il rejoue des fichiers ou octets en mémoire. Le rejeu CAT-002 d'un snapshot PostgreSQL reste piloté par le `control-api`. MVP-001 lot 4 peut en outre programmer explicitement le replay d'une page native fournisseur sous `batch-worker`, sans HTTP et sans consommer les demandes CAT-002 ; voir `collection-jobs-v1`.
 - Aucun microservice, broker externe, Redis ou Kubernetes n'est introduit sans besoin démontré et nouvelle décision.
 - Le staging VPS ne commence qu'après acceptation du pipeline local fiable.
 

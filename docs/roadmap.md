@@ -100,20 +100,23 @@ Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste str
 
 ## Étape 4 — MVP-001
 
-**État au 18 septembre 2026, après l'ouverture du 6 septembre :** [MVP-001](work-orders/MVP-001.md)
-reste `ACTIVE - IMPLEMENTATION`, lots 0 à 3 terminés. Le
-[rapport du lot 3](work-orders/MVP-001-lot3-execution.md) qualifie les adaptateurs calendrier,
-leur raccordement au budget, les audits et le replay natif/dérivé avec V010. Le lot 4 est prochain ;
-les lots 4 à 6 restent `PENDING`. La branche
+**État au 19 septembre 2026, après l'ouverture du 6 septembre :** [MVP-001](work-orders/MVP-001.md)
+reste `ACTIVE - IMPLEMENTATION`, lots 0 à 4 terminés localement. Le
+[rapport du lot 4](work-orders/MVP-001-lot4-execution.md) qualifie les jobs et outbox de collecte,
+le claim atomique, les baux, la reprise et la planification explicite avec V011. Le lot 5 est prochain ;
+les lots 5 et 6 restent `PENDING`. La branche
 `feature/V0.1.0-RC01-CODEX-MVP-001` part de
 `feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281` ; sa PR de clôture
-ciblera `feature/V0.1.0-RC01`. Neuf critères sur vingt sont démontrés : registre fermé,
+ciblera `feature/V0.1.0-RC01`. Douze critères sur vingt sont démontrés : registre fermé,
 routage, protection du canon, budget, pagination, audit/replay, temps/ordre source et isolation
-des échecs fournisseurs. La baseline réelle reste inactive. Qualification du lot 3 : **550 tests
-standards et 196 tests PostgreSQL/Testcontainers**, sans échec ni omission. Les preuves antérieures
+des échecs fournisseurs, claim/fencing, reprise et absence de double effet logique.
+La baseline réelle reste inactive. Qualification du lot 4 : **572 tests
+standards et 224 tests PostgreSQL/Testcontainers**, sans échec ni omission. Les preuves antérieures
 restent historiques ; chaque lot fait l'objet d'un commit, d'un push et d'une vérification de
-sa CI sur le SHA publié. Aucun appel fournisseur réel, endpoint ou worker n'est introduit par le lot 3.
-Les clients sont désactivés ; leurs tests HTTP restent strictement loopback ou simulés.
+sa CI sur le SHA publié. La CI du lot 3 a été empêchée de démarrer par la facturation GitHub ;
+la qualification distante reste une porte obligatoire. Aucun appel fournisseur réel ni endpoint
+n'est introduit. La boucle worker livrée reste opt-in et désactivée, comme les clients ;
+leurs tests HTTP restent strictement loopback ou simulés.
 
 ### Objectif
 

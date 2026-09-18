@@ -257,6 +257,24 @@ public class JdbcCalendarCollectionStore implements CalendarCollectionStore {
                 """).param("id", windowId).param("provider", provider).query(Boolean.class).single();
     }
 
+    @Override
+    @Transactional
+    public void markMissingResponse(UUID pageId, Instant now) {
+        CalendarPageRecord page = jdbc.sql("SELECT * FROM calendar_collection_page WHERE id = :id FOR UPDATE")
+                .param("id", pageId).query(this::page).single();
+        if (!"PENDING".equals(page.responseCode())) { return; }
+        jdbc.sql("UPDATE calendar_collection_page SET response_code = 'SEND_UNCERTAIN' WHERE id = :id")
+                .param("id", pageId).update();
+        jdbc.sql("UPDATE provider_call_audit SET error_code = 'SEND_UNCERTAIN' WHERE id = :id")
+                .param("id", page.auditId()).update();
+        int changed = jdbc.sql("""
+                UPDATE outbox_message SET status = 'FAILED', attempt_count = 1,
+                    last_error_code = 'SEND_UNCERTAIN', updated_at = :now
+                WHERE idempotency_key = :key AND status = 'PENDING'
+                """).param("key", outboxKey(page.intentId())).param("now", utc(now)).update();
+        if (changed != 1) { throw new IllegalStateException("Calendar outbox invariant"); }
+    }
+
     private CalendarCollectionRecord collection(ResultSet rs, int row) throws SQLException {
         return new CalendarCollectionRecord(rs.getObject("id", UUID.class), rs.getObject("window_id", UUID.class),
                 new ProviderCapabilityKey(rs.getString("provider"), rs.getString("provider_competition_id"),

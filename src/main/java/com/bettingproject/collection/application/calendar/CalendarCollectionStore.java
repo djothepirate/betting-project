@@ -34,4 +34,6 @@ public interface CalendarCollectionStore {
     List<CalendarDerivationRecord> derivations(UUID pageId);
 
     boolean windowMatchesProvider(UUID windowId, String provider);
+
+    void markMissingResponse(UUID pageId, Instant now);
 }

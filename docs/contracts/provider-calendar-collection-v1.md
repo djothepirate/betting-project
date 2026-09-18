@@ -244,3 +244,12 @@ Sources officielles consultées sans appel aux API :
 [Highlightly, Matches](https://highlightly.net/football-api/documentation/),
 [football-data.org, Competition](https://docs.football-data.org/general/v4/competition.html),
 [football-data.org, Match](https://docs.football-data.org/general/v4/match.html).
+
+## 8. Raccordement explicite du lot 4
+
+Le [contrat des jobs](collection-jobs-v1.md) ajoute une exécution gérée avec fencing, bail et
+reprise de pages. Elle réutilise ce même coordinateur et les mêmes parsers/budgets, sans second
+normaliseur. Le chemin manuel `collect(command)` reste idempotent sans reprise automatique.
+Les réponses déjà conservées ne sont pas rappelées ; l'envoi déjà engagé sans preuve devient
+`SEND_UNCERTAIN`, sans inventer de snapshot vide ni d'heure de réception. V011 ajoute ce statut
+par migration corrective additive. La boucle du seul `batch-worker` demeure désactivée par défaut.

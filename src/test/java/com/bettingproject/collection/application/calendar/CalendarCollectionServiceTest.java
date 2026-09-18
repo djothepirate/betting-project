@@ -370,6 +370,7 @@ class CalendarCollectionServiceTest {
     }
 
     private static final class MemoryStore implements CalendarCollectionStore {
+        @Override public void markMissingResponse(UUID id, Instant now) { throw new UnsupportedOperationException(); }
         final Map<UUID, CalendarCollectionRecord> collections = new HashMap<>();
         final Map<UUID, CalendarPageRecord> pageRecords = new HashMap<>();
         boolean matchingWindow = true;

@@ -4,7 +4,7 @@
 
 Le contrat `stored-snapshot-replay-v1` définit le rejeu contrôlé d'un `raw_snapshot` déjà conservé dans PostgreSQL. Il ne décrit ni un appel fournisseur, ni le chargement d'un fichier arbitraire, ni une boucle de worker.
 
-Le rejeu stocké appartient exclusivement au profil `control-api` :
+Le rejeu stocké CAT-002 décrit par ce contrat appartient exclusivement au profil `control-api` :
 
 - le cas d'usage crée durablement une demande, tente son exécution après commit, puis permet la consultation interne et la reprise manuelle d'une demande non terminale ;
 - le lot 7 expose la création, la consultation et la reprise manuelle sous `/internal/catalog/replay-requests`, conformément à [`catalog-control-api-v1`](catalog-control-api-v1.md) ;
@@ -12,6 +12,11 @@ Le rejeu stocké appartient exclusivement au profil `control-api` :
 - le profil `replay` conserve uniquement le rejeu de fichiers ou d'octets fournis explicitement. Il reste strictement hors réseau, sans DataSource et sans Flyway.
 
 Le payload stocké reste la preuve de référence. Le rejeu réutilise le parseur, le normaliseur, les politiques d'autorité et le cycle de vie des anomalies existants ; il ne contient aucun chemin alternatif de normalisation.
+
+MVP-001 lot 4 ajoute séparément un job de replay de **page native fournisseur** par UUID, décrit
+dans [collection-jobs-v1](collection-jobs-v1.md). Il ne consomme pas les demandes CAT-002, ne
+modifie pas leurs états, clés ou callbacks, et ne charge pas leurs composants sous `batch-worker`.
+Cette distinction ne change pas le profil `replay`, qui reste sans base ni réseau.
 
 ## Sélecteurs autorisés
 

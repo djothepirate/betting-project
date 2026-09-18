@@ -94,6 +94,13 @@ class BatchWorkerProfileTest {
 
     @Test
     void batchWorkerStartsFromTheMainApplication() {
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobHandler.class)).hasSize(2);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobInputStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobPlanningService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.adapter.worker.CollectionWorkerLoop.class)).isEmpty();
         assertThat(workerProbe.runtimeProperties().mode()).isEqualTo(RuntimeMode.BATCH_WORKER);
         assertThat(calendarAuthorityPolicy).isNotNull();
         assertThat(applicationContext.getBeansOfType(CalendarAuthorityPolicy.class)).hasSize(1);

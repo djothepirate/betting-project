@@ -4,6 +4,10 @@ Ce runbook concerne MVP-001 lot 3. Il n'autorise aucune activation réelle. Le r
 livré est vide ; les deux clients sont désactivés. Aucun worker, endpoint de collecte, poller ou
 planificateur n'est livré ici. Le benchmark ENR reste séparé et ses clés ne doivent pas être lues.
 
+Le lot 4 complète désormais ces cas d'usage par un moteur désactivé par défaut ; sa planification,
+son diagnostic et ses limites sont décrits dans [collection-jobs-local](collection-jobs-local.md).
+Le chemin manuel décrit ci-dessous et les portes d'activation fournisseur restent inchangés.
+
 ## Qualifier sans fournisseur
 
 ```powershell
