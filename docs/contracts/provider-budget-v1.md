@@ -231,6 +231,17 @@ et leurs preuves brutes relèvent du lot 3 ; l'orchestration et les effets exter
 
 ## 6. Scénarios de preuve et qualification
 
+### Raccordement calendrier au lot 3
+
+Le [connecteur calendrier](provider-calendar-collection-v1.md) conserve le résultat HTTP et son
+audit dans la même transaction que le résultat budgétaire. Un statut 401/403/429 connu suspend la
+fenêtre même si le corps est incomplet ou écarté pour écho de secret. Un compteur reçu est transmis
+avec couverture d'engagements vide et sans renouveler l'horizon de validité initial. Un compteur
+hors capacité est audité et crée une incohérence bloquante à réconcilier. Réenregistrer une réponse
+identique ne crée aucun nouvel événement, incident ou observation budgétaire.
+
+### Preuves historiques du lot 2
+
 | Invariant | Sources de tests |
 |---|---|
 | États, absence de remboursement, clés/empreintes/temps | `BudgetModelTest` |

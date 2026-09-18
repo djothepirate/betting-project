@@ -1,0 +1,20 @@
+{
+  "filters": {"season": "2030", "dateFrom": "2030-08-10", "dateTo": "2030-08-11"},
+  "resultSet": {"count": 1, "first": "2030-08-10", "last": "2030-08-10", "played": 0},
+  "competition": {"id": 940001, "code": "SYN", "name": "Synthetic League", "type": "LEAGUE"},
+  "matches": [
+    {
+      "id": 930001,
+      "area": {"id": 970001, "code": "ZZ", "name": "Synthetic Country"},
+      "competition": {"id": 940001, "code": "SYN", "name": "Synthetic League", "type": "LEAGUE"},
+      "season": {"id": 950001, "startDate": "2030-08-01", "endDate": "2031-05-31"},
+      "stage": "REGULAR_SEASON",
+      "utcDate": "2030-08-10T19:00:00Z",
+      "status": "TIMED",
+      "lastUpdated": "2030-08-09T11:00:00Z",
+      "homeTeam": {"id": 960001, "name": "Synthetic Alpha"},
+      "awayTeam": {"id": 960002, "name": "Synthetic Beta"},
+      "score": {"fullTime": {"home": null, "away": null}}
+    }
+  ]
+}

@@ -106,15 +106,24 @@ lot 3. Le hash canonique du résultat budgétaire inclut statut, empreinte fourn
 il reste distinct du hash des seuls octets fournisseur. L'ordonnancement et l'envoi des effets
 externes appartiennent aux lots ultérieurs, sans activer un dispatch d'outbox dans ce lot.
 
-## Bornes des futurs adaptateurs
+## Bornes des adaptateurs calendrier
 
 Connexion : 5 secondes ; requête : 30 secondes ; réponse : 5 Mio au maximum ; collecte : 100 pages
 au maximum. Une pagination cyclique, tronquée ou interrompue est explicitement incomplète. Les
 pages reçues restent conservées, sans prétendre avoir obtenu un calendrier exhaustif.
 
-La traduction précise des statuts et marqueurs de pagination appartient aux parseurs et fixtures
-du lot 3. Un statut inconnu n'est jamais transformé en succès nominal. Les clients ENR restent des
-outils de benchmark et ne deviennent pas implicitement les adaptateurs de production.
+La traduction des statuts et marqueurs est livrée par le
+[contrat calendrier fournisseur v1](provider-calendar-collection-v1.md), ses parseurs et ses fixtures
+synthétiques. Un statut inconnu n'est jamais transformé en succès nominal. Les clients ENR restent
+des outils de benchmark et ne deviennent pas implicitement les adaptateurs de production.
+
+Décisions du 18 septembre 2026 : les métadonnées descriptives manquantes restent inconnues ; les
+mappings et identifiants restent obligatoires. La saison et la phase canoniques viennent de la
+route exacte du registre, tandis que les observations, mappings et clés d'autorité gardent leur
+contexte natif. V010 relie les preuves brutes, audits et dérivations. L'envoi synchrone utilise le
+budget du lot 2 et une outbox minimisée, sans worker ou nouvelle autorisation sur une répétition.
+Un compteur reçu apporte une borne conservatrice, avec couverture vide et sans prolongation de
+validité. Les transports et le registre réels restent fermés ; l'orchestration appartient au lot 4.
 
 ## Livraison par lot
 

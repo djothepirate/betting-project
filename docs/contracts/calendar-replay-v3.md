@@ -58,6 +58,31 @@ Le parseur ne remplace jamais un `observedAt` absent par l'heure de réception. 
 
 Tous les champs exigés par v2 restent obligatoires avec la même sémantique. Les identifiants et noms restent des observations fournisseur ; ils ne créent aucun mapping implicite.
 
+### Métadonnées descriptives inconnues — MVP-001 lot 3
+
+Décision du porteur du 18 septembre 2026 : `competition.countryCode`, `competition.type` et
+`homeTeam.countryCode` / `awayTeam.countryCode` peuvent être `null` lorsque la source ne les
+fournit pas. Le parseur peut aussi représenter leur absence par `null` ; la sérialisation dérivée
+les porte explicitement. Le wire format reste v3, sans nouveau schéma ni champ.
+
+Cette tolérance concerne uniquement les descriptions : références de compétition et d'équipes,
+saison, phase, noms requis et kickoff restent obligatoires. La normalisation dépend toujours
+des mappings exacts vers les référentiels canoniques ; elle n'invente pas un pays, un type ou une
+identité pour compenser l'inconnu. Les pays et types canoniques existants restent inchangés.
+Le pays d'une compétition ne vaut pas pays de chaque équipe, notamment dans les compétitions
+internationales. Les valeurs natives inconnues restent représentées dans le snapshot brut.
+
+Le [contrat de collecte calendrier fournisseur](provider-calendar-collection-v1.md) précise la
+traduction native vers v3, les phases littérales, l'identifiant de saison football-data.org distinct
+de l'année de filtre, les hashes natifs/dérivés et la provenance explicite de `observedAt`.
+
+Le contexte source reste celui du wire format : saison et phase natives sont conservées dans
+l'observation, la clé d'autorité et les mappings. Depuis la décision complémentaire de MVP-001
+lot 3, le registre peut fournir séparément la saison et la phase canoniques de sa route exacte.
+Le catalogue utilise cette correspondance versionnée pour l'identité et la comparaison des faits
+canoniques, sans modifier les littéraux observés ni inventer une conversion textuelle. Cette
+séparation n'ajoute aucun champ au wire format et n'active aucune affectation réelle.
+
 ## Neutralité et ordre
 
 | Champ | Présence | Valeurs acceptées | Sens |

@@ -1,0 +1,17 @@
+{
+  "data": [
+    {
+      "id": 900001,
+      "round": "Regular Season - 1",
+      "date": "2030-08-10T19:00:00Z",
+      "country": {"code": "ZZ", "name": "Synthetic Country"},
+      "homeTeam": {"id": 910001, "name": "Synthetic Alpha", "type": "club"},
+      "awayTeam": {"id": 910002, "name": "Synthetic Beta", "type": "club"},
+      "league": {"id": 920001, "season": 2030, "name": "Synthetic League"},
+      "state": {"description": "Not started", "clock": null, "score": {"current": null}},
+      "neutralVenue": true
+    }
+  ],
+  "pagination": {"totalCount": 2, "offset": 0, "limit": 1},
+  "plan": {"tier": "SYNTHETIC", "message": "Synthetic test only; no coverage claim"}
+}

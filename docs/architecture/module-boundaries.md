@@ -98,8 +98,50 @@ contrainte indépendante, évaluée au passage avant envoi sur toutes les fenêt
 
 Le contrat normatif [provider-budget-v1](../contracts/provider-budget-v1.md) distingue les preuves
 de compteur, l'empreinte canonique du résultat budgétaire et les futurs hashes d'octets fournisseur.
-Les connecteurs du lot 3 devront conserver les octets avant parsing ; l'orchestration du lot 4
+Les connecteurs du lot 3 conservent les octets avant parsing ; l'orchestration du lot 4
 devra utiliser l'autorisation commitée sans réexpédier une intention déjà engagée.
+
+Depuis le lot 3 de MVP-001, les frontières calendrier natives sont explicites :
+
+- `collection.application.calendar` porte les commandes, résultats, ports de transport,
+  parsing, sérialisation, stockage et application canonique. Ses cas d'usage synchrones vérifient
+  la capacité, utilisent le budget qualifié, conservent la preuve puis demandent son application.
+  Ils ne créent aucun endpoint, worker, poller ou ordonnanceur ;
+- `CalendarCollectionService` refuse une transaction appelante. La réservation, la préparation
+  page/audit/outbox et l'autorisation budget sont durables avant l'envoi ; les transports HTTP
+  refusent également de s'exécuter dans une transaction. Aucun verrou de base ne reste acquis
+  pendant l'attente réseau ;
+- `collection.adapter.http.calendar` porte seul les URI fixes, paramètres encodés, authentification,
+  bornes réseau et garde JVM sans retry ni journalisation HTTP. Il est assemblé uniquement sous
+  `control-api` et `batch-worker`, désactivé par défaut et sans dépendance au collecteur ENR ;
+- `collection.adapter.replay.calendar` contient les parseurs natifs stricts et le codec v3, sans
+  réseau ni JDBC. Ces composants restent utilisables en mémoire sous `replay`. Les champs natifs
+  restent dans les adaptateurs ; inconnus descriptifs et ordre source ne sont jamais comblés ;
+- `CalendarCollectionStore` est implémenté par `JdbcCalendarCollectionStore`, seul détenteur du
+  SQL des collectes/pages/dérivations de V010, de leur audit et de leur outbox minimisée. Les
+  corps natifs et dérivés réutilisent le port de snapshots, avec empreintes distinctes. Le résultat
+  budgétaire, le brut, l'audit et la terminaison d'outbox sont enregistrés atomiquement ;
+- `CalendarApplicationPort` est déclaré dans `collection` et implémenté côté `catalog` pour
+  déléguer au normaliseur existant. La dépendance reste **catalog vers collection**, jamais
+  collection vers catalog. Aucune seconde normalisation ne se développe dans un connecteur ;
+- le contexte canonique de saison/phase provient de la route exacte et versionnée du registre,
+  tandis que l'observation, l'autorité et les mappings gardent leurs valeurs natives. Cette
+  traduction explicite est distincte du parsing et ne repose sur aucune règle textuelle ;
+- l'application et son journal de dérivation partagent une transaction courte. Une dérivation
+  échouée ne peut valider une mutation canonique partielle ; la preuve native déjà acquise demeure
+  conservée dans sa transaction antérieure ;
+- `CalendarNativeReplayService` est un cas d'usage interne du seul `control-api`, sélectionnant
+  une page par UUID, sans chemin arbitraire, client HTTP ou réservation. Le replay recalcule le
+  hash natif, reprend l'instant de réception de la page et ajoute une interprétation versionnée ;
+- les services persistants sont absents de `replay`. Le registre réel reste vide ; la présence
+  du code transport ou d'un secret d'environnement ne lui confère ni activation ni autorité.
+
+V010 est additive après le budget V009 ; les migrations antérieures sont immuables. Les réponses
+partielles restent non exhaustives ; les pages antérieures validées ne sont pas perdues. Le
+restant fournisseur est audité et appliqué au budget avec une couverture d'engagements vide,
+sans inventer de preuve d'inclusion ni prolonger la validité initialement admise du compteur.
+L'orchestration générale, le claim de jobs et leur fencing restent au lot 4. Voir le
+[contrat calendrier fournisseur v1](../contracts/provider-calendar-collection-v1.md).
 
 Depuis le lot 5 de CAT-002, le module `catalog` porte également le cas d'usage de décision humaine et le module `identity` sépare l'état courant des mappings et anomalies de leur historique :
 

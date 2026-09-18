@@ -191,6 +191,15 @@ public class ProviderBudgetTransactions {
         return applyObservation(window.get(), reading, false, null, null, now());
     }
 
+    /** A received counter outside its declared envelope is evidence, not permission to spend. */
+    public void recordUnusableQuota(UUID windowId, Proof proof) {
+        Window window = lockedWindow(windowId).orElseThrow();
+        Instant now = now();
+        updateWindow(window.withObservation(window.currentObservationId(), true, now), window.version());
+        repository.insertIncident(new Incident(UUID.randomUUID(), window.id(), null, "CONTRADICTORY_QUOTA", now));
+        event(window, null, "QUOTA_OBSERVED", "CONTRADICTORY", null, null, proof, now);
+    }
+
     public Availability availability(UUID windowId) {
         return lockedWindow(windowId).map(window -> availability(window, now(), null))
                 .orElseGet(() -> new Availability(ResultCode.WINDOW_UNINITIALIZED, 0, null));

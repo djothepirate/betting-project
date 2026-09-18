@@ -111,6 +111,13 @@ class ControlApiProfileTest {
         assertThat(applicationContext.getBeansOfType(ProviderRoutingService.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ClasspathProviderCapabilityConfiguration.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ProviderBudgetService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.catalog.application.CalendarCanonicalContextPolicy.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarCollectionService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarCollectionStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarDerivationService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarEvidenceTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarApplicationPort.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarNativeReplayService.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ProviderBudgetTransactions.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ProviderBudgetRepository.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(JdbcProviderBudgetRepository.class)).hasSize(1);

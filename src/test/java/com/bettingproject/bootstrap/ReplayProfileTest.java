@@ -1,5 +1,9 @@
 package com.bettingproject.bootstrap;
 
+import com.bettingproject.collection.adapter.http.calendar.CalendarHttpConfiguration;
+import com.bettingproject.collection.adapter.http.calendar.FootballDataCalendarPageClient;
+import com.bettingproject.collection.adapter.http.calendar.HighlightlyCalendarPageClient;
+import com.bettingproject.collection.application.calendar.CalendarPageClient;
 import com.bettingproject.collection.adapter.persistence.JdbcProviderBudgetRepository;
 import com.bettingproject.collection.application.budget.BudgetJustificationSanitizer;
 import com.bettingproject.collection.application.budget.BudgetOperatorIdentityProvider;
@@ -102,7 +106,18 @@ class ReplayProfileTest {
         assertThat(applicationContext.getBeansOfType(ProviderCapabilityRegistry.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ProviderRoutingService.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ClasspathProviderCapabilityConfiguration.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(CalendarPageClient.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(CalendarHttpConfiguration.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(HighlightlyCalendarPageClient.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(FootballDataCalendarPageClient.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ProviderBudgetService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.catalog.application.CalendarCanonicalContextPolicy.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarCollectionService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarCollectionStore.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarDerivationService.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarEvidenceTransactions.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarApplicationPort.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarNativeReplayService.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ProviderBudgetTransactions.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(ProviderBudgetRepository.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(JdbcProviderBudgetRepository.class)).isEmpty();
