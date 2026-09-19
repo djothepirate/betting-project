@@ -99,7 +99,7 @@ contrainte indépendante, évaluée au passage avant envoi sur toutes les fenêt
 Le contrat normatif [provider-budget-v1](../contracts/provider-budget-v1.md) distingue les preuves
 de compteur, l'empreinte canonique du résultat budgétaire et les futurs hashes d'octets fournisseur.
 Les connecteurs du lot 3 conservent les octets avant parsing ; l'orchestration du lot 4
-devra utiliser l'autorisation commitée sans réexpédier une intention déjà engagée.
+utilise l'autorisation commitée sans réexpédier une intention déjà engagée.
 
 Depuis le lot 3 de MVP-001, les frontières calendrier natives sont explicites :
 
@@ -140,7 +140,7 @@ V010 est additive après le budget V009 ; les migrations antérieures sont immua
 partielles restent non exhaustives ; les pages antérieures validées ne sont pas perdues. Le
 restant fournisseur est audité et appliqué au budget avec une couverture d'engagements vide,
 sans inventer de preuve d'inclusion ni prolonger la validité initialement admise du compteur.
-L'orchestration générale, le claim de jobs et leur fencing restent au lot 4. Voir le
+L'orchestration générale, le claim de jobs et leur fencing sont livrés au lot 4. Voir le
 [contrat calendrier fournisseur v1](../contracts/provider-calendar-collection-v1.md).
 
 Depuis le lot 5 de CAT-002, le module `catalog` porte également le cas d'usage de décision humaine et le module `identity` sépare l'état courant des mappings et anomalies de leur historique :
@@ -289,3 +289,12 @@ migration antérieure, aucun contrat JSON calendrier et aucun composant du recei
 
 Contrat : [collection-control-api-v1](../contracts/collection-control-api-v1.md). La sélection est
 prévisionnelle ; ENR-002 devra revalider et réserver avant enrichissement, avec plafond durable.
+
+## MVP-001 lot 6 : qualification et gouvernance
+
+Le lot final consolide les preuves des frontières ci-dessus, sans nouveau chemin applicatif,
+profil ou migration. Les tests intégrés démontrent le budget, les deux formes natives, les jobs,
+le canon et les consultations avec PostgreSQL et des fournisseurs synthétiques. Le
+[rapport de revue](../reviews/MVP-001-final-review.md) relie les vingt critères au candidat.
+Registre réel vide, clients et boucle désactivés : une CI verte ne les active pas. La revue
+humaine et la fusion par merge commit vers le train restent des portes distinctes.

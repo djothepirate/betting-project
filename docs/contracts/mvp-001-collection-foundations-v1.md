@@ -2,7 +2,10 @@
 
 Décisions acceptées par le porteur le 6 septembre 2026 pour les lots 0 et 1.
 Le budget durable est spécialisé par les décisions de réalisation du lot 2 du 13 septembre 2026.
-Ce contrat prépare les lots de collecte ; son existence n'active aucun fournisseur.
+Ce contrat fixe les lots de collecte, implémentés et qualifiés par MVP-001 ; son existence
+n'active aucun fournisseur. Les sections datées distinguent les décisions initiales de leur
+raccordement effectif. La qualification finale est consignée au
+[lot 6](../work-orders/MVP-001-lot6-execution.md).
 
 ## Références et activation
 
@@ -41,7 +44,7 @@ BLOCKED_BY_PLAN n'accordent aucune autorité. Une entrée inactive reste UNASSIG
 
 ## Provenance et replay
 
-La chaîne de collecte future est : intention durable et réservation → tentative auditée → octets
+La chaîne de collecte livrée est : intention durable et réservation → tentative auditée → octets
 reçus conservés avant parsing → représentation calendrier dérivée → normaliseur existant.
 Chaque étape conserve ses liens de provenance. Le hash des octets fournisseur et le hash de la
 représentation dérivée sont distincts. La version du parseur est enregistrée ; une nouvelle
@@ -123,7 +126,7 @@ route exacte du registre, tandis que les observations, mappings et clés d'autor
 contexte natif. V010 relie les preuves brutes, audits et dérivations. L'envoi synchrone utilise le
 budget du lot 2 et une outbox minimisée, sans worker ou nouvelle autorisation sur une répétition.
 Un compteur reçu apporte une borne conservatrice, avec couverture vide et sans prolongation de
-validité. Les transports et le registre réels restent fermés ; l'orchestration appartient au lot 4.
+validité. Les transports et le registre réels restent fermés ; l'orchestration est livrée au lot 4.
 
 ## Livraison par lot
 

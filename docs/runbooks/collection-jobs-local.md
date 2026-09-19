@@ -35,7 +35,9 @@ rejouer les tests du dépôt. Ne pas activer ce flag en production pour faire si
 
 ## Diagnostic après arrêt
 
-Lire les projections via les ports internes ou une consultation SQL locale en lecture seule :
+Utiliser d'abord les lectures bornées de [/internal/collection](collection-control-local.md)
+livrées au lot 5 ; les ports internes ou une consultation SQL locale en lecture seule permettent
+ensuite d'approfondir la provenance :
 
 - `persistent_job` : `managed_collection`, statut, tentative/max, version, bail et code générique ;
 - `collection_job_event` : enchaînement des claims, expirations, reprises et terminaison ;
@@ -60,7 +62,9 @@ les traite pas. Ne pas confondre les deux familles de demandes.
 
 ## Limites de livraison
 
-L'absence de CI distante n'est pas un succès Linux. Le lot 3 a rencontré la restriction GitHub
-Actions de facturation au run `35399114529` ; après déblocage, les checks du SHA publié doivent
-être exécutés. Aucun réglage de facturation ni contournement de CI ne fait partie de ce runbook.
-La PR de clôture MVP-001 reste destinée à `feature/V0.1.0-RC01` après les lots restants.
+L'absence de CI distante n'est pas un succès Linux. Le blocage Actions du run `35399114529`
+du lot 3 est historique : les lots 4 (`51e85de`, run `35404160290`, tentative 2) et 5
+(`6843ff8`, run `35411773181`) ont leurs CI Windows et Linux/PostgreSQL vertes. La tête finale
+de PR exige ses propres checks. Aucun réglage de facturation ni contournement de CI ne fait
+partie de ce runbook. Le [dossier de revue MVP-001](../reviews/MVP-001-final-review.md)
+prépare la PR vers `feature/V0.1.0-RC01`, sans autoriser sa fusion ou une activation réelle.

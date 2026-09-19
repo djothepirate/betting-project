@@ -101,26 +101,32 @@ Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste str
 ## Étape 4 — MVP-001
 
 **État au 19 septembre 2026, après l'ouverture du 6 septembre :** [MVP-001](work-orders/MVP-001.md)
-reste `ACTIVE - IMPLEMENTATION`, lots 0 à 5 terminés localement. Le
-[rapport du lot 5](work-orders/MVP-001-lot5-execution.md) qualifie les consultations internes et
-la sélection prévisionnelle PPL/PD après calendrier, sur le budget et les jobs qualifiés.
-Le lot 6 est prochain et reste `PENDING`. La branche
+est `ACTIVE - AWAITING_HUMAN_REVIEW`, lots 0 à 5 terminés et lot 6 techniquement qualifié.
+Le [rapport du lot 6](work-orders/MVP-001-lot6-execution.md) et le
+[dossier final](reviews/MVP-001-final-review.md) consolident les contrats, procédures et preuves.
+La revue humaine et la fusion restent ouvertes. La branche
 `feature/V0.1.0-RC01-CODEX-MVP-001` part de
 `feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281` ; sa PR de clôture
-ciblera `feature/V0.1.0-RC01`. Quinze critères sur vingt sont démontrés : registre fermé,
+ciblera `feature/V0.1.0-RC01`. Dix-huit critères sur vingt sont démontrés : registre fermé,
 routage, protection du canon, budget, pagination, audit/replay, temps/ordre source et isolation
 des échecs fournisseurs, claim/fencing, reprise et absence de double effet logique, incidents
-consultables, API bornée et sélection priorisée plafonnée à sept. La prévision ne réserve ni
+consultables, API bornée, sélection plafonnée à sept, migrations peuplées, qualification et documentation.
+La prévision ne réserve ni
 n'envoie d'appel d'enrichissement ; le coût par rencontre est explicitement fourni.
-La baseline réelle reste inactive. Qualification du lot 5 : **615 tests
-standards et 239 tests PostgreSQL/Testcontainers**, sans échec ni omission. Les preuves antérieures
+La baseline réelle reste inactive. Qualification intégrée du lot 6 le 19 septembre à 10:32:46 :
+**615 tests standards et 239 tests PostgreSQL/Testcontainers**, sans échec, erreur ni omission.
+Le lot final ne change aucun code, test, migration ou client. Les preuves antérieures
 restent historiques ; chaque lot fait l'objet d'un commit, d'un push et d'une vérification de
-sa CI sur le SHA publié. Le blocage Actions historique a été dépassé : la base `51e85de` a
-des CI Windows et Linux/PostgreSQL vertes (run `35404160290`, tentative 2). La qualification
-du nouveau SHA reste obligatoire. Aucun appel fournisseur réel n'est effectué ; les nouvelles
+sa CI sur le SHA publié. Le blocage Actions historique a été dépassé : `51e85de` puis `6843ff8`
+ont des CI Windows et Linux/PostgreSQL vertes (runs `35404160290`, tentative 2, puis `35411773181`).
+Les checks du nouveau SHA et de la PR restent obligatoires. Aucun appel fournisseur réel n'est effectué ; les nouvelles
 routes sont internes, sous `control-api` loopback. V001–V011 sont inchangées, sans V012.
 La boucle worker livrée reste opt-in et désactivée, comme les clients ;
 leurs tests HTTP restent strictement loopback ou simulés.
+
+La préparation de PR n'autorise pas le merge : le porteur doit relire le diff et rejouer les tests
+avant d'autoriser la fusion par merge commit vers RC01. ENR-002 n'est pas encore activé ; ses
+travaux suivent la clôture réelle de MVP-001, sans confondre prévision et enrichissement exécuté.
 
 ### Objectif
 

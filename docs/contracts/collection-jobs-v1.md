@@ -138,4 +138,7 @@ après inspection. Un débit engagé n'est jamais remboursable par cette opérat
 Ce flag n'active aucun fournisseur ni compte API. Le registre reste vide ; fenêtres, preuves,
 mappings et clients réels demandent toujours une activation séparée. Aucun endpoint, profil live,
 consommateur J7, enrichissement ou sélection quotidienne de sept rencontres n'est ajouté ici.
-Le contrôle API et la sélection restent au lot 5 ; la qualification finale et la PR au lot 6.
+Le contrôle API et la sélection sont livrés au lot 5 selon
+[collection-control-api-v1](collection-control-api-v1.md), sans élargir le dispatch à
+l'enrichissement. La qualification finale et la préparation de PR sont consignées au
+[lot 6](../work-orders/MVP-001-lot6-execution.md) ; la revue humaine précède toute fusion.
