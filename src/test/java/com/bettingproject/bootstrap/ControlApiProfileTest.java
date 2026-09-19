@@ -1,5 +1,13 @@
 package com.bettingproject.bootstrap;
 
+import com.bettingproject.collection.adapter.persistence.JdbcProviderBudgetRepository;
+import com.bettingproject.collection.application.budget.BudgetJustificationSanitizer;
+import com.bettingproject.collection.application.budget.BudgetOperatorIdentityProvider;
+import com.bettingproject.collection.application.budget.ProviderBudgetAdministration;
+import com.bettingproject.collection.application.budget.ProviderBudgetAdministrationTransactions;
+import com.bettingproject.collection.application.budget.ProviderBudgetRepository;
+import com.bettingproject.collection.application.budget.ProviderBudgetService;
+import com.bettingproject.collection.application.budget.ProviderBudgetTransactions;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAnomalyEventStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayApplicationStore;
 import com.bettingproject.catalog.adapter.persistence.JdbcNormalizationReplayAttemptJournal;
@@ -17,6 +25,10 @@ import com.bettingproject.catalog.adapter.web.MappingControlController;
 import com.bettingproject.catalog.adapter.web.ReplayControlController;
 import com.bettingproject.catalog.adapter.web.StrictCatalogCommandParser;
 import com.bettingproject.catalog.application.CalendarAuthorityPolicy;
+import com.bettingproject.catalog.application.RegistryCalendarAuthorityPolicy;
+import com.bettingproject.collection.adapter.configuration.ClasspathProviderCapabilityConfiguration;
+import com.bettingproject.collection.application.capability.ProviderCapabilityRegistry;
+import com.bettingproject.collection.application.capability.ProviderRoutingService;
 import com.bettingproject.catalog.application.AnomalyQueryPort;
 import com.bettingproject.catalog.application.AnomalyQueryService;
 import com.bettingproject.catalog.application.ControlCommandReceiptStore;
@@ -87,13 +99,40 @@ class ControlApiProfileTest {
 
     @Test
     void controlApiStartsFromTheMainApplication() {
+        CollectionControlProfileAssertions.verify(applicationContext,true);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobPlanningService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobInputStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobHandler.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.adapter.worker.CollectionWorkerLoop.class)).isEmpty();
         BootstrapStatusController.BootstrapStatus status = controller.status();
 
         assertThat(status.application()).isEqualTo("betting-project");
         assertThat(status.mode()).isEqualTo(RuntimeMode.CONTROL_API);
         assertThat(status.activeProfiles()).containsExactly("control-api");
         assertThat(environment.getProperty("server.address")).isEqualTo("127.0.0.1");
-        assertThat(calendarAuthorityPolicy).isNotNull();
+        assertThat(calendarAuthorityPolicy).isInstanceOf(RegistryCalendarAuthorityPolicy.class);
+        assertThat(applicationContext.getBeansOfType(CalendarAuthorityPolicy.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderCapabilityRegistry.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderRoutingService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ClasspathProviderCapabilityConfiguration.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.catalog.application.CalendarCanonicalContextPolicy.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarCollectionService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarCollectionStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarDerivationService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarEvidenceTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarApplicationPort.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarNativeReplayService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(JdbcProviderBudgetRepository.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetAdministration.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(ProviderBudgetAdministrationTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(BudgetOperatorIdentityProvider.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(BudgetJustificationSanitizer.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(MappingDecisionService.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(OperatorIdentityProvider.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(ControlCommandReceiptStore.class)).hasSize(1);

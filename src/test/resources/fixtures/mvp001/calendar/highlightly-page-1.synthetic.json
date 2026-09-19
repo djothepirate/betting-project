@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "id": 900002,
+      "round": "Regular Season - 1",
+      "date": "2030-08-10T20:00:00Z",
+      "country": null,
+      "homeTeam": {"id": 910003, "name": "Synthetic Gamma"},
+      "awayTeam": {"id": 910004, "name": "Synthetic Delta"},
+      "league": {"id": 920001, "season": 2030, "name": "Synthetic League"},
+      "state": {"description": "Finished after extra time"}
+    }
+  ],
+  "pagination": {"totalCount": 2, "offset": 1, "limit": 1}
+}

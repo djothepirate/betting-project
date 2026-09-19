@@ -8,8 +8,8 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 
 - Java 25 : Oracle JDK 25.0.4 LTS sous Windows et OpenJDK 25.0.3 sous Ubuntu/WSL2 ; règle de build `[25,26)`
 - Apache Maven 3.9.16, imposé par le wrapper
-- Spring Boot 4.1.0
-- Spring Framework 7.0.8, géré par Spring Boot
+- Spring Boot 4.1.1, selon le POM du train
+- Spring Framework 7.0.9, géré par Spring Boot
 - PostgreSQL 17 pour le développement local et les tests d'intégration
 
 ## État du dépôt
@@ -20,6 +20,7 @@ Le projet est personnel et piloté par un humain. Il ne place aucun pari automat
 - ENR-001 : accepté, fusionné dans `main` par la Pull Request `#3` au commit de fusion `6913cea` et clôturé ;
 - CAT-002 : accepté, fusionné dans `main` par la Pull Request `#8` au commit de fusion `85dc943` et clôturé. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` conservent leurs quatre checks Windows/Linux verts, 36 critères sur 36 satisfaits et la discussion P2 résolue ;
 - INT-001 : `CLOSED - MERGED`. Le propriétaire a validé la readiness locale le `2026-09-04T14:13:23.3192773Z`, soit `2026-09-04T16:13:23.3192773+02:00` en Europe/Paris, puis demandé la clôture le 5 septembre. Le candidat `de06153` est conservé sur `codex/int-001-j7-receiver` ; la clôture documentaire est portée par `codex/int-001-closeout`. Le receiver J7 reste désactivé par défaut, avec migrations additives `V006` à `V008` et prochain slot `V009`. Les suites standard et PostgreSQL/Testcontainers, le mTLS, le corpus synthétique ainsi qu'une sauvegarde `age` et une restauration PostgreSQL 17 fraîche et isolée sont qualifiés. Le [rapport de clôture](docs/reviews/INT-001-closeout-20260905.md) distingue ces preuves historiques des vérifications actuelles ; le propriétaire a autorisé la publication et la création de la [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main` ; la fusion a ensuite été autorisée et réalisée au commit `7f1f3aa` ; les campagnes réelles conservent leurs décisions propres ;
+- MVP-001 : accepté par le porteur le 19 septembre 2026, avec clôture et fusion vers RC01 autorisées. La [PR #15](https://github.com/djothepirate/betting-project/pull/15), de `feature/V0.1.0-RC01-CODEX-MVP-001` vers `feature/V0.1.0-RC01`, établit la livraison : avant son merge, `MERGE_AUTHORIZED_IF_GREEN` et **19/20** ; dès sa fusion réelle par merge commit, `ACCEPTED - MERGED - CLOSED`, lots 0 à 6 terminés et **20/20**. Le [rapport du lot 6](docs/work-orders/MVP-001-lot6-execution.md) et le [dossier de revue](docs/reviews/MVP-001-final-review.md) conservent la qualification Windows **615 standards + 239 PostgreSQL/Testcontainers**, les quatre checks verts de `871617b` et les revues automatiques terminées sans remarque ; le closeout documentaire exige ses propres checks avant fusion. Le code reste celui de `6843ff8`. V001–V011 sont inchangées, registre réel vide, clients et boucle worker désactivés. Le [contrôle interne](docs/contracts/collection-control-api-v1.md) fournit une sélection prévisionnelle PPL/PD plafonnée à sept, sans réservation ni enrichissement. Aucun appel fournisseur réel, passage vers `main` ou activation d'ENR-002 ;
 - profils autorisés : `control-api`, `batch-worker` et `replay` ;
 - PostgreSQL : source de vérité ;
 - fournisseurs sportifs : aucun appel requis pour construire, tester ou rejouer le dépôt.
@@ -71,5 +72,6 @@ Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun qu
 - Qualification locale du receiver J7 : [`docs/runbooks/j7-import-receiver-local.md`](docs/runbooks/j7-import-receiver-local.md)
 - Sauvegarde/restauration J7 : [`docs/runbooks/j7-import-backup-restore.md`](docs/runbooks/j7-import-backup-restore.md)
 - Dossier de revue finale CAT-002 : [`docs/reviews/CAT-002-final-review.md`](docs/reviews/CAT-002-final-review.md)
+- Dossier de revue du candidat MVP-001 : [`docs/reviews/MVP-001-final-review.md`](docs/reviews/MVP-001-final-review.md)
 
 Les lanceurs `.cmd` des contrôles Windows appliquent une dérogation uniquement au processus PowerShell qu'ils ouvrent. Ils ne modifient pas la politique d'exécution globale du poste.

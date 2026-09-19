@@ -4,7 +4,7 @@
 
 Le contrat `stored-snapshot-replay-v1` définit le rejeu contrôlé d'un `raw_snapshot` déjà conservé dans PostgreSQL. Il ne décrit ni un appel fournisseur, ni le chargement d'un fichier arbitraire, ni une boucle de worker.
 
-Le rejeu stocké appartient exclusivement au profil `control-api` :
+Le rejeu stocké CAT-002 décrit par ce contrat appartient exclusivement au profil `control-api` :
 
 - le cas d'usage crée durablement une demande, tente son exécution après commit, puis permet la consultation interne et la reprise manuelle d'une demande non terminale ;
 - le lot 7 expose la création, la consultation et la reprise manuelle sous `/internal/catalog/replay-requests`, conformément à [`catalog-control-api-v1`](catalog-control-api-v1.md) ;
@@ -12,6 +12,11 @@ Le rejeu stocké appartient exclusivement au profil `control-api` :
 - le profil `replay` conserve uniquement le rejeu de fichiers ou d'octets fournis explicitement. Il reste strictement hors réseau, sans DataSource et sans Flyway.
 
 Le payload stocké reste la preuve de référence. Le rejeu réutilise le parseur, le normaliseur, les politiques d'autorité et le cycle de vie des anomalies existants ; il ne contient aucun chemin alternatif de normalisation.
+
+MVP-001 lot 4 ajoute séparément un job de replay de **page native fournisseur** par UUID, décrit
+dans [collection-jobs-v1](collection-jobs-v1.md). Il ne consomme pas les demandes CAT-002, ne
+modifie pas leurs états, clés ou callbacks, et ne charge pas leurs composants sous `batch-worker`.
+Cette distinction ne change pas le profil `replay`, qui reste sans base ni réseau.
 
 ## Sélecteurs autorisés
 
@@ -197,7 +202,7 @@ Une reprise :
 
 Le claim et la fin de tentative appartiennent à la même transaction. Un arrêt brutal pendant cette transaction annule le claim ; après redémarrage, la demande retrouve donc son dernier état durable non terminal et peut être reprise. Aucune remise à zéro arbitraire de lignes `RUNNING` et aucune horloge de lease ne sont nécessaires dans cette baseline locale.
 
-L'acceptation du lot 8 apporte une preuve de processus distincts : `ControlApiRestartIT` démarre un premier contexte Spring `control-api`, conserve le snapshot puis commit une demande `PENDING` tout en simulant l'arrêt avant le callback ; il ferme entièrement ce contexte et son pool JDBC. Un deuxième contexte sur la même base relit la demande et exécute sa reprise jusqu'à `COMPLETED`. Après une nouvelle fermeture, un troisième contexte retrouve le résultat terminal et refuse toute seconde tentative. Les assertions vérifient une seule demande, tentative, observation et application logique ainsi que les corrélations attendues.
+L'acceptation du lot 8 apporte une preuve de contextes et pools JDBC distincts : `ControlApiRestartIT` démarre un premier contexte Spring `control-api`, conserve le snapshot puis commit une demande `PENDING` tout en simulant l'arrêt avant le callback ; il ferme entièrement ce contexte et son pool JDBC. Un deuxième contexte sur la même base relit la demande et exécute sa reprise jusqu'à `COMPLETED`. Après une nouvelle fermeture, un troisième contexte retrouve le résultat terminal et refuse toute seconde tentative. Les assertions vérifient une seule demande, tentative, observation et application logique ainsi que les corrélations attendues. Le test reste dans une même JVM ; il ne revendique pas trois processus OS distincts.
 
 Cette preuve ne transforme pas le callback après commit en mécanisme de livraison. En l'absence de worker ou poller, une demande laissée non terminale doit toujours être consultée puis reprise manuellement par le `control-api`.
 
@@ -239,4 +244,4 @@ Les lots 6 et 7 n'introduisent :
 - aucun changement au profil `replay` ;
 - aucune nouvelle décision d'autorité calendrier.
 
-Le lot 7 ajoute uniquement les projections paginées, les DTO stricts et la traduction HTTP interne sous `control-api`. Le lot 8 ajoute uniquement la preuve de redémarrage et la documentation d'acceptation. Une future automatisation de worker appartient à MVP-001 et devra réutiliser les mêmes états et clés d'idempotence sans modifier ce contrat de preuve.
+Le lot 7 de CAT-002 ajoute uniquement les projections paginées, les DTO stricts et la traduction HTTP interne sous `control-api`. Son lot 8 ajoute la preuve de redémarrage et la documentation d'acceptation. MVP-001 automatise séparément les jobs de pages natives selon [collection-jobs-v1](collection-jobs-v1.md) ; il ne consomme ni ne modifie ces demandes CAT-002. Sa qualification intégrée conserve `StoredSnapshotReplayIT`, `V005MigrationIT` et `ControlApiRestartIT` sans changement.

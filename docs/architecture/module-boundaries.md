@@ -40,7 +40,7 @@ Depuis le lot 3 de CAT-002, les décisions de catalogue sont également isolées
 - `FixtureChronologyPolicy` compare l'instant d'observation source, tous les faits canoniques et la matrice de transitions, sans Spring ni JDBC ; l'absence de tampon sur une ligne historique n'entraîne l'invention d'aucun instant d'autorité ;
 - `FixtureIdentityPolicy` reconnaît l'ordre exact et n'autorise une inversion que lorsque l'observation porte explicitement `participantsUnordered=true` ; `neutralVenue` n'intervient jamais dans cette permission ;
 - le port applicatif `CalendarAuthorityPolicy` résout une clé exacte et typée vers `PRIMARY`, `CONTROL` ou `UNASSIGNED`, avec sa version de politique ;
-- `ClasspathCalendarAuthorityConfiguration`, limité à `control-api` et `batch-worker`, charge une configuration classpath versionnée. Sa baseline est vide et fermée par défaut afin de ne pas inventer de référence fournisseur ; le profil `replay` ne charge pas ce port ;
+- `ClasspathCalendarAuthorityConfiguration`, limité à `control-api` et `batch-worker`, assemble le port d'autorité. Le chargement CAT-002 historique est remplacé au lot 1 de MVP-001 par le registre décrit ci-dessous, sans fallback ; le profil `replay` ne charge pas ce port ;
 - ces politiques restent indépendantes de Spring, JDBC et des adaptateurs ; leur raccordement transactionnel appartient au service d'application.
 
 Depuis le lot 4 de CAT-002, `CalendarNormalizationService` applique effectivement ces politiques et les ports de persistance protègent le catalogue contre les écritures concurrentes :
@@ -54,6 +54,94 @@ Depuis le lot 4 de CAT-002, `CalendarNormalizationService` applique effectivemen
 - chaque évaluation journalise le rôle, la version de politique et l'autorité précédente dans la même transaction que l'observation et l'éventuelle mutation canonique.
 
 Le lot 4 réutilise intégralement le schéma `V003` et n'ajoute aucune migration propre.
+
+Depuis le lot 1 de MVP-001, `collection.domain.capability` définit les clés fournisseur et routes
+logiques exactes, la couverture, l'autorité distincte et les preuves de capacité. Les ports et
+le routage pur sont dans `collection.application.capability`. Le parseur strict et l'assemblage
+classpath restent dans `collection.adapter.configuration`, sans modifier Jackson globalement.
+`catalog.application.RegistryCalendarAuthorityPolicy` consulte uniquement le port de registre :
+la dépendance va de `catalog` vers `collection`, jamais dans l'autre sens. Le SHA-256 du document
+devient la version de politique du journal et du watermark existants. Registre, routeur et politique
+sont limités à `control-api` et `batch-worker`, absents sous `replay`. La baseline réelle reste vide.
+Le routage ne réalise aucun HTTP, réservation budgétaire, mapping automatique ou travail planifié.
+Voir le [contrat du registre](../contracts/provider-capability-registry-v1.md).
+
+Depuis le lot 2 de MVP-001, `collection.domain.budget` porte les fenêtres, intentions unitaires,
+observations de quota, incidents, événements et calculs conservateurs, sans dépendance vers le
+catalogue. Les trois bornes budgétaires utilisent les intentions persistées et leur couverture
+explicite ; aucune réponse fournisseur ne réécrit un second compteur local. La cadence est une
+contrainte indépendante, évaluée au passage avant envoi sur toutes les fenêtres du même périmètre.
+
+- `ProviderBudgetRepository` est un port de `collection.application.budget` ;
+  `JdbcProviderBudgetRepository` porte seul le SQL de V009, sous `control-api` et `batch-worker`.
+- `ProviderBudgetService` et `ProviderBudgetAdministration` sont des façades `Propagation.NEVER` :
+  elles refusent une transaction appelante ouverte et délèguent à des composants transactionnels
+  distincts. Une nouvelle autorisation d'envoi n'est observable qu'après leur commit effectif.
+  Aucun client HTTP n'est appelé dans ces transactions.
+- Les verrous suivent l'ordre périmètre, fenêtre, intention ; les écritures sont non destructives
+  et protégées par version. Le verrou global de normalisation calendrier n'est pas réutilisé.
+  Réservation, résultat, incident, observation et événement associé sont atomiques.
+- Les opérations courantes et la persistance sont disponibles sous `control-api` et `batch-worker`.
+  L'initialisation et les réconciliations administratives, leur identité locale et leur expurgation
+  sont limitées à `control-api`. Les ports d'identité et d'expurgation restent propres à `collection`,
+  sans dépendance vers les services du catalogue.
+- Le passage avant envoi conserve son coût après interruption ; une répétition ne délivre pas de
+  seconde autorisation. `UNCERTAIN` ne suspend pas les autres intentions, tandis que HTTP 401/403/429
+  suspend la fenêtre concernée. La réconciliation n'efface aucun débit ni incident historique.
+- V009 ajoute les périmètres, fenêtres, intentions, observations, liens de couverture, incidents
+  et événements. Les preuves et le journal sont append-only par les ports ; les clés étrangères
+  composées imposent leur provenance dans la même fenêtre. V001–V008 restent immuables et aucune
+  ligne de fournisseur réel n'est initialisée.
+- Tous les composants budgétaires persistants sont absents de `replay`. Aucun endpoint, worker,
+  poller, ordonnanceur, appel fournisseur ou dispatch d'outbox n'est ajouté par le lot 2.
+  Le collecteur ENR et `provider_call_audit` restent distincts et inchangés.
+
+Le contrat normatif [provider-budget-v1](../contracts/provider-budget-v1.md) distingue les preuves
+de compteur, l'empreinte canonique du résultat budgétaire et les futurs hashes d'octets fournisseur.
+Les connecteurs du lot 3 conservent les octets avant parsing ; l'orchestration du lot 4
+utilise l'autorisation commitée sans réexpédier une intention déjà engagée.
+
+Depuis le lot 3 de MVP-001, les frontières calendrier natives sont explicites :
+
+- `collection.application.calendar` porte les commandes, résultats, ports de transport,
+  parsing, sérialisation, stockage et application canonique. Ses cas d'usage synchrones vérifient
+  la capacité, utilisent le budget qualifié, conservent la preuve puis demandent son application.
+  Ils ne créent aucun endpoint, worker, poller ou ordonnanceur ;
+- `CalendarCollectionService` refuse une transaction appelante. La réservation, la préparation
+  page/audit/outbox et l'autorisation budget sont durables avant l'envoi ; les transports HTTP
+  refusent également de s'exécuter dans une transaction. Aucun verrou de base ne reste acquis
+  pendant l'attente réseau ;
+- `collection.adapter.http.calendar` porte seul les URI fixes, paramètres encodés, authentification,
+  bornes réseau et garde JVM sans retry ni journalisation HTTP. Il est assemblé uniquement sous
+  `control-api` et `batch-worker`, désactivé par défaut et sans dépendance au collecteur ENR ;
+- `collection.adapter.replay.calendar` contient les parseurs natifs stricts et le codec v3, sans
+  réseau ni JDBC. Ces composants restent utilisables en mémoire sous `replay`. Les champs natifs
+  restent dans les adaptateurs ; inconnus descriptifs et ordre source ne sont jamais comblés ;
+- `CalendarCollectionStore` est implémenté par `JdbcCalendarCollectionStore`, seul détenteur du
+  SQL des collectes/pages/dérivations de V010, de leur audit et de leur outbox minimisée. Les
+  corps natifs et dérivés réutilisent le port de snapshots, avec empreintes distinctes. Le résultat
+  budgétaire, le brut, l'audit et la terminaison d'outbox sont enregistrés atomiquement ;
+- `CalendarApplicationPort` est déclaré dans `collection` et implémenté côté `catalog` pour
+  déléguer au normaliseur existant. La dépendance reste **catalog vers collection**, jamais
+  collection vers catalog. Aucune seconde normalisation ne se développe dans un connecteur ;
+- le contexte canonique de saison/phase provient de la route exacte et versionnée du registre,
+  tandis que l'observation, l'autorité et les mappings gardent leurs valeurs natives. Cette
+  traduction explicite est distincte du parsing et ne repose sur aucune règle textuelle ;
+- l'application et son journal de dérivation partagent une transaction courte. Une dérivation
+  échouée ne peut valider une mutation canonique partielle ; la preuve native déjà acquise demeure
+  conservée dans sa transaction antérieure ;
+- `CalendarNativeReplayService` est un cas d'usage interne du seul `control-api`, sélectionnant
+  une page par UUID, sans chemin arbitraire, client HTTP ou réservation. Le replay recalcule le
+  hash natif, reprend l'instant de réception de la page et ajoute une interprétation versionnée ;
+- les services persistants sont absents de `replay`. Le registre réel reste vide ; la présence
+  du code transport ou d'un secret d'environnement ne lui confère ni activation ni autorité.
+
+V010 est additive après le budget V009 ; les migrations antérieures sont immuables. Les réponses
+partielles restent non exhaustives ; les pages antérieures validées ne sont pas perdues. Le
+restant fournisseur est audité et appliqué au budget avec une couverture d'engagements vide,
+sans inventer de preuve d'inclusion ni prolonger la validité initialement admise du compteur.
+L'orchestration générale, le claim de jobs et leur fencing sont livrés au lot 4. Voir le
+[contrat calendrier fournisseur v1](../contracts/provider-calendar-collection-v1.md).
 
 Depuis le lot 5 de CAT-002, le module `catalog` porte également le cas d'usage de décision humaine et le module `identity` sépare l'état courant des mappings et anomalies de leur historique :
 
@@ -127,7 +215,8 @@ monolithe ni créer de dépendance vers le SofaScore Local Lab :
   `V007__j7_import_purge_integrity.sql`, complétées par
   `V008__j7_import_upgrade_evidence_time_integrity.sql`, matérialisent l'inbox, l'audit, les
   contraintes d'unicité et d'immutabilité, renforcent la purge et refusent à l'upgrade toute preuve
-  historique datée dans le futur. V001 à V005 restent immuables et le prochain slot est V009 ;
+  historique datée dans le futur. V001 à V005 restent immuables ; V009, alors prochain slot,
+  est maintenant utilisé par le budget de MVP-001 décrit ci-dessus ;
 - le schéma J7 et le schéma d'ACK sont des ressources versionnées autonomes du Betting Project. Le
   build et le runtime ne lisent aucun chemin, artefact ou service d'un autre dépôt ;
 - une première réception écrit inbox, audit et outbox `J7_IMPORT_ACCEPTED` dans la même transaction.
@@ -154,3 +243,58 @@ défaut. Lorsqu'elle est explicitement qualifiée, le connecteur unique écoute 
 ce même connecteur et ne bénéficient d'aucun port de management ou HTTP de contournement.
 
 Le package `bootstrap` contient uniquement l'assemblage de l'application. Le package `shared` contient les primitives transverses qui ne portent pas une règle métier propre à un module.
+
+## MVP-001 lot 4 : exécution des jobs
+
+- `operations.domain.JobModel` reste JDK pur ; `operations.application.jobs` définit ports,
+  transactions de claims/fencing et orchestration du tick, sans JDBC ni connaissance du catalogue.
+- `JdbcJobRepository` porte le SQL V011, l'horloge PostgreSQL, `SKIP LOCKED`, les baux et les
+  événements. Il n'enrôle aucun ancien job et ne consomme que l'outbox `COLLECTION_JOB`.
+- `collection` dépend de ces ports d'opérations pour ses handlers, jamais l'inverse. Les entrées
+  typées et le plan exact restent dans `collection.application.calendar`, le SQL dans son adaptateur.
+- `CalendarCollectionService` conserve son chemin manuel et partage la logique avec l'exécution
+  gérée. `CalendarExecution` encadre ses écritures par un token de job ; le budget transactionnel
+  commit avant le transport. `CalendarDerivationService` peut rejoindre la transaction protégée.
+  Ses échecs de parsing typés conservent leur journal, sans rendre le commit implicitement rollback-only.
+- Les handlers et `JobWorker` sont exclusivement sous `batch-worker`. La boucle programmée n'est
+  assemblée qu'avec le flag explicite, absent/false par défaut. Le `control-api` peut planifier
+  les commandes internes ; il ne démarre pas le worker. Aucun composant durable n'entre dans `replay`.
+- Le replay de page native possède une quittance d'effet atomique avec l'application. Les demandes
+  CAT-002 restent manuelles et inchangées. L'observation, le mapping et le normaliseur restent uniques.
+
+Contrat : [collection-jobs-v1](../contracts/collection-jobs-v1.md). V011 est additive ; aucune
+migration antérieure, aucun contrat JSON calendrier et aucun composant du receiver J7 n'est modifié.
+
+## MVP-001 lot 5 : contrôle et prévision de sélection
+
+- `collection.application.control` définit les lectures minimisées et le cas d'usage de sélection.
+  `CollectionQueryService` est en transaction read-only ; `DailySelectionService` calcule sans
+  écriture sous une transaction courte, en réutilisant les verrous et le calcul du budget qualifié.
+- `collection.domain.selection.DailySelectionPolicy` applique plafond de sept, coût explicite,
+  éligibilité PPL/PD et ordre priorité/kickoff/UUID, sans Spring, HTTP ou persistance.
+- Le port `DailySelectionCandidates` est défini dans `collection` et implémenté par
+  `catalog.adapter.persistence.JdbcDailySelectionCandidates`. Il lit le canon depuis ses
+  observations d'autorité et les dérivations conservées ; aucune dépendance inverse de
+  `collection` vers `catalog` n'est créée.
+- `operations.application.jobs.JobQueryPort` et son adaptateur séparent les lectures des écritures
+  de jobs. `collection` orchestre la consultation de ces ports, jamais l'inverse.
+- `shared.application.ReadPage` porte les bornes et ancres typées ; le helper SQL demeure dans
+  `shared.adapter.persistence`. Aucun SQL ou type JDBC/HTTP ne remonte dans l'application.
+- `collection.adapter.web.control` porte `/internal/collection`, parsing strict local, listes
+  blanches des paramètres, curseurs liés au scope/filtres et erreurs génériques. Les projections
+  n'exposent aucun payload, clé, token ou identifiant de compte.
+- Ces nouveaux services, ports JDBC et contrôleurs sont assemblés uniquement sous `control-api`,
+  jamais `batch-worker` ou `replay`. Aucune migration V012, écriture, réservation de sélection,
+  activation de fournisseur ou modification du worker/J7 n'est introduite.
+
+Contrat : [collection-control-api-v1](../contracts/collection-control-api-v1.md). La sélection est
+prévisionnelle ; ENR-002 devra revalider et réserver avant enrichissement, avec plafond durable.
+
+## MVP-001 lot 6 : qualification et gouvernance
+
+Le lot final consolide les preuves des frontières ci-dessus, sans nouveau chemin applicatif,
+profil ou migration. Les tests intégrés démontrent le budget, les deux formes natives, les jobs,
+le canon et les consultations avec PostgreSQL et des fournisseurs synthétiques. Le
+[rapport de revue](../reviews/MVP-001-final-review.md) relie les vingt critères au candidat.
+Registre réel vide, clients et boucle désactivés : une CI verte ne les active pas. La revue
+humaine et la fusion par merge commit vers le train restent des portes distinctes.

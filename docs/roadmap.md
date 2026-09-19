@@ -18,7 +18,7 @@ Les charges de benchmark et les connecteurs de production restent séparés : le
 | 1 | DEVX-001 | Éliminer les faux verts et versionner la mémoire du projet | Accepté, fusionné par la Pull Request `#2` et clôturé |
 | 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | Accepté, fusionné par la Pull Request `#3` au commit `6913cea` et clôturé |
 | 3 | CAT-002 | Durcir le canon et rendre les anomalies opérables | ordre, autorité, concurrence, mappings et replay administrables |
-| 4 | MVP-001 | Planifier, router et collecter le calendrier | faux fournisseurs, budgets, jobs et replay complets hors réseau |
+| 4 | MVP-001 | Planifier, router et collecter le calendrier | Accepté le 19 septembre ; clôture effective par merge commit de la PR #15 vers RC01 |
 | 5 | ENR-002 | Produire l'enrichissement et la qualité | pilote local de sept jours conforme |
 | 6 | OPS-001 | Déployer un staging VPS sûr | image, secrets, sauvegarde/restauration et observabilité validés |
 
@@ -100,11 +100,50 @@ Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste str
 
 ## Étape 4 — MVP-001
 
+**État au 19 septembre 2026, après l'ouverture du 6 septembre :** le porteur accepte
+[MVP-001](work-orders/MVP-001.md) et autorise sa clôture et sa fusion vers RC01.
+La [PR #15](https://github.com/djothepirate/betting-project/pull/15) livre
+`feature/V0.1.0-RC01-CODEX-MVP-001`, partie de
+`feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281`, vers ce même train.
+Avant fusion : `MERGE_AUTHORIZED_IF_GREEN`, **19/20** ; dès le merge commit réel :
+`ACCEPTED - MERGED - CLOSED`, **20/20**, lots 0 à 6 `COMPLETED`.
+Le [rapport du lot 6](work-orders/MVP-001-lot6-execution.md) et le
+[dossier final](reviews/MVP-001-final-review.md) consolident les contrats, procédures et preuves : registre fermé,
+routage, protection du canon, budget, pagination, audit/replay, temps/ordre source et isolation
+des échecs fournisseurs, claim/fencing, reprise et absence de double effet logique, incidents
+consultables, API bornée, sélection plafonnée à sept, migrations peuplées, qualification et documentation.
+La prévision ne réserve ni
+n'envoie d'appel d'enrichissement ; le coût par rencontre est explicitement fourni.
+La baseline réelle reste inactive. Qualification intégrée du lot 6 le 19 septembre à 10:32:46 :
+**615 tests standards et 239 tests PostgreSQL/Testcontainers**, sans échec, erreur ni omission.
+Le lot final ne change aucun code, test, migration ou client. Les preuves antérieures
+restent historiques ; chaque lot fait l'objet d'un commit, d'un push et d'une vérification de
+sa CI sur le SHA publié. Le blocage Actions historique a été dépassé : `51e85de` puis `6843ff8`
+ont des CI Windows et Linux/PostgreSQL vertes (runs `35404160290`, tentative 2, puis `35411773181`).
+Le candidat accepté `871617b` a quatre checks verts (runs `35432891703` et `35432956177`)
+et ses revues automatiques de code et de sécurité terminées sans remarque. Le dernier closeout
+documentaire exige ses propres checks avant le merge autorisé ; leur preuve est portée par la PR.
+Aucun appel fournisseur réel n'est effectué ; les nouvelles
+routes sont internes, sous `control-api` loopback. V001–V011 sont inchangées, sans V012.
+La boucle worker livrée reste opt-in et désactivée, comme les clients ;
+leurs tests HTTP restent strictement loopback ou simulés.
+
+L'autorisation du porteur couvre exclusivement la clôture de MVP-001 et le merge vers RC01,
+pas une livraison vers `main` ou GitLab. ENR-002 est le prochain Work Order après la fusion
+réelle, sans activation implicite et sans confondre prévision et enrichissement exécuté.
+
 ### Objectif
 
 Implémenter le registre de capacités, le routage, les budgets, les adaptateurs de production et les jobs persistants de collecte calendrier.
 
 ### Contrats minimaux
+
+La [clarification COV-002](benchmark/mvp-001-cov002-clarification-20260906.md) prépare la révision
+du périmètre cible vers calendrier quotidien top 5 + UEFA et alimentation J7 optionnelle.
+La journée mesurée ne garantit pas quinze enrichissements exhaustifs sous 100 appels.
+Le budget du lot 2 reste indépendant de la largeur du calendrier ; les compléments J7 métier,
+la traduction des observations T0/T+45 et les fréquences nécessitent un cadrage explicite avant
+réalisation des lots concernés. Aucun live minute ou fournisseur réel n'est activé par cette note.
 
 - clé du registre : `provider × competition × season × phase × dataType` ;
 - données : `CALENDAR`, `MATCH_DETAIL`, `LINEUP`, `TEAM_STATS`, `EVENTS`, `PLAYER_STATS` ;

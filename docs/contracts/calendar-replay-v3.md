@@ -58,6 +58,31 @@ Le parseur ne remplace jamais un `observedAt` absent par l'heure de réception. 
 
 Tous les champs exigés par v2 restent obligatoires avec la même sémantique. Les identifiants et noms restent des observations fournisseur ; ils ne créent aucun mapping implicite.
 
+### Métadonnées descriptives inconnues — MVP-001 lot 3
+
+Décision du porteur du 18 septembre 2026 : `competition.countryCode`, `competition.type` et
+`homeTeam.countryCode` / `awayTeam.countryCode` peuvent être `null` lorsque la source ne les
+fournit pas. Le parseur peut aussi représenter leur absence par `null` ; la sérialisation dérivée
+les porte explicitement. Le wire format reste v3, sans nouveau schéma ni champ.
+
+Cette tolérance concerne uniquement les descriptions : références de compétition et d'équipes,
+saison, phase, noms requis et kickoff restent obligatoires. La normalisation dépend toujours
+des mappings exacts vers les référentiels canoniques ; elle n'invente pas un pays, un type ou une
+identité pour compenser l'inconnu. Les pays et types canoniques existants restent inchangés.
+Le pays d'une compétition ne vaut pas pays de chaque équipe, notamment dans les compétitions
+internationales. Les valeurs natives inconnues restent représentées dans le snapshot brut.
+
+Le [contrat de collecte calendrier fournisseur](provider-calendar-collection-v1.md) précise la
+traduction native vers v3, les phases littérales, l'identifiant de saison football-data.org distinct
+de l'année de filtre, les hashes natifs/dérivés et la provenance explicite de `observedAt`.
+
+Le contexte source reste celui du wire format : saison et phase natives sont conservées dans
+l'observation, la clé d'autorité et les mappings. Depuis la décision complémentaire de MVP-001
+lot 3, le registre peut fournir séparément la saison et la phase canoniques de sa route exacte.
+Le catalogue utilise cette correspondance versionnée pour l'identité et la comparaison des faits
+canoniques, sans modifier les littéraux observés ni inventer une conversion textuelle. Cette
+séparation n'ajoute aucun champ au wire format et n'active aucune affectation réelle.
+
 ## Neutralité et ordre
 
 | Champ | Présence | Valeurs acceptées | Sens |
@@ -95,6 +120,13 @@ Le parseur rejette explicitement :
 La validation de présence et de type des deux attributs v3 est locale au parseur et ne modifie pas la configuration JSON globale. Le snapshot brut reste la preuve de référence ; aucun champ absent n'est inventé et aucune fixture valide voisine n'est normalisée partiellement lorsqu'un élément rend le payload illisible.
 
 ## Application canonique depuis le lot 4
+
+Depuis MVP-001 lot 1, `RegistryCalendarAuthorityPolicy` consulte exclusivement le
+[registre de capacités classpath](provider-capability-registry-v1.md). Couverture, rôle et
+activation y sont distincts : `CALENDAR_ONLY` ne donne un rôle calendrier que s'il est explicite
+et actif. La version de politique est le SHA-256 des octets du registre. L'ancienne ressource
+de politique n'est plus chargée comme configuration ou fallback. La baseline réelle reste vide ;
+le wire format calendrier, les transitions et les règles de normalisation restent inchangés.
 
 Le normaliseur résout l'autorité à partir de la clé exacte `(provider, providerCompetitionId, season, phase, CALENDAR)` et journalise la version de la politique utilisée. Les valeurs runtime sont comparées littéralement : `*`, `?` et `%` ne sont jamais interprétés comme des motifs et restent des caractères fournisseur ordinaires. L'interdiction des jokers s'applique uniquement aux affectations de la configuration classpath ; toute entrée configurée contenant l'un de ces caractères fait échouer le chargement. La configuration de production reste vide et fermée par défaut : une source sans affectation exacte produit `UNASSIGNED`. Le snapshot brut, l'observation, le journal d'application et l'anomalie sont conservés, mais cette source ne crée ni compétition, ni équipe, ni saison, ni rencontre canonique, ni mapping. Aucune promotion implicite vers `PRIMARY` n'est permise.
 

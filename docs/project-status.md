@@ -1,4 +1,63 @@
-# État du projet au 5 septembre 2026
+# État du projet au 19 septembre 2026
+
+Le porteur accepte la clôture de MVP-001 et autorise sa fusion le 19 septembre 2026.
+La [PR #15](https://github.com/djothepirate/betting-project/pull/15) établit son état :
+`MERGE_AUTHORIZED_IF_GREEN` avant fusion ; `ACCEPTED - MERGED - CLOSED` dès qu'elle est
+`MERGED` par merge commit dans `feature/V0.1.0-RC01`. Sa branche
+`feature/V0.1.0-RC01-CODEX-MVP-001` part du SHA exact
+`5e4b05b5a1a7cfa66850643db31d9612192e7281` de `feature/V0.1.0-RC01`.
+Le [Work Order](work-orders/MVP-001.md) consigne le périmètre, les lots et les critères ; les lots 0
+à 5 sont terminés ; le lot 6 est accepté et devient `COMPLETED` à cette fusion. Le
+[rapport du lot 6](work-orders/MVP-001-lot6-execution.md) et le
+[dossier final](reviews/MVP-001-final-review.md) consignent la qualification Windows du
+19 septembre à 10:32:46 Europe/Paris : **615 tests standards et 239 tests PostgreSQL/Testcontainers**,
+sans échec, erreur ou omission. Le lot final est documentaire, sans changement de code ni de test.
+Le lot 0 est publié à `c96e45d` avec CI
+Windows/Linux verte. Le lot 1 est publié à `0f8a7d5`, avec CI Windows/Linux verte, et qualifié avec 352 tests standards et 118 tests
+PostgreSQL/Testcontainers, sans échec ni omission. Chaque lot terminé est commité, poussé puis
+contrôlé par CI sur son SHA. Le registre et le routage sont démontrés avec des références
+synthétiques ; la baseline réelle reste vide et inactive. **19/20 critères** sont établis avant
+fusion ; la preuve externe de merge de la PR #15 ferme le dernier et porte le total à **20/20**.
+Le [contrat budgétaire](contracts/provider-budget-v1.md) conserve le coût des envois incertains,
+refuse toute nouvelle autorisation sur un engagement acquis et maintient 100/80/20 pour Highlightly.
+L'initialisation et la réconciliation exigent une identité opérateur locale, sans activation réelle.
+Aucun appel fournisseur réel n'est effectué. Le lot 4 livre une boucle de worker
+optionnelle, sous `batch-worker` uniquement ; elle reste désactivée, comme les clients.
+Les tests HTTP utilisent des faux ou loopback. Les descriptions
+inconnues restent nulles et le contexte canonique provient de la route exacte du registre,
+sans écraser les références source. Le [contrat](contracts/provider-calendar-collection-v1.md)
+et le [runbook](runbooks/provider-calendar-local.md) fixent limites et garde-fous. Le
+[contrat jobs](contracts/collection-jobs-v1.md) distingue reprise de page native et rejeu CAT-002 ;
+les coûts incertains restent acquis sans nouvelle autorisation. Le lot 5 expose les projections
+bornées et expurgées sous `/internal/collection`, exclusivement sous `control-api` loopback.
+La sélection PPL/PD relie le canon aux quatre calendriers primaires terminés et au budget résiduel,
+avec un coût explicite et un plafond de sept. C'est une prévision sans réservation ni appel
+d'enrichissement ; ENR-002 devra revalider et imposer le plafond durable à l'exécution.
+V001–V011 restent inchangées, sans V012. Contrat et procédures :
+[API](contracts/collection-control-api-v1.md), [runbook](runbooks/collection-control-local.md).
+
+La CI du lot 3 au SHA `f958a88` n'avait exécuté aucune étape pour cause de facturation GitHub.
+Après le passage privé → public effectué par le porteur, la base du lot 5 `51e85de` est
+qualifiée par le [run 35404160290, tentative 2](https://github.com/djothepirate/betting-project/actions/runs/35404160290),
+Windows et Linux/PostgreSQL verts. Le lot 5 `6843ff8` a lui aussi ses checks verts, run
+[35411773181](https://github.com/djothepirate/betting-project/actions/runs/35411773181), vérifiés
+avant le lot 6. Le candidat `871617b` a quatre checks verts, sur les runs
+[35432891703](https://github.com/djothepirate/betting-project/actions/runs/35432891703) et
+[35432956177](https://github.com/djothepirate/betting-project/actions/runs/35432956177), ainsi que
+ses revues automatiques de code et de sécurité terminées sans remarque. L'acceptation du porteur
+est acquise ; les checks du dernier closeout documentaire et l'absence de nouvelle remarque
+doivent être vérifiés avant le merge autorisé. Le SHA livré, les runs finaux et le merge commit
+restent consultables dans la PR #15, sans prétendre ici qu'un commit futur a passé sa CI.
+Ni activation fournisseur, ni démarrage ENR-002, ni livraison vers `main` n'est implicite.
+Les états historiques ci-dessous ne constituent pas une nouvelle validation de MVP-001.
+
+La [clarification COV-002](benchmark/mvp-001-cov002-clarification-20260906.md) est désormais
+consignée : journée top 5 de quinze rencontres, 100 appels Highlightly consommés et 18 familles
+dédiées différées au point de mesure 23:07. Audit hors réseau de 138 SHA-256/JSON, sans replay
+de production ni audit des octets Lab. La cible exprimée élargit le calendrier souhaité au top 5
+et à l'UEFA et prévoit un apport J7 optionnel. Ces orientations ne sont ni des affectations
+activées ni un consommateur J7 déjà livré. Le lot 2 a livré son mécanisme générique ;
+la profondeur d'enrichissement, la cadence et les lots aval doivent être réconciliés explicitement.
 
 ## Synthèse
 
@@ -15,7 +74,7 @@ Betting Project possède un socle applicatif, un catalogue canonique, une chaîn
 | ENR-001 | Fusionné et clôturé | Les 127 preuves sont vérifiées, les validations sont vertes et la Pull Request `#3` est fusionnée dans `main` au commit `6913cea`. |
 | CAT-002 | `ACCEPTED - MERGED - CLOSED` | La Pull Request `#8` est fusionnée dans `main` au commit `85dc943`. Le correctif fonctionnel `6fb69e2` et l'alignement documentaire `a3b471f` sont présents ; les 36 critères sur 36 sont satisfaits, les quatre checks Windows/Linux des deux commits sont verts et la discussion P2 est résolue. |
 | INT-001 | `CLOSED - MERGED` | Le périmètre local est clôturé le 5 septembre après qualification et revue propriétaire. Le candidat `de06153` reste sur `codex/int-001-j7-receiver`, avec flag désactivé par défaut, contrat strict, mTLS/JDBC loopback et migrations `V006` à `V008`. La clôture documentaire sur `codex/int-001-closeout` préserve les preuves qualifiées. La PR #11 est fusionnée dans main au commit `7f1f3aa`, après autorisation propriétaire. Les campagnes réelles gardent leurs décisions propres. |
-| Chaîne opérationnelle | Non réalisée | Aucun ordonnanceur réel, routeur fournisseur, worker de jobs complet, workflow de résolution des anomalies ou connecteur de production n'est fusionné. |
+| Chaîne calendrier MVP-001 | Acceptée ; fusion et clôture établies par la PR #15 vers RC01 | Registre, budget, connecteurs natifs, jobs/reprise et contrôle interne qualifiés hors fournisseur réel. La PR `MERGED` vaut 20/20 et clôture des lots 0 à 6 ; avant cela, seul le merge est autorisé sous CI verte. Registre et clients restent inactifs. |
 | Produit de paris | Non commencé | Cotes, probabilités, valuebets, recommandations, documents, diffusion et suivi de performance sont différés. |
 
 ## Catalogue fusionné et évolution CAT-002
@@ -167,7 +226,7 @@ Le correctif, les tests de faux vert, la validation Windows complète et les con
 | Pull Request `#8` fusionnée et commit `85dc943` présent dans `main` | CAT-002 vaut définitivement `ACCEPTED - MERGED - CLOSED`. |
 | INT-001 est clôturé et fusionné par la PR #11 dans `main` à `7f1f3aa` | Livraison Git réalisée après autorisation propriétaire ; receiver désactivé par défaut. |
 | INT-001 livré ; une nouvelle utilisation opérationnelle est envisagée | Le receiver reste local et opt-in ; une livraison réelle, une cible ou un déploiement exigent toujours des décisions et Work Orders séparés. |
-| CAT-002 est clôturé | MVP-001 reste le prochain Work Order du pipeline produit, sans activation automatique ; ENR-002 vient ensuite. |
+| MVP-001 accepté par le porteur ; PR #15 `MERGED` par merge commit vers RC01 | 20/20 critères, lots 0 à 6 terminés, MVP-001 `ACCEPTED - MERGED - CLOSED`. Avant ce merge, 19/20 et autorisation sous CI finale verte. ENR-002 est le prochain Work Order, sans activation implicite. |
 | Le pipeline local fiable est accepté | OPS-001 peut alors être ouvert, sans activation automatique. |
 
 Chaque passage vers `main`, protection GitHub ou déploiement nécessite l'autorisation humaine prévue par ADR-005. Le commit fonctionnel CAT-002 `6fb69e2` et l'alignement documentaire `a3b471f` sont fusionnés par la PR `#8` au commit `85dc943`; leurs checks sont verts, la seconde attestation est conforme et la discussion P2 est résolue. Les routes du lot 7 restent internes, liées à `127.0.0.1` et interdites d'exposition avant OPS-001 ; aucun worker CAT-002 n'a été créé. INT-001 ne modifie cette posture que dans une qualification opt-in : son activation fait passer tout le connecteur local sous HTTPS+mTLS, mais ne vaut aucune autorisation externe. La validation propriétaire est consignée dans `de06153` et la clôture locale est enregistrée sur `codex/int-001-closeout`. Le contrôle distant préalable à la publication retrouve `main` à `5a8161e`. Le propriétaire a ensuite explicitement autorisé le push et la création d'une PR vers `main` : `codex/int-001-closeout` a été publiée, puis la [PR #11](https://github.com/djothepirate/betting-project/pull/11) a été fusionnée avec son autorisation le 5 septembre 2026 à 11:26:58 UTC, au commit `7f1f3aa`. Le main distant consulté pour SKL-003 contient cette fusion ; les preuves historiques de la qualification INT-001 restent inchangées.

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -128,6 +129,79 @@ class CalendarNormalizationIT {
         assertThat(singleBoolean("SELECT neutral_venue IS NULL FROM canonical_fixture")).isTrue();
         assertThat(singleBoolean("SELECT participants_unordered FROM canonical_fixture")).isFalse();
         assertThat(fixtureMappings()).isEqualTo(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"cal01-fixture-v2", "cal01-fixture-v3"})
+    void exactMappingsNormalizeUnknownDescriptiveMetadataWithoutInventingOrOverwritingIt(String schema) throws IOException {
+        CanonicalIds canonical = registerCanonicalEntities();
+        bindHighlightly(canonical);
+        String payload = new String(fixture("/fixtures/cat001/calendar-v2-highlightly.json"), StandardCharsets.UTF_8)
+                .replace("cal01-fixture-v2", schema)
+                .replace("\"countryCode\": \"UKR\"", "\"countryCode\": null")
+                .replace("\"type\": \"DOMESTIC_LEAGUE\"", "\"type\": null");
+        if (schema.equals("cal01-fixture-v3")) {
+            payload = payload.replace("\"status\": \"SCHEDULED\",",
+                    "\"status\": \"SCHEDULED\", \"neutralVenue\": null, \"participantsUnordered\": false,");
+        }
+
+        NormalizationResult result = normalizationService.normalize(snapshot(
+                payload.getBytes(StandardCharsets.UTF_8), "highlightly", "calendar/unknown-metadata",
+                "2026-08-11T10:00:01Z"));
+
+        assertThat(result.compatible()).isTrue();
+        assertThat(result.fixturesCreated()).isEqualTo(1);
+        assertThat(result.fixturesBlocked()).isZero();
+        assertThat(result.anomalies()).isZero();
+        assertThat(count("canonical_competition")).isEqualTo(1);
+        assertThat(count("canonical_team")).isEqualTo(2);
+        assertThat(count("canonical_fixture")).isEqualTo(1);
+        assertThat(count("fixture_observation")).isEqualTo(1);
+        assertThat(applicationOutcomeCount("CREATED")).isEqualTo(1);
+        assertThat(singleUuid("SELECT competition_id FROM canonical_fixture")).isEqualTo(canonical.competitionId());
+        assertThat(singleUuid("SELECT home_team_id FROM canonical_fixture")).isEqualTo(canonical.homeTeamId());
+        assertThat(singleUuid("SELECT away_team_id FROM canonical_fixture")).isEqualTo(canonical.awayTeamId());
+        assertThat(singleString("SELECT country_code FROM canonical_competition")).isEqualTo("UKR");
+        assertThat(singleString("SELECT competition_type FROM canonical_competition")).isEqualTo("DOMESTIC_LEAGUE");
+        assertThat(jdbcClient.sql("SELECT country_code FROM canonical_team").query(String.class).list())
+                .containsExactlyInAnyOrder("UKR", "UKR");
+        byte[] retained = jdbcClient.sql("SELECT payload FROM raw_snapshot").query(byte[].class).single();
+        assertThat(retained).isEqualTo(payload.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @ParameterizedTest(name = "missing canonical identity field: {0}")
+    @MethodSource("missingCanonicalIdentityFields")
+    void missingIdentifiersSeasonOrPhaseRemainBlockingDespiteKnownMappings(
+            String field, String expected, String replacement) throws IOException {
+        CanonicalIds canonical = registerCanonicalEntities();
+        bindHighlightly(canonical);
+        byte[] payload = replaceInFixture(
+                "/fixtures/cat001/calendar-v2-highlightly.json", expected, replacement);
+
+        NormalizationResult result = normalizationService.normalize(snapshot(
+                payload, "highlightly", "calendar/missing-identity", "2026-08-11T10:00:01Z"));
+
+        assertThat(result.compatible()).as(field).isTrue();
+        assertThat(result.fixturesBlocked()).isEqualTo(1);
+        assertThat(result.fixturesCreated()).isZero();
+        assertThat(result.anomalies()).isEqualTo(1);
+        assertThat(count("raw_snapshot")).isEqualTo(1);
+        assertThat(count("canonical_season")).isZero();
+        assertThat(count("canonical_fixture")).isZero();
+        assertThat(fixtureMappings()).isZero();
+        assertThat(count("fixture_observation")).isEqualTo(1);
+        assertThat(singleString("SELECT normalization_status FROM fixture_observation")).isEqualTo("REJECTED");
+        assertThat(applicationOutcomeCount("REJECTED")).isEqualTo(1);
+        assertThat(anomalyCount("INVALID_FIXTURE")).isEqualTo(1);
+    }
+
+    private static Stream<Arguments> missingCanonicalIdentityFields() {
+        return Stream.of(
+                Arguments.of("providerCompetitionId", "\"providerCompetitionId\": \"hly-upl\",", ""),
+                Arguments.of("homeTeam.providerTeamId", "\"providerTeamId\": \"hly-kryvbas\",", ""),
+                Arguments.of("awayTeam.providerTeamId", "\"providerTeamId\": \"hly-livyi-bereh\",", ""),
+                Arguments.of("season", "\"season\": \"2026/2027\",", ""),
+                Arguments.of("phase", "\"phase\": \"REGULAR_SEASON\"", "\"phase\": null"));
     }
 
     @Test

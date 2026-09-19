@@ -9,11 +9,12 @@ import com.bettingproject.catalog.application.CalendarAuthorityDataType;
 import com.bettingproject.catalog.application.CalendarAuthorityKey;
 import com.bettingproject.catalog.application.CalendarAuthorityPolicy;
 import com.bettingproject.catalog.application.ConfiguredCalendarAuthorityPolicy;
+import com.bettingproject.catalog.application.RegistryCalendarAuthorityPolicy;
+import com.bettingproject.collection.application.capability.ProviderCapabilityRegistry;
 import com.bettingproject.catalog.domain.CalendarAuthorityRole;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -25,8 +26,8 @@ public class ClasspathCalendarAuthorityConfiguration {
     static final String POLICY_RESOURCE = "catalog/calendar-authority-policy-v1.json";
 
     @Bean
-    CalendarAuthorityPolicy calendarAuthorityPolicy() {
-        return load(new ClassPathResource(POLICY_RESOURCE));
+    CalendarAuthorityPolicy calendarAuthorityPolicy(ProviderCapabilityRegistry registry) {
+        return new RegistryCalendarAuthorityPolicy(registry);
     }
 
     static CalendarAuthorityPolicy load(Resource resource) {

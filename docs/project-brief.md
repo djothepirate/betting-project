@@ -13,6 +13,20 @@ Le produit doit privilégier la qualité mesurée, la provenance et le replay pl
 
 ## Périmètre du prochain jalon
 
+### Clarification produit du 6 septembre — cible et baseline distinctes
+
+La [journée COV-002](benchmark/mvp-001-cov002-clarification-20260906.md) mesure quinze rencontres
+du top 5 et le coût réel des contrôles. Le porteur précise une cible quotidienne top 5 + UEFA,
+avec PT/NL/TR éventuels, et un mode étendu optionnel alimenté par J7. Le Lab n'est donc plus
+limité au rôle de comparateur, sans devenir une API directe ou une dépendance obligatoire.
+Les futures compositions normales ciblent T-30 puis T-15 conditionnel, avec DETAIL T0 distinct ;
+le contrôle T+45 souhaité reste à contractualiser. Le consommateur métier J7 n'est pas encore livré.
+
+Les tableaux et règles ci-dessous restent la baseline opérationnelle historique : leur élargissement
+doit être réconcilié avec les critères du Work Order, les preuves par capacité et le budget.
+La campagne 100/0 était une dérogation datée et ne généralise pas la suppression de réserve.
+Le live minute reste une expérimentation séparée, sans profil live autorisé dans ce dépôt.
+
 Le prochain jalon majeur livre un pipeline football fiable. Il ne regroupe pas encore les cotes, les probabilités, les valuebets ou la publication.
 
 ### Compétitions
@@ -48,7 +62,7 @@ Planificateur
 - Les effets externes utilisent des clés d'idempotence et l'outbox.
 - PostgreSQL est la source de vérité. Les migrations partagées sont immuables ; les corrections sont additives.
 - Les tests de persistance utilisent PostgreSQL/Testcontainers, jamais H2.
-- Le profil `replay` reste hors réseau, sans DataSource, sans Flyway et sans PostgreSQL ; il rejoue des fichiers ou octets en mémoire. Le rejeu d'un snapshot PostgreSQL passe exclusivement par un cas d'usage interne du `control-api`.
+- Le profil `replay` reste hors réseau, sans DataSource, sans Flyway et sans PostgreSQL ; il rejoue des fichiers ou octets en mémoire. Le rejeu CAT-002 d'un snapshot PostgreSQL reste piloté par le `control-api`. MVP-001 lot 4 peut en outre programmer explicitement le replay d'une page native fournisseur sous `batch-worker`, sans HTTP et sans consommer les demandes CAT-002 ; voir `collection-jobs-v1`.
 - Aucun microservice, broker externe, Redis ou Kubernetes n'est introduit sans besoin démontré et nouvelle décision.
 - Le staging VPS ne commence qu'après acceptation du pipeline local fiable.
 

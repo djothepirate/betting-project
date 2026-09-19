@@ -53,6 +53,7 @@ public class CalendarNormalizationService {
     private final SnapshotParser<CalendarSnapshot> snapshotParser;
     private final CalendarNormalizationLock normalizationLock;
     private final CalendarAuthorityPolicy authorityPolicy;
+    private final CalendarCanonicalContextPolicy canonicalContextPolicy;
     private final FixtureChronologyPolicy chronologyPolicy;
     private final FixtureIdentityPolicy identityPolicy;
     private final CatalogRepository catalogRepository;
@@ -67,6 +68,7 @@ public class CalendarNormalizationService {
             SnapshotParser<CalendarSnapshot> snapshotParser,
             CalendarNormalizationLock normalizationLock,
             CalendarAuthorityPolicy authorityPolicy,
+            CalendarCanonicalContextPolicy canonicalContextPolicy,
             CatalogRepository catalogRepository,
             FixtureObservationStore observationStore,
             FixtureApplicationJournal applicationJournal,
@@ -77,6 +79,7 @@ public class CalendarNormalizationService {
         this.snapshotParser = snapshotParser;
         this.normalizationLock = normalizationLock;
         this.authorityPolicy = authorityPolicy;
+        this.canonicalContextPolicy = canonicalContextPolicy;
         this.chronologyPolicy = new FixtureChronologyPolicy();
         this.identityPolicy = new FixtureIdentityPolicy();
         this.catalogRepository = catalogRepository;
@@ -206,12 +209,13 @@ public class CalendarNormalizationService {
             return;
         }
 
-        CalendarAuthorityResolution authority = authorityPolicy.resolve(new CalendarAuthorityKey(
+        CalendarAuthorityKey authorityKey = new CalendarAuthorityKey(
                 provider,
                 competition.providerCompetitionId(),
                 competition.season(),
                 competition.phase(),
-                CalendarAuthorityDataType.CALENDAR));
+                CalendarAuthorityDataType.CALENDAR);
+        CalendarAuthorityResolution authority = authorityPolicy.resolve(authorityKey);
         if (authority.role() == CalendarAuthorityRole.UNASSIGNED) {
             UUID applicationLogId = recordApplication(
                     snapshotId, null, schemaVersion, provider, observedAt, source,
@@ -271,15 +275,21 @@ public class CalendarNormalizationService {
             return;
         }
 
+        // An exact registry assignment can relate distinct source vocabularies to one canonical
+        // context. Observations, anomaly contexts, mappings and authority keys remain source-literal.
+        // Legacy callers without an assignment keep their original literal behavior, never a guessed
+        // neighboring route. Production authority remains closed when the exact assignment is absent.
+        CalendarCanonicalContext canonicalContext = canonicalContextPolicy.resolve(authorityKey)
+                .orElseGet(() -> new CalendarCanonicalContext(competition.season(), competition.phase()));
         CanonicalSeason season;
         if (authority.role() == CalendarAuthorityRole.PRIMARY) {
             season = catalogRepository.getOrCreateSeason(new CanonicalSeason(
-                    UUID.randomUUID(), competitionMapping.canonicalId(), competition.season(),
+                    UUID.randomUUID(), competitionMapping.canonicalId(), canonicalContext.season(),
                     null, null, now, now));
         }
         else {
             Optional<CanonicalSeason> existingSeason = catalogRepository.findSeason(
-                    competitionMapping.canonicalId(), competition.season());
+                    competitionMapping.canonicalId(), canonicalContext.season());
             if (existingSeason.isEmpty()) {
                 recordControlWithoutPrimary(
                         snapshotId, schemaVersion, provider, observedAt, source,
@@ -298,6 +308,7 @@ public class CalendarNormalizationService {
                 fixtureStatus,
                 competitionMapping.canonicalId(),
                 season.id(),
+                canonicalContext.phase(),
                 homeMapping.canonicalId(),
                 awayMapping.canonicalId(),
                 authority,
@@ -315,6 +326,7 @@ public class CalendarNormalizationService {
             FixtureStatus status,
             UUID competitionId,
             UUID seasonId,
+            String canonicalPhase,
             UUID homeTeamId,
             UUID awayTeamId,
             CalendarAuthorityResolution authority,
@@ -416,7 +428,7 @@ public class CalendarNormalizationService {
                         new CanonicalFixture(
                                 UUID.randomUUID(), competitionId, seasonId, homeTeamId, awayTeamId,
                                 source.neutralVenue(), source.participantsUnordered(),
-                                source.kickoff(), status, competition.phase(), null, now, now));
+                                source.kickoff(), status, canonicalPhase, null, now, now));
                 fixture = storedFixture.fixture();
                 created = storedFixture.inserted();
                 NormalizationAnomalyCode identityFailure = identityFailure(
@@ -470,7 +482,7 @@ public class CalendarNormalizationService {
                 source.participantsUnordered(),
                 source.kickoff(),
                 status,
-                competition.phase());
+                canonicalPhase);
         if (created) {
             createFromPrimary(
                     snapshotId, schemaVersion, provider, observedAt, source,
@@ -942,14 +954,10 @@ public class CalendarNormalizationService {
         return competition != null
                 && hasText(competition.providerCompetitionId())
                 && hasText(competition.name())
-                && hasText(competition.countryCode())
-                && hasText(competition.type())
                 && hasText(competition.season())
                 && hasText(competition.phase())
                 && hasText(homeTeam.providerTeamId())
-                && hasText(homeTeam.countryCode())
-                && hasText(awayTeam.providerTeamId())
-                && hasText(awayTeam.countryCode());
+                && hasText(awayTeam.providerTeamId());
     }
 
     private boolean hasText(String value) {
