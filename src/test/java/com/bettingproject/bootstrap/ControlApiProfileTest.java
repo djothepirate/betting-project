@@ -99,6 +99,7 @@ class ControlApiProfileTest {
 
     @Test
     void controlApiStartsFromTheMainApplication() {
+        CollectionControlProfileAssertions.verify(applicationContext,true);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobPlanningService.class)).hasSize(1);

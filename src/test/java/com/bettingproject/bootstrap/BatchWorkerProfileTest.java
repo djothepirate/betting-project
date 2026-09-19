@@ -94,6 +94,7 @@ class BatchWorkerProfileTest {
 
     @Test
     void batchWorkerStartsFromTheMainApplication() {
+        CollectionControlProfileAssertions.verify(applicationContext,false);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).hasSize(1);

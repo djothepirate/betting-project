@@ -127,6 +127,13 @@ validité. Les transports et le registre réels restent fermés ; l'orchestratio
 
 ## Livraison par lot
 
+Le lot 5 ajoute les [consultations internes](collection-control-api-v1.md) des capacités, budgets,
+intentions, incidents, jobs et pages, sans exposer de payload ou clé interne. La sélection PPL/PD
+est une prévision sans réservation : quatre calendriers primaires terminés du noyau pour un même
+jour UTC, budget restant réel, coût par rencontre explicitement fourni, puis priorité, kickoff et
+UUID. Au plus sept rencontres sont proposées. Les fournisseurs restent désactivés ; ENR-002 devra
+revalider, réserver et contrôler le plafond durable avant tout enrichissement réel.
+
 Le lot 4 du 19 septembre ajoute les jobs et reprises selon
 [collection-jobs-v1](collection-jobs-v1.md) : planification datée explicite, claim PostgreSQL,
 bail/jeton, historique et backoff bornés. L'outbox dédiée ne consomme ni publication ni J7.

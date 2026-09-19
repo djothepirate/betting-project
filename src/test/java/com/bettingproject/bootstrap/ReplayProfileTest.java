@@ -96,6 +96,7 @@ class ReplayProfileTest {
 
     @Test
     void replayStartsOfflineWithoutDatabaseInfrastructure() {
+        CollectionControlProfileAssertions.verify(applicationContext,false);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobRepository.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).isEmpty();

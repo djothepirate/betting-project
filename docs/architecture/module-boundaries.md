@@ -264,3 +264,28 @@ Le package `bootstrap` contient uniquement l'assemblage de l'application. Le pac
 
 Contrat : [collection-jobs-v1](../contracts/collection-jobs-v1.md). V011 est additive ; aucune
 migration antérieure, aucun contrat JSON calendrier et aucun composant du receiver J7 n'est modifié.
+
+## MVP-001 lot 5 : contrôle et prévision de sélection
+
+- `collection.application.control` définit les lectures minimisées et le cas d'usage de sélection.
+  `CollectionQueryService` est en transaction read-only ; `DailySelectionService` calcule sans
+  écriture sous une transaction courte, en réutilisant les verrous et le calcul du budget qualifié.
+- `collection.domain.selection.DailySelectionPolicy` applique plafond de sept, coût explicite,
+  éligibilité PPL/PD et ordre priorité/kickoff/UUID, sans Spring, HTTP ou persistance.
+- Le port `DailySelectionCandidates` est défini dans `collection` et implémenté par
+  `catalog.adapter.persistence.JdbcDailySelectionCandidates`. Il lit le canon depuis ses
+  observations d'autorité et les dérivations conservées ; aucune dépendance inverse de
+  `collection` vers `catalog` n'est créée.
+- `operations.application.jobs.JobQueryPort` et son adaptateur séparent les lectures des écritures
+  de jobs. `collection` orchestre la consultation de ces ports, jamais l'inverse.
+- `shared.application.ReadPage` porte les bornes et ancres typées ; le helper SQL demeure dans
+  `shared.adapter.persistence`. Aucun SQL ou type JDBC/HTTP ne remonte dans l'application.
+- `collection.adapter.web.control` porte `/internal/collection`, parsing strict local, listes
+  blanches des paramètres, curseurs liés au scope/filtres et erreurs génériques. Les projections
+  n'exposent aucun payload, clé, token ou identifiant de compte.
+- Ces nouveaux services, ports JDBC et contrôleurs sont assemblés uniquement sous `control-api`,
+  jamais `batch-worker` ou `replay`. Aucune migration V012, écriture, réservation de sélection,
+  activation de fournisseur ou modification du worker/J7 n'est introduite.
+
+Contrat : [collection-control-api-v1](../contracts/collection-control-api-v1.md). La sélection est
+prévisionnelle ; ENR-002 devra revalider et réserver avant enrichissement, avec plafond durable.
