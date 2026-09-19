@@ -18,7 +18,7 @@ Les charges de benchmark et les connecteurs de production restent séparés : le
 | 1 | DEVX-001 | Éliminer les faux verts et versionner la mémoire du projet | Accepté, fusionné par la Pull Request `#2` et clôturé |
 | 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | Accepté, fusionné par la Pull Request `#3` au commit `6913cea` et clôturé |
 | 3 | CAT-002 | Durcir le canon et rendre les anomalies opérables | ordre, autorité, concurrence, mappings et replay administrables |
-| 4 | MVP-001 | Planifier, router et collecter le calendrier | faux fournisseurs, budgets, jobs et replay complets hors réseau |
+| 4 | MVP-001 | Planifier, router et collecter le calendrier | Accepté le 19 septembre ; clôture effective par merge commit de la PR #15 vers RC01 |
 | 5 | ENR-002 | Produire l'enrichissement et la qualité | pilote local de sept jours conforme |
 | 6 | OPS-001 | Déployer un staging VPS sûr | image, secrets, sauvegarde/restauration et observabilité validés |
 
@@ -100,14 +100,15 @@ Les portes locales des lots 2 à 7 sont franchies : `cal01-fixture-v3` reste str
 
 ## Étape 4 — MVP-001
 
-**État au 19 septembre 2026, après l'ouverture du 6 septembre :** [MVP-001](work-orders/MVP-001.md)
-est `ACTIVE - AWAITING_HUMAN_REVIEW`, lots 0 à 5 terminés et lot 6 techniquement qualifié.
+**État au 19 septembre 2026, après l'ouverture du 6 septembre :** le porteur accepte
+[MVP-001](work-orders/MVP-001.md) et autorise sa clôture et sa fusion vers RC01.
+La [PR #15](https://github.com/djothepirate/betting-project/pull/15) livre
+`feature/V0.1.0-RC01-CODEX-MVP-001`, partie de
+`feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281`, vers ce même train.
+Avant fusion : `MERGE_AUTHORIZED_IF_GREEN`, **19/20** ; dès le merge commit réel :
+`ACCEPTED - MERGED - CLOSED`, **20/20**, lots 0 à 6 `COMPLETED`.
 Le [rapport du lot 6](work-orders/MVP-001-lot6-execution.md) et le
-[dossier final](reviews/MVP-001-final-review.md) consolident les contrats, procédures et preuves.
-La revue humaine et la fusion restent ouvertes. La branche
-`feature/V0.1.0-RC01-CODEX-MVP-001` part de
-`feature/V0.1.0-RC01@5e4b05b5a1a7cfa66850643db31d9612192e7281` ; sa PR de clôture
-ciblera `feature/V0.1.0-RC01`. Dix-huit critères sur vingt sont démontrés : registre fermé,
+[dossier final](reviews/MVP-001-final-review.md) consolident les contrats, procédures et preuves : registre fermé,
 routage, protection du canon, budget, pagination, audit/replay, temps/ordre source et isolation
 des échecs fournisseurs, claim/fencing, reprise et absence de double effet logique, incidents
 consultables, API bornée, sélection plafonnée à sept, migrations peuplées, qualification et documentation.
@@ -119,14 +120,17 @@ Le lot final ne change aucun code, test, migration ou client. Les preuves antér
 restent historiques ; chaque lot fait l'objet d'un commit, d'un push et d'une vérification de
 sa CI sur le SHA publié. Le blocage Actions historique a été dépassé : `51e85de` puis `6843ff8`
 ont des CI Windows et Linux/PostgreSQL vertes (runs `35404160290`, tentative 2, puis `35411773181`).
-Les checks du nouveau SHA et de la PR restent obligatoires. Aucun appel fournisseur réel n'est effectué ; les nouvelles
+Le candidat accepté `871617b` a quatre checks verts (runs `35432891703` et `35432956177`)
+et ses revues automatiques de code et de sécurité terminées sans remarque. Le dernier closeout
+documentaire exige ses propres checks avant le merge autorisé ; leur preuve est portée par la PR.
+Aucun appel fournisseur réel n'est effectué ; les nouvelles
 routes sont internes, sous `control-api` loopback. V001–V011 sont inchangées, sans V012.
 La boucle worker livrée reste opt-in et désactivée, comme les clients ;
 leurs tests HTTP restent strictement loopback ou simulés.
 
-La préparation de PR n'autorise pas le merge : le porteur doit relire le diff et rejouer les tests
-avant d'autoriser la fusion par merge commit vers RC01. ENR-002 n'est pas encore activé ; ses
-travaux suivent la clôture réelle de MVP-001, sans confondre prévision et enrichissement exécuté.
+L'autorisation du porteur couvre exclusivement la clôture de MVP-001 et le merge vers RC01,
+pas une livraison vers `main` ou GitLab. ENR-002 est le prochain Work Order après la fusion
+réelle, sans activation implicite et sans confondre prévision et enrichissement exécuté.
 
 ### Objectif
 

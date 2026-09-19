@@ -1,7 +1,9 @@
 # MVP-001 — Dossier de revue finale
 
-Date : 19 septembre 2026. État : **READY_FOR_HUMAN_REVIEW**, pas accepté ni fusionné.
-Revue technique : Codex. Revue humaine : **PENDING**, réservée au porteur dans Eclipse et la PR.
+Date : 19 septembre 2026. Décision du porteur : **APPROVED_FOR_CLOSEOUT_AND_MERGE**.
+Revue technique : Codex. Acceptation humaine de clôture et fusion vers RC01 communiquée.
+État de livraison : `MERGE_AUTHORIZED_IF_GREEN` avant fusion ; `ACCEPTED - MERGED - CLOSED`
+dès le merge commit effectif de la [PR #15](https://github.com/djothepirate/betting-project/pull/15).
 
 ## Candidat et provenance
 
@@ -11,7 +13,10 @@ Revue technique : Codex. Revue humaine : **PENDING**, réservée au porteur dans
 - Le commit documentaire du lot 6 qui porte ce dossier ne change aucun octet sous `src`, aucun
   POM, script ou workflow par rapport au commit fonctionnel. Le HEAD publié et ses runs sont à
   vérifier dans la description et les checks de PR, sans auto-référence SHA dans ce fichier.
-- Aucune activation réelle, fusion ou livraison du train n'est autorisée par cette qualification.
+- La qualification seule n'autorisait aucune fusion. La décision ultérieure du porteur autorise
+  le merge commit de la PR #15 vers RC01 ; aucune activation réelle ou livraison vers `main`.
+- Candidat accepté par le porteur : `871617b2b91740da76380cdc650e7adcebb458c8` ; son closeout
+  final ne change que les six documents de décision, d'exécution et de mémoire du projet.
 
 Diff cumulé : **170 fichiers**, dont 98 Java de production, 35 Java de tests, 3 migrations
 (V009–V011), 1 registre classpath vide, 5 fichiers de fixtures et 28 documents. Les payloads
@@ -73,10 +78,11 @@ versionnées sous `src/test/java/com/bettingproject` et accessibles par la reche
 | 16 | Migrations neuves et V008 peuplée | `V009MigrationIT` peuple équipe/mapping/audit/outbox sous V008 puis migre jusqu'à V011 ; `V010MigrationIT`, `V011MigrationIT` vérifient les étapes peuplées et contraintes | PROVEN |
 | 17 | Tests et scans exécutés | Qualification Windows 615 + 239, XML sans omission ; contrôles d'intégrité et scan du lot 6 | PROVEN |
 | 18 | Documentation reliée au candidat | Contrats registre/budget/calendrier/jobs/contrôle, runbooks, dossier de revue, rapport lot 6 et mémoire | PROVEN |
-| 19 | Revue humaine, fils résolus, CI tête PR | À effectuer sur le HEAD publié ; ni une revue technique ni un run d'ancêtre ne suffisent | OPEN |
-| 20 | Fusion autorisée par merge commit | Cible exclusive `feature/V0.1.0-RC01`, après revue humaine ; aucune fusion ici | OPEN |
+| 19 | Acceptation humaine, fils résolus, CI tête PR | Décision du porteur du 19 septembre ; quatre checks verts et deux revues automatiques terminées sans remarque sur `871617b`. Le closeout documentaire reste soumis aux checks de sa propre tête avant fusion | ACCEPTED — garde CI finale |
+| 20 | Fusion autorisée par merge commit | Preuve externe : PR #15 `MERGED`, cible exclusive `feature/V0.1.0-RC01`, merge commit consultable sur la PR | CLOSED dès le merge effectif |
 
-Total : **18/20** démontrés. Les critères 19–20 ne sont pas fermés par la préparation de PR.
+Total : **19/20 avant fusion**, **20/20 dès le merge effectif de la PR #15**. La préparation
+du closeout ne prétend pas qu'un futur commit a passé sa CI ou a déjà été fusionné.
 
 ## Exécutions et intégrité
 
@@ -90,10 +96,15 @@ named pipe. Sont inclus : migrations, concurrence, redémarrages, profils, ArchU
 Pas de changement de script : Pester, le build standard isolé et `verify-windows.cmd` ne sont
 pas relancés après le cycle intégration, qui inclut déjà les tests standards. Aucun résultat WSL
 nouveau. La CI du lot 5 [35411773181](https://github.com/djothepirate/betting-project/actions/runs/35411773181)
-est verte sur `6843ff8`, Windows et Linux avec PostgreSQL réel. Les checks du commit documentaire
-et de la PR sont à examiner séparément sur leur SHA ; ce dossier prépublication ne présume pas
-leur réussite. Le [rapport du lot 6](../work-orders/MVP-001-lot6-execution.md) consigne le scan,
-le diff et les contrôles finaux.
+est verte sur `6843ff8`, Windows et Linux avec PostgreSQL réel.
+Le candidat `871617b` a ensuite réussi les runs
+[push 35432891703](https://github.com/djothepirate/betting-project/actions/runs/35432891703) et
+[PR 35432956177](https://github.com/djothepirate/betting-project/actions/runs/35432956177) :
+615 tests standards sous Windows, 615 standards et 239 PostgreSQL sous Linux, zéro échec,
+erreur ou omission. Les revues automatiques de code et de sécurité sont terminées sur ce SHA,
+sans remarque ni fil ouvert. Les checks du dernier closeout sont vérifiés séparément sur sa tête
+et consignés dans la description de PR, sans auto-référence SHA ni réussite présumée dans ce fichier.
+Le [rapport du lot 6](../work-orders/MVP-001-lot6-execution.md) consigne le scan et l'intégrité.
 
 Les onze migrations sont inchangées, pas de V012 :
 
@@ -131,7 +142,11 @@ Les onze migrations sont inchangées, pas de V012 :
 
 ENR-002 vient après la clôture réelle de MVP-001, sans activation implicite.
 
-## Checklist du porteur — à remplir lors de la revue
+## Checklist préparée pour le porteur — trace de la recommandation
+
+Les cases ci-dessous sont le canevas proposé, pas un journal d'exécution humaine.
+La décision de clôture communiquée après les checks verts est enregistrée séparément ci-après ;
+aucune nouvelle exécution dans Eclipse n'est déduite de cette décision ni inventée par Codex.
 
 - [ ] Relire tout le diff depuis la base indiquée, nouveaux fichiers compris, dans Eclipse/PR.
 - [ ] Examiner V009–V011, contraintes et conservation des données lors des upgrades.
@@ -141,6 +156,15 @@ ENR-002 vient après la clôture réelle de MVP-001, sans activation implicite.
 - [ ] Vérifier CI Windows et Linux/PostgreSQL sur le HEAD exact de PR et traiter les remarques.
 - [ ] Confirmer la cible RC01, approuver le diff et autoriser séparément le merge commit.
 
-`reviewer: PENDING` — `reviewedAt: PENDING` — `reviewedCommit: PENDING` — `decision: PENDING`.
-L'attestation humaine doit désigner le SHA effectivement relu. Ces champs restent ouverts
-tant que le porteur n'a pas communiqué cette décision.
+## Décision communiquée par le porteur
+
+- `reviewer: Porteur du Betting Project`
+- `reviewedAt: 2026-09-19`
+- `reviewedCommit: 871617b2b91740da76380cdc650e7adcebb458c8`
+- `decision: APPROVED_FOR_CLOSEOUT_AND_MERGE`
+
+Le porteur confirme les checks verts et autorise la clôture de MVP-001 et sa fusion vers
+`feature/V0.1.0-RC01`. La consignation documentaire de cette décision ne modifie pas le candidat
+fonctionnel ; elle exige ses propres checks et une dernière vérification des remarques/conflits.
+Cette autorisation ne vaut ni exécution opérateur fictive, ni activation fournisseur, ni fusion
+vers `main`. Le merge commit de la PR #15 constitue la preuve de livraison finale.

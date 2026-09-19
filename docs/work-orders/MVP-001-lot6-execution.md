@@ -81,7 +81,7 @@ comme des contextes et pools fermés/réouverts dans une même JVM, pas trois pr
 La matrice du dossier de revue couvre les vingt critères, les limites opérationnelles et la
 checklist du porteur. Les preuves des campagnes externes et le changelog fusionné sont conservés.
 
-## Sortie et portes restantes
+## Sortie de qualification — avant la décision de clôture
 
 Lot 6 : **TECHNICALLY_COMPLETED - AWAITING_HUMAN_REVIEW**.
 Work Order : **ACTIVE - AWAITING_HUMAN_REVIEW**, **18/20 critères**. Les trois critères
@@ -97,3 +97,26 @@ GitLab/tag, activation fournisseur ou démarrage ENR-002 n'est effectué par cet
 La fin réelle de MVP-001 exige le diff relu et les tests rejoués par le porteur, les discussions
 traitées, la CI de tête verte et l'autorisation distincte de fusion par merge commit vers RC01.
 La livraison feature → main reste une étape séparée.
+
+## Acceptation et clôture autorisées — 2026-09-19
+
+Le candidat `871617b2b91740da76380cdc650e7adcebb458c8` est publié dans la
+[PR #15](https://github.com/djothepirate/betting-project/pull/15) vers `feature/V0.1.0-RC01`.
+Ses runs [push 35432891703](https://github.com/djothepirate/betting-project/actions/runs/35432891703)
+et [PR 35432956177](https://github.com/djothepirate/betting-project/actions/runs/35432956177)
+sont verts : 615 tests standards sous Windows ; 615 standards et 239 PostgreSQL/Testcontainers
+sous Linux, aucun échec, erreur ou test ignoré. Les revues automatiques de code et de sécurité
+sont terminées sans remarque ; aucun fil de revue ouvert et aucun conflit.
+
+Le porteur confirme ces checks et autorise la clôture ainsi que la fusion vers RC01. Le closeout
+consigne cette décision dans six documents : Work Order, dossier de revue, présent rapport,
+README, état et roadmap. Aucun changement de code, test, configuration, migration, POM,
+script, workflow ou changelog. Les skills de clôture et de validation imposent des contrôles
+documentaires locaux et la vérification des checks du nouveau SHA, sans relancer spontanément
+la suite Maven locale pour de la prose. Les résultats CI finaux sont rattachés à la tête de PR.
+
+État avant merge : `MERGE_AUTHORIZED_IF_GREEN`, 19/20. Dès que la PR #15 est `MERGED`
+par merge commit dans RC01 : lot 6 `COMPLETED`, MVP-001 `ACCEPTED - MERGED - CLOSED`,
+20/20. Le contrôle de l'état distant et du merge commit ferme cette dernière porte ; aucune
+fusion à venir n'est présentée ici comme réalisée. ENR-002 reste non activé, clients et registre
+réels désactivés ; `main`, GitLab, tags et paramètres de forge restent hors périmètre.
