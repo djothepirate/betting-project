@@ -64,6 +64,11 @@ public class EnrichmentDerivationService {
     }
 
     public EnrichmentCollectionResult replay(UUID attemptId) {
+        return replay(attemptId, EnrichmentExecution.DIRECT);
+    }
+
+    /** Replays stored bytes while fencing every durable application boundary when invoked by a job. */
+    public EnrichmentCollectionResult replay(UUID attemptId, EnrichmentExecution execution) {
         EnrichmentCollectionAttempt attempt = attempts.findAttempt(attemptId).orElse(null);
         if (attempt == null) {
             return EnrichmentCollectionResult.refused("ATTEMPT_NOT_FOUND");
@@ -74,7 +79,7 @@ public class EnrichmentDerivationService {
         }
         RawSnapshot raw = snapshots.find(attempt.rawSnapshotId()).orElse(null);
         if (raw == null || !matchesProvenance(attempt, raw)) {
-            appendRejected(attempt, "PROVENANCE_MISMATCH");
+            appendRejected(attempt, "PROVENANCE_MISMATCH", execution);
             return new EnrichmentCollectionResult(EnrichmentCollectionResult.Code.REFUSED,
                     "PROVENANCE_MISMATCH", attempt.id(), attempt.rawSnapshotId(), List.of());
         }
@@ -83,7 +88,7 @@ public class EnrichmentDerivationService {
                         && item.family() == attempt.family() && item.version().equals(attempt.parserVersion()))
                 .findFirst().orElse(null);
         if (parser == null) {
-            appendRejected(attempt, "UNSUPPORTED_PARSER");
+            appendRejected(attempt, "UNSUPPORTED_PARSER", execution);
             return new EnrichmentCollectionResult(EnrichmentCollectionResult.Code.REFUSED,
                     "UNSUPPORTED_PARSER", attempt.id(), attempt.rawSnapshotId(), List.of());
         }
@@ -139,15 +144,17 @@ public class EnrichmentDerivationService {
                 && finalStatuses.isFinal(attempt.capability().provider(), detail.providerStatus().value())) {
             finalEvidence = new EnrichmentFinalStatusEvidence(attempt.receivedAt(), finalStatuses.version());
         }
-        UUID stored = transactions.appendDerivation(write, audit, finalEvidence);
+        EnrichmentFinalStatusEvidence applicationEvidence = finalEvidence;
+        UUID stored = execution.atomic(() -> transactions.appendDerivation(write, audit, applicationEvidence));
         return new EnrichmentCollectionResult(incompatibleReason == null
                 ? EnrichmentCollectionResult.Code.REPLAYED : EnrichmentCollectionResult.Code.INCOMPATIBLE,
                 incompatibleReason, attempt.id(), rawId(attempt), List.of(stored));
     }
 
-    private void appendRejected(EnrichmentCollectionAttempt attempt, String outcome) {
-        transactions.appendRejectedDerivation(new EnrichmentDerivationRecord(UUID.randomUUID(), attempt.id(),
-                attempt.family(), attempt.parserVersion(), outcome, null, attempt.payloadSha256(), now()));
+    private void appendRejected(EnrichmentCollectionAttempt attempt, String outcome, EnrichmentExecution execution) {
+        EnrichmentDerivationRecord rejected = new EnrichmentDerivationRecord(UUID.randomUUID(), attempt.id(),
+                attempt.family(), attempt.parserVersion(), outcome, null, attempt.payloadSha256(), now());
+        execution.atomic(() -> { transactions.appendRejectedDerivation(rejected); return null; });
     }
 
     private boolean matchesProvenance(EnrichmentCollectionAttempt attempt, RawSnapshot raw) {

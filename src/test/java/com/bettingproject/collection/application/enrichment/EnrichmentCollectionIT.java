@@ -99,6 +99,7 @@ class EnrichmentCollectionIT {
     private static Clock clock;
     private static final AtomicInteger workerSends = new AtomicInteger();
     private static final AtomicReference<Boolean> workerLineupAbsent = new AtomicReference<>(false);
+    private static final AtomicReference<Runnable> workerClaimReclaimer = new AtomicReference<>();
     private static ProviderBudgetService budget;
     private static EnrichmentCollectionStore attempts;
     private static EnrichmentCollectionTransactions transactions;
@@ -142,6 +143,7 @@ class EnrichmentCollectionIT {
         TEST_CLOCK.set(NOW);
         workerSends.set(0);
         workerLineupAbsent.set(false);
+        workerClaimReclaimer.set(null);
         jdbc.sql("TRUNCATE provider_budget_scope, canonical_competition, raw_snapshot, persistent_job, provider_call_audit CASCADE")
                 .update();
     }
@@ -409,6 +411,58 @@ class EnrichmentCollectionIT {
                     .param("admission", admission.admissionId()).query(Long.class).single()).isEqualTo(1);
         }
         finally {
+            context.close();
+            open();
+        }
+    }
+
+    @Test
+    void workerDoesNotPersistProviderResponseAfterItsClaimWasRecoveredDuringHttp() {
+        Instant base = Instant.now().minusSeconds(60).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        TEST_CLOCK.set(base);
+        UUID budgetWindow = createBudgetWindow(base);
+        Instant kickoff = base.plusSeconds(1800);
+        FixtureSeed fixture = createCanonicalFixture(kickoff, base);
+        AdmissionSeed admission = createAdmission(fixture, budgetWindow, kickoff, false, base);
+        context.getBean(EnrichmentDispatchPlanner.class).planAdmission(admission.admissionId());
+        UUID jobId = jdbc.sql("SELECT input.job_id FROM enrichment_job_input input "
+                + "JOIN enrichment_plan_step step ON step.id = input.step_id "
+                + "WHERE input.admission_id = :admission AND step.step_code = 'LINEUP_T_MINUS_30'")
+                .param("admission", admission.admissionId()).query(UUID.class).single();
+
+        context.close();
+        try {
+            open("batch-worker");
+            workerClaimReclaimer.set(() -> {
+                jdbc.sql("UPDATE persistent_job SET lease_until = clock_timestamp() - interval '1 second' "
+                        + "WHERE id = :id").param("id", jobId).update();
+                assertThat(context.getBean(com.bettingproject.operations.application.jobs.JobTransactions.class)
+                        .recoverExpired(10)).isEqualTo(1);
+            });
+
+            assertThat(context.getBean(JobWorker.class).tick()).isTrue();
+            assertThat(workerSends).hasValue(1);
+            assertThat(jdbc.sql("SELECT status FROM persistent_job WHERE id = :id")
+                    .param("id", jobId).query(String.class).single()).isEqualTo("RETRY");
+            assertThat(jdbc.sql("SELECT count(*) FROM raw_snapshot WHERE endpoint = 'enrichment/lineups'")
+                    .query(Long.class).single()).isZero();
+            assertThat(jdbc.sql("SELECT count(*) FROM provider_call_audit WHERE logical_endpoint = 'enrichment/lineups' "
+                    + "AND http_status IS NOT NULL")
+                    .query(Long.class).single()).isZero();
+            assertThat(jdbc.sql("SELECT state FROM enrichment_collection_attempt WHERE admission_id = :admission")
+                    .param("admission", admission.admissionId()).query(String.class).single())
+                    .isEqualTo("COMMITTED_FOR_SEND");
+            assertThat(jdbc.sql("SELECT count(*) FROM provider_enrichment_observation WHERE admission_id = :admission")
+                    .param("admission", admission.admissionId()).query(Long.class).single()).isZero();
+            assertThat(jdbc.sql("SELECT count(*) FROM enrichment_collection_derivation derivation "
+                    + "JOIN enrichment_collection_attempt attempt ON attempt.id = derivation.attempt_id "
+                    + "WHERE attempt.admission_id = :admission")
+                    .param("admission", admission.admissionId()).query(Long.class).single()).isZero();
+            assertThat(stepStatus(admission.admissionId(), EnrichmentPlanStepCode.LINEUP_T_MINUS_30))
+                    .isEqualTo(EnrichmentPlanStepStatus.QUEUED);
+        }
+        finally {
+            workerClaimReclaimer.set(null);
             context.close();
             open();
         }
@@ -1014,6 +1068,8 @@ class EnrichmentCollectionIT {
                 }
                 @Override public EnrichmentProviderResponse fetch(EnrichmentProviderRequest request) {
                     workerSends.incrementAndGet();
+                    Runnable reclaimer = workerClaimReclaimer.getAndSet(null);
+                    if (reclaimer != null) { reclaimer.run(); }
                     Instant responseAt = TEST_CLOCK.instant();
                     String body = request.family() == EnrichmentFamily.LINEUP && workerLineupAbsent.get()
                             ? "{\"syntheticAbsent\":true}" : PAYLOAD;

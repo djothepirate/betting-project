@@ -57,6 +57,12 @@ public class EnrichmentCollectionService {
     }
 
     public EnrichmentCollectionResult collect(EnrichmentCollectionCommand command, String expectedParserVersion) {
+        return collect(command, expectedParserVersion, EnrichmentExecution.DIRECT);
+    }
+
+    /** Managed workers provide a fence that is revalidated in the same transaction as every write. */
+    public EnrichmentCollectionResult collect(EnrichmentCollectionCommand command, String expectedParserVersion,
+            EnrichmentExecution execution) {
         if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new IllegalStateException("Enrichment collection cannot run inside a caller transaction");
         }
@@ -127,25 +133,25 @@ public class EnrichmentCollectionService {
         String requestHash = requestHash(context, command, capability, providerFixtureId, endpoint, parser.version());
         BudgetCommands.Reserve reserve = new BudgetCommands.Reserve(command.budgetWindowId(), idempotencyKey,
                 endpoint, requestHash);
-        EnrichmentPreparation prepared = transactions.prepare(reserve, intent -> new EnrichmentCollectionAttempt(
+        EnrichmentPreparation prepared = execution.atomic(() -> transactions.prepare(reserve, intent -> new EnrichmentCollectionAttempt(
                 UUID.randomUUID(), command.admissionId(), context.step().id(), command.stepCode(),
                 context.canonicalFixtureId(), command.budgetWindowId(), intent.id(), UUID.randomUUID(),
                 capability.key(), context.logicalCompetition(), context.logicalSeason(), context.logicalPhase(),
                 providerFixtureId, command.family(), endpoint, client.connectorVersion(), parser.version(), requestHash,
                 EnrichmentAttemptState.RESERVED, null, null, context.kickoffAt(), now, null, null, null, null,
-                null, now, now));
+                null, now, now)));
         if (prepared.budgetCode() != ResultCode.OK) {
             return EnrichmentCollectionResult.refused(prepared.budgetCode().name());
         }
         EnrichmentCollectionAttempt attempt = prepared.attempt();
         if (attempt.state() == EnrichmentAttemptState.RECEIVED && attempt.rawSnapshotId() != null) {
-            return derivations.replay(attempt.id());
+            return derivations.replay(attempt.id(), execution);
         }
         if (attempt.state() == EnrichmentAttemptState.HTTP_ERROR) {
             return new EnrichmentCollectionResult(EnrichmentCollectionResult.Code.HTTP_ERROR,
                     "HTTP_ERROR", attempt.id(), attempt.rawSnapshotId(), List.of());
         }
-        EnrichmentAuthorization permit = transactions.authorize(attempt.id());
+        EnrichmentAuthorization permit = execution.atomic(() -> transactions.authorize(attempt.id()));
         if (!permit.maySend()) {
             EnrichmentCollectionAttempt current = store.findAttempt(attempt.id()).orElse(attempt);
             if (current.state() == EnrichmentAttemptState.RELEASED) {
@@ -166,21 +172,24 @@ public class EnrichmentCollectionService {
 
         EnrichmentProviderResponse response;
         try {
+            execution.atomic(() -> null); // Recheck ownership immediately before the external boundary.
             response = client.fetch(new EnrichmentProviderRequest(attempt.id(), client.provider(), providerFixtureId,
                     command.family(), endpoint, client.connectorVersion()));
         }
+        catch (com.bettingproject.operations.application.jobs.JobLeaseLostException lost) { throw lost; }
         catch (RuntimeException failure) {
             response = new EnrichmentProviderResponse(now, notBefore(now(), now), null, new byte[0], null,
                     "UNCERTAIN_RESPONSE");
         }
-        String outcome = outcome(response);
-        RawSnapshot raw = response.httpStatus() == null || response.failureCode() != null
-                ? null : RawSnapshot.capture(client.provider(), endpoint, response.completedAt(), response.body(),
+        EnrichmentProviderResponse received = response;
+        String outcome = outcome(received);
+        RawSnapshot raw = received.httpStatus() == null || received.failureCode() != null
+                ? null : RawSnapshot.capture(client.provider(), endpoint, received.completedAt(), received.body(),
                         client.connectorVersion());
-        UUID rawId = transactions.recordResponse(attempt.id(), raw, response, outcome);
+        UUID rawId = execution.atomic(() -> transactions.recordResponse(attempt.id(), raw, received, outcome));
         EnrichmentCollectionAttempt saved = store.findAttempt(attempt.id()).orElseThrow();
         if (saved.state() == EnrichmentAttemptState.RECEIVED && rawId != null) {
-            return derivations.replay(attempt.id());
+            return derivations.replay(attempt.id(), execution);
         }
         EnrichmentCollectionResult.Code resultCode = saved.state() == EnrichmentAttemptState.UNCERTAIN
                 || saved.state() == EnrichmentAttemptState.RESPONSE_INTERRUPTED
