@@ -64,7 +64,7 @@ class V011MigrationIT {
                     + "', scheduled_at = created_at, max_attempts = 3");
             for (String assignment : List.of("status = 'RUNNING'", "lease_token = gen_random_uuid()", "max_attempts = 0",
                     "max_attempts = 11", "max_attempts = NULL", "execution_version = 0", "attempts = 4",
-                    "job_type = 'PREMATCH_ENRICHMENT'", "command_sha256 = 'bad'", "scheduled_at = NULL")) {
+                    "job_type = 'UNKNOWN_ENRICHMENT'", "command_sha256 = 'bad'", "scheduled_at = NULL")) {
                 assertThatThrownBy(() -> execute(connection, "UPDATE persistent_job SET " + assignment)).as(assignment).isInstanceOf(SQLException.class);
             }
             execute(connection, """

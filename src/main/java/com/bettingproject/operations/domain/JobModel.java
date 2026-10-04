@@ -13,7 +13,7 @@ public final class JobModel {
         CALENDAR_DISCOVERY, PREMATCH_ENRICHMENT, POSTMATCH_ENRICHMENT, POSTMATCH_RECHECK, REPLAY_NORMALIZATION;
 
         public boolean executable() {
-            return this == CALENDAR_DISCOVERY || this == REPLAY_NORMALIZATION;
+            return true;
         }
     }
 

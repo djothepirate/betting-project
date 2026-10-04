@@ -9,14 +9,12 @@ import static com.bettingproject.operations.domain.JobModel.*;
 import static org.assertj.core.api.Assertions.*;
 
 class JobModelTest {
-    @Test void preservesFiveJobTypesButOnlyTwoAreExecutable() {
+    @Test void preservesFiveExecutableJobTypes() {
         assertThat(Type.values()).hasSize(5);
-        assertThat(java.util.Arrays.stream(Type.values()).filter(Type::executable)).containsExactly(Type.CALENDAR_DISCOVERY, Type.REPLAY_NORMALIZATION);
+        assertThat(java.util.Arrays.stream(Type.values()).filter(Type::executable)).containsExactly(Type.values());
         for (Type type : Type.values()) {
-            if (!type.executable()) {
-                assertThatThrownBy(() -> new Submission("test", type, "a".repeat(64), Instant.EPOCH, 3))
-                        .isInstanceOf(IllegalArgumentException.class);
-            }
+            assertThat(new Submission("test-" + type.name(), type, "a".repeat(64), Instant.EPOCH, 3).type())
+                    .isEqualTo(type);
         }
     }
     @ParameterizedTest @ValueSource(ints = {-1, 0, 11, 100})

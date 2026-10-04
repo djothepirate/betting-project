@@ -19,7 +19,7 @@ Les charges de benchmark et les connecteurs de production restent séparés : le
 | 2 | ENR-001 | Finaliser le benchmark d'enrichissement comme lot séparé | Accepté, fusionné par la Pull Request `#3` au commit `6913cea` et clôturé |
 | 3 | CAT-002 | Durcir le canon et rendre les anomalies opérables | ordre, autorité, concurrence, mappings et replay administrables |
 | 4 | MVP-001 | Planifier, router et collecter le calendrier | Accepté le 19 septembre ; clôture effective par merge commit de la PR #15 vers RC01 |
-| 5 | ENR-002 | Produire l'enrichissement et la qualité | pilote local de sept jours conforme |
+| 5 | ENR-002 | Produire l'enrichissement et la qualité | Actif ; lots 0–5 terminés, acceptation intégrée Windows locale du lot 6 passée ; 18/24 critères démontrés (655 tests standards + 254 PostgreSQL/Testcontainers verts), en attente de CI publiée et revue humaine ; baseline réelle inactive |
 | 6 | OPS-001 | Déployer un staging VPS sûr | image, secrets, sauvegarde/restauration et observabilité validés |
 
 ## Étape 1 — DEVX-001
@@ -166,6 +166,39 @@ réalisation des lots concernés. Aucun live minute ou fournisseur réel n'est a
 Intégration entièrement hors réseau avec faux fournisseurs, couvrant pagination, quotas, réserve, reset incertain, erreurs HTTP, timeouts, arrêt/reprise sans double appel logique, audit, replay et autorité primaire/contrôle. Le `control-api` expose les capacités, les budgets, les jobs et les incidents.
 
 ## Étape 5 — ENR-002
+
+**État au 4 octobre 2026 :** [Work Order accepté pour réalisation](work-orders/ENR-002.md),
+`ACTIVE - IMPLEMENTATION`, sur `feature/V0.1.0-RC01-CODEX-ENR-002`, depuis le HEAD RC01
+`5fd3c32d55bb999569668e8bae01bbb812a6bd6d` qui fusionne MVP-001. D01–D03 sont acceptées :
+enrichissement PPL/PD, calendrier PPL/PD/DED/ELC, LINEUP T−30/T−15, DETAIL ponctuel T0/T+45,
+post-match après statut final explicite avec recontrôle à fin+60, mode autonome API et J7 séparé.
+Les lots 0 à 5 sont terminés localement ; le lot 6 a passé l'acceptation intégrée Windows locale et attend
+la CI du SHA publié et la revue humaine ; **18/24 critères finaux sont démontrés**.
+Le lot 2 ajoute l'admission quotidienne persistée, les observations/faits qualité
+append-only et la migration V012. Le lot 3 ajoute l'envoi synchrone borné derrière le ledger budgétaire,
+l'audit des tentatives, la conservation des octets, les clients/parsers stricts et V013. Le lot 4 ajoute
+V014, le dispatch optionnel des jobs, les fenêtres et leur politique d'exécution conditionnelle.
+La validation Windows complète locale du 4 octobre donne 655 tests standards et 254 tests PostgreSQL/Testcontainers,
+sans échec ni omission ; aucune CI sur SHA publié n'est revendiquée.
+Les [observations COV-002](benchmark/enr-002-cov002-handoff-20260919.md)
+préparent les preuves ; elles n'activent aucune capacité et ne qualifient pas le code ENR-002.
+
+Le lot 5 est `COMPLETED` localement. Il fournit une lecture interne unique, datée et bornée de
+qualité/provenance ; la fraîcheur est mesurée par `ageSeconds` sans seuil métier. Le plafond reste de
+sept rencontres et V012–V014 sont réutilisées sans nouvelle migration. A13 est démontré.
+Le contrat et le runbook sont
+[`enrichment-quality-control-v1`](contracts/enrichment-quality-control-v1.md) et
+[`enrichment-local`](runbooks/enrichment-local.md). La suite a passé 655 tests standards et 254
+tests PostgreSQL/Testcontainers, et le validateur Windows complet est vert. A17 reste ouvert jusqu'à
+la CI du SHA publié ; la revue humaine et le pilote réel sont des portes séparées. Le lot 6 a
+passé ses tests d'installation, upgrade, concurrence, rollback et reprise après fermeture/réouverture
+du contexte PostgreSQL. Le pilote réel du lot 7 demeure `PENDING - ACTIVATION_REQUIRED`.
+
+La réalisation technique, sa CI, la revue humaine et le pilote réel sont des portes distinctes.
+Le pilote exige une activation autorisée et un état budgétaire explicite ; il ne sera pas remplacé
+par sept jours simulés. Aucun appel fournisseur réel n'a été effectué : les clients et le registre
+restent désactivés en production, sans worker ni ordonnanceur. Toute collecte future devra passer par
+le ledger MVP-001 et disposer d'une activation explicite.
 
 ### Objectif
 

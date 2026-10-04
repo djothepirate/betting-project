@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "enr-002-parser-fixtures-v1",
+  "synthetic": true,
+  "fullPayloadsTrackedInGit": false,
+  "sourceManifest": {
+    "path": "docs/benchmark/evidence/enr-001-representative-fixtures-v0.1.json",
+    "sha256": "a3ee006f5e0c25570efc27f6fc100d111a16f44b7f68a14c1a95488ff9ce97d8"
+  },
+  "fixtures": [
+    {
+      "path": "src/test/resources/fixtures/enr001/highlightly-detail-prematch.synthetic.json",
+      "sha256": "3589d681177dee3b9e5df062b5e89eae32e5146a0a29ae9d4208e7e2e5982a7c",
+      "provider": "highlightly",
+      "family": "MATCH_DETAIL",
+      "parser": "highlightly-match-detail-v1",
+      "coverage": ["native IDs", "season and round", "scheduled kickoff", "provider status", "null score"]
+    },
+    {
+      "path": "src/test/resources/fixtures/enr001/football-data-detail.synthetic.json",
+      "sha256": "121e917e19eb85b16e25f0778cdc5d20150f94a734aebaaf8fe57b9f036f8824",
+      "provider": "football-data.org",
+      "family": "MATCH_DETAIL",
+      "parser": "football-data-match-detail-v1",
+      "coverage": ["native IDs", "numeric season ID and stage", "scheduled kickoff", "provider status", "absent enrichment families"]
+    },
+    {
+      "path": "src/test/resources/fixtures/enr001/highlightly-lineup-absent.synthetic.json",
+      "sha256": "ab2315b8155eca034238f6d8f8532556830ccf09ddfd66ba1fb70e06150ab81a",
+      "provider": "highlightly",
+      "family": "LINEUP",
+      "parser": "highlightly-lineup-v2",
+      "coverage": ["ABSENT", "identified teams", "empty starter arrays"]
+    },
+    {
+      "path": "src/test/resources/fixtures/enr001/highlightly-lineup-complete.synthetic.json",
+      "sha256": "484d9836de0bb0562a575a7c64c14944ae163955a5087978544fdaa099c75085",
+      "provider": "highlightly",
+      "family": "LINEUP",
+      "parser": "highlightly-lineup-v2",
+      "coverage": ["COMPLETE", "source order", "eleven distinct starters per side", "late arrival classification", "exact player name and role evidence"]
+    },
+    {
+      "path": "src/test/resources/fixtures/enr001/highlightly-statistics-reduced.synthetic.json",
+      "sha256": "bf61553f16f54d534eba8f8bb79199f5f37804980bfab26ae17d80780855f764",
+      "provider": "highlightly",
+      "family": "TEAM_STATS",
+      "parser": "highlightly-team-stats-v1",
+      "coverage": ["team.id grouping", "reversed team order", "zero distinct from absent", "unknown metric name"]
+    },
+    {
+      "path": "src/test/resources/fixtures/enr001/highlightly-events.synthetic.json",
+      "sha256": "9cf9308782a29588ca6c9f5a51e10045be1a9606b26df07d904c74e3d5e1ab7f",
+      "provider": "highlightly",
+      "family": "EVENTS",
+      "parser": "highlightly-events-v1",
+      "coverage": ["source order", "added-time notation", "nullable participant references"]
+    },
+    {
+      "path": "src/test/resources/fixtures/enr001/highlightly-box-score.synthetic.json",
+      "sha256": "bc39163dde5fb090b617884b4fbf577cf88b4acf117e4164b42516135179f9ad",
+      "provider": "highlightly",
+      "family": "PLAYER_STATS",
+      "parser": "highlightly-player-stats-v1",
+      "coverage": ["provider team/player grouping", "missing full name", "zero minutes with expected metrics", "invalid second-yellow value"]
+    }
+  ],
+  "replayCompatibility": {
+    "highlightly-lineup-v1": "IDs only; retained for historical replay and not selected for new collection or cross-endpoint quality assessment."
+  }
+}

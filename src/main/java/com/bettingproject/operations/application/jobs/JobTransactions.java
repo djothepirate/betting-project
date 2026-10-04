@@ -25,6 +25,9 @@ public class JobTransactions {
         repository.finish(claim, outcome);
     }
 
+    /** Renews a claim at a short database boundary before starting another external operation. */
+    public void heartbeat(Claim claim) { repository.lockAndCheck(claim); }
+
     /** Job row first; then budget scope/window/intent. Never execute network code here. */
     public <T> T fenced(Claim claim, Supplier<T> work) {
         repository.lockAndCheck(claim);

@@ -79,7 +79,9 @@ import static org.assertj.core.api.Assertions.assertThat;
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {
                 "spring.autoconfigure.exclude=org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration",
-                "BETTING_DB_PASSWORD=TEST_ONLY_PLACEHOLDER"
+                "BETTING_DB_PASSWORD=TEST_ONLY_PLACEHOLDER",
+                "betting.providers.highlightly.enrichment-enabled=false",
+                "betting.providers.football-data.enrichment-enabled=false"
         })
 @ActiveProfiles("control-api")
 @Import(NoDatabaseTestConfiguration.class)
@@ -104,6 +106,26 @@ class ControlApiProfileTest {
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobTransactions.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobPlanningService.class)).hasSize(1);
         assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.calendar.CalendarJobInputStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.control.DailyEnrichmentAdmissionService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.control.EnrichmentAdmissionStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentObservationStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.adapter.persistence.JdbcEnrichmentObservationStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentCollectionService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentDerivationService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentQualityEvidenceReader.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.adapter.persistence.JdbcEnrichmentQualityEvidenceReader.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentCollectionStore.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentJobPlanner.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentPlanExecutionTransactions.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentFinalStatusPolicy.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentQualityQueryPort.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentQualityQueryService.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.adapter.persistence.JdbcEnrichmentQualityQueryAdapter.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.adapter.web.control.EnrichmentQualityController.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentJobExecutor.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobHandler.class)).isEmpty();
+        assertThat(applicationContext.getBeansOfType(com.bettingproject.collection.application.enrichment.EnrichmentProviderClient.class).values())
+                .hasSize(2).allMatch(client -> !client.available());
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobWorker.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.application.jobs.JobHandler.class)).isEmpty();
         assertThat(applicationContext.getBeansOfType(com.bettingproject.operations.adapter.worker.CollectionWorkerLoop.class)).isEmpty();
