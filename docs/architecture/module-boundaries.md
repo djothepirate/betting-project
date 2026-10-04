@@ -143,6 +143,21 @@ sans inventer de preuve d'inclusion ni prolonger la validité initialement admis
 L'orchestration générale, le claim de jobs et leur fencing sont livrés au lot 4. Voir le
 [contrat calendrier fournisseur v1](../contracts/provider-calendar-collection-v1.md).
 
+ENR-002 lot 1 ajoute les représentations domaine neutres dans `enrichment.domain` et les parseurs
+hors réseau dans `collection.adapter.replay.enrichment` :
+
+- `EnrichmentPayloadParser` reste un port applicatif ; les versions Highlightly `MATCH_DETAIL`,
+  `LINEUP`, `TEAM_STATS`, `EVENTS` et `PLAYER_STATS`, ainsi que le détail football-data.org,
+  consomment des octets déjà conservés et n'appellent aucun fournisseur ;
+- les détails conservent les références natives saison/phase séparément du contexte logique qui
+  devra provenir de la capacité exacte ; aucune règle de nom, saison ou phase n'est inférée ;
+- les valeurs scalaires, les événements et les statistiques gardent nullité, absence, ordre source
+  et références exactes d'équipe/joueur. La qualité locale n'effectue pas de jointure entre
+  endpoints sur le seul ID de joueur ;
+- les sept fixtures réutilisées sont synthétiques ; leur empreinte et la version du parseur sont
+  inventoriées dans `enr-002-parser-fixtures-v0.1.json`. Ce travail ne charge ni client actif,
+  admission durable, migration, job, endpoint ou appel réseau ; le pilote réel reste à autoriser.
+
 Depuis le lot 5 de CAT-002, le module `catalog` porte également le cas d'usage de décision humaine et le module `identity` sépare l'état courant des mappings et anomalies de leur historique :
 
 - `MappingDecisionService`, chargé uniquement sous `control-api`, reçoit une commande typée avec version attendue et clé d'idempotence. L'identité opérateur provient du port `OperatorIdentityProvider` et n'est jamais fournie par la commande ;
@@ -244,6 +259,93 @@ ce même connecteur et ne bénéficient d'aucun port de management ou HTTP de co
 
 Le package `bootstrap` contient uniquement l'assemblage de l'application. Le package `shared` contient les primitives transverses qui ne portent pas une règle métier propre à un module.
 
+## ENR-002 lot 1 — domaine d'enrichissement et qualité
+
+- `enrichment.domain` décrit les familles extraites, l'état structurel d'une famille, la
+  provenance d'une représentation liée à un snapshot brut et l'évaluation des deux listes de
+  titulaires. Ces types restent JDK purs, sans HTTP, JDBC, valeur du module `collection` ou DTO
+  fournisseur.
+- La clé logique compétition/saison/phase reste distincte des références `season`/`round` et
+  `season.id`/`stage` des fournisseurs. Une observation identifie en même temps son intention de
+  budget et le snapshot brut d'où elle provient.
+- `qualification.domain` porte les codes d'écart et des constats structurés référencés par
+  l'observation ; il n'enregistre ni copie de payload, ni texte d'erreur libre. Ces types pourront
+  être consommés par les services de collection et de lecture sans créer de dépendance inverse
+  vers `catalog` ou vers un adaptateur.
+- `collection.application.enrichment` déclare le contrat de parseur et une erreur à code sûr.
+  `collection.adapter.replay.enrichment.StrictHighlightlyLineupParser` parse sans HTTP avec un
+  `JsonMapper` strict local (doublons et tokens après le document refusés) et reste déterministe
+  sur les mêmes octets. Le DTO résultant est provider-neutral ; les modèles natifs restent dans
+  l'adaptateur. Les octets doivent avoir été conservés par le flux budget/snapshot avant parsing.
+- `LineupAssessment` distingue champ absent et tableau vide, exige onze IDs distincts sur chacun
+  des deux côtés pour le statut structurel `COMPLETE`, et utilise seulement le kickoff prévu et
+  l'heure de réception pour classer `COMPLETE_LATE`. Il ne déduit pas la confirmation officielle
+  du fournisseur ni l'heure réelle de début du match.
+- Le contrat [enrichment-observations-v1](../contracts/enrichment-observations-v1.md) est la
+  source versionnée des états, des temps, des rapprochements et des limites de replay. Ces
+  fondations ne déclenchent aucun appel, migration, worker ou endpoint.
+
+## ENR-002 lot 2 — admission et observations persistantes
+
+- `enrichment.domain` et `qualification.domain` restent indépendants de JDBC, HTTP et Spring.
+  `collection.application.control.DailyEnrichmentAdmissionService` revalide la prévision MVP-001
+  dans une transaction et utilise le port `EnrichmentAdmissionStore` ; verrouillage d'idempotence
+  puis de date UTC, un plan par date et maximum sept admissions sont persistés par V012.
+- L'admission ne réserve aucune unité du budget et ne donne aucune autorisation d'envoi. Le futur
+  dispatch devra réserver/autoriser l'intention dans le ledger MVP-001 avant chaque appel.
+- `EnrichmentObservationStore` est un port applicatif ; son adaptateur PostgreSQL conserve les
+  observations dérivées et constats qualité de façon idempotente et append-only. Il valide le hash
+  de la représentation et la cohérence de provenance ; les octets fournisseur restent seulement
+  dans `raw_snapshot`.
+- L'admission et son adaptateur sont limités à `control-api`. Le stockage des observations est
+  disponible sous `control-api` et `batch-worker`, absent sous `replay`. Aucun endpoint, worker,
+  appel fournisseur ou activation de registre n'est livré au lot 2.
+- V012 est additive après V011 ; V001–V011 restent inchangées. `V012MigrationIT` couvre
+  l'installation fraîche et la mise à niveau d'une V011 peuplée ; les tests de persistance couvrent
+  l'idempotence concurrente et le rollback.
+
+## ENR-002 lot 4 — dispatch et exécution bornée des enrichissements
+
+- `enrichment.domain` porte les fenêtres UTC, leur décision d'éligibilité et les états des étapes ;
+  les décisions de dispatch ne changent pas le kickoff, le statut canonique ni les faits du match.
+- `collection.application.enrichment` planifie les jobs d'étape idempotents et n'autorise une
+  collecte que pour la fenêtre due, une capacité PRIMARY exacte et un budget correspondant. Une
+  LINEUP `COMPLETE` arrête les checkpoints suivants ; une échéance manquée devient `MISSED_WINDOW`
+  sans réservation ou rattrapage.
+- `operations` conserve le claim/fencing et le backoff d'infrastructure existants. Le handler
+  d'enrichissement est assemblé sous `batch-worker`, avec activation de la boucle explicite ; le
+  `control-api` peut produire des jobs mais ne démarre pas de worker. Aucun handler d'enrichissement
+  n'est présent sous `replay`.
+- Le post-match s'arme uniquement depuis un DETAIL dont le parseur reconnaît explicitement un état
+  final ; les priorités reçoivent un recontrôle à fin observée +60 minutes. Les observations sont
+  conservées append-only via les adaptateurs de persistance de `collection`.
+- V014 ajoute les données de dispatch/jobs sans modifier V001–V013. Les fournisseurs et le registre
+  réel restent désactivés ; les tests utilisent des faux clients et n'appellent aucun fournisseur.
+
+## ENR-002 lot 5 — consultation interne de qualité
+
+- `EnrichmentQualityQueryPort` déclare dans `collection.application.enrichment` une projection de
+  lecture bornée par date : plan, au plus sept admissions, leurs étapes, leur dernière observation
+  par famille, les constats agrégés et la dernière tentative par étape/famille. Il ne transporte
+  ni JSON de représentation, ni octets bruts, ni identifiant d'entité joueur.
+- `EnrichmentQualityQueryService` assemble ces read models dans une transaction PostgreSQL
+  `REPEATABLE READ`, valide les bornes applicatives et calcule `ageSeconds` à partir de `receivedAt`
+  et de l'horloge locale. Cette valeur est une mesure et ne forme pas un statut de fraîcheur.
+- `JdbcEnrichmentQualityQueryAdapter` est le seul propriétaire du SQL, chargé uniquement sous
+  `control-api`. Les requêtes sont statiques, filtrées sur une date liée en paramètre, et ne lisent
+  que les colonnes nécessaires. Un champ LINEUP est exposé uniquement sous forme d'un statut
+  structurel allowlisté.
+- `EnrichmentQualityController` expose uniquement `GET /internal/collection/enrichment/daily` avec
+  un paramètre `date` obligatoire. Il suit la validation stricte des paramètres internes et
+  retourne explicitement un plan absent plutôt que d'inventer une disponibilité vide.
+- Le port, son adaptateur et le contrôleur sont absents de `batch-worker` et `replay`. Aucun
+  endpoint de mutation, filtre de recherche libre, migration, appel fournisseur, ordonnanceur ou
+  exposition réseau supplémentaire n'est ajouté. Le serveur demeure loopback-only.
+
+Contrat : [enrichment-quality-control-v1](../contracts/enrichment-quality-control-v1.md) ;
+procédures locales : [enrichment-local](../runbooks/enrichment-local.md). V012–V014 restent
+inchangées et fournissent tous les index et champs nécessaires à cette lecture.
+
 ## MVP-001 lot 4 : exécution des jobs
 
 - `operations.domain.JobModel` reste JDK pur ; `operations.application.jobs` définit ports,
@@ -298,3 +400,20 @@ le canon et les consultations avec PostgreSQL et des fournisseurs synthétiques.
 [rapport de revue](../reviews/MVP-001-final-review.md) relie les vingt critères au candidat.
 Registre réel vide, clients et boucle désactivés : une CI verte ne les active pas. La revue
 humaine et la fusion par merge commit vers le train restent des portes distinctes.
+
+## ENR-002 lot 6 — qualité inter-observation et identité joueur
+
+- `EnrichmentQualityEvidenceReader` est un port applicatif de `collection` ; son adaptateur JDBC
+  `JdbcEnrichmentQualityEvidenceReader` reste confiné à la persistance et lit uniquement les
+  représentations dérivées bornées nécessaires aux comparaisons. Il ne lit ni `raw_snapshot.payload`
+  ni ne fait remonter JDBC dans `collection.application`.
+- Les observations restent append-only. La dérivation associe une régression vide à l'observation
+  nouvelle sans remplacer l'antérieure, et enregistre un conflit de score final sans modifier
+  l'autorité canonique ni l'une des deux sources.
+- `highlightly-lineup-v2` conserve dans la représentation les noms et rôles explicitement fournis
+  pour évaluer une identité inter-endpoints exacte (équipe, nom, rôle et minutes lorsqu'elles sont
+  présentes des deux côtés). Les identifiants joueur seuls ne créent aucun rapprochement ; la
+  représentation historique `highlightly-lineup-v1` reste rejouable mais sans preuve d'identité.
+- Les constats sont limités aux codes de qualité connus. Toute absence, nullité et valeur zéro
+  conserve son état propre ; une composition absente ou tardive reste non bloquante et ne devient pas
+  une preuve prématch.

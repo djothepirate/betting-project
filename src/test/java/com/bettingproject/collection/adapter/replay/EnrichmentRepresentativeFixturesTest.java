@@ -77,6 +77,29 @@ class EnrichmentRepresentativeFixturesTest {
     }
 
     @Test
+    void enr002ParserManifestPinsExistingSyntheticFixturesAndParserVersions() throws IOException {
+        Path repository = Path.of("").toAbsolutePath().normalize();
+        Path manifestPath = repository.resolve("docs/benchmark/enr-002-parser-fixtures-v0.1.json");
+        JsonNode manifest = objectMapper.readTree(Files.readAllBytes(manifestPath));
+
+        assertThat(manifest.path("schemaVersion").asText()).isEqualTo("enr-002-parser-fixtures-v1");
+        assertThat(manifest.path("synthetic").asBoolean()).isTrue();
+        assertThat(manifest.path("fullPayloadsTrackedInGit").asBoolean()).isFalse();
+        Path sourceManifest = repository.resolve(manifest.path("sourceManifest").path("path").asText()).normalize();
+        assertThat(sourceManifest).startsWith(repository);
+        assertThat(SnapshotHasher.sha256(Files.readAllBytes(sourceManifest)))
+                .isEqualTo(manifest.path("sourceManifest").path("sha256").asText());
+        assertThat(manifest.path("fixtures")).hasSize(7);
+        for (JsonNode entry : manifest.path("fixtures")) {
+            Path fixturePath = repository.resolve(entry.path("path").asText()).normalize();
+            assertThat(fixturePath).startsWith(repository);
+            assertThat(SnapshotHasher.sha256(Files.readAllBytes(fixturePath)))
+                    .isEqualTo(entry.path("sha256").asText());
+            assertThat(entry.path("parser").asText()).isNotBlank();
+        }
+    }
+
+    @Test
     void lineupStatesDistinguishAbsentIncompleteAndComplete() throws IOException {
         JsonNode absent = fixture("highlightly-lineup-absent.synthetic.json");
         JsonNode complete = fixture("highlightly-lineup-complete.synthetic.json");

@@ -2,6 +2,20 @@
 
 Betting Project est un monolithe modulaire Java/Spring destiné à construire une chaîne football prématch fiable, auditable et rejouable. `main` contient le socle applicatif BOOT-001, le catalogue canonique CAT-001/CAT-002, les garde-fous DEVX-001 et le benchmark football ENR-001 acceptés. INT-001 a livré séparément un receiver local J7 optionnel, qualifié et validé par le propriétaire ; son périmètre local est clôturé le 5 septembre 2026. Il reste désactivé par défaut ; sa livraison Git a été fusionnée par la [PR #11](https://github.com/djothepirate/betting-project/pull/11) vers `main`. La collecte planifiée, l'enrichissement de production, les cotes, les valuebets et la publication restent des étapes ultérieures.
 
+Le train `feature/V0.1.0-RC01` contient désormais MVP-001 fusionné à `5fd3c32` par la PR #15.
+[ENR-002](docs/work-orders/ENR-002.md) est ouvert le 19 septembre 2026 sur
+`feature/V0.1.0-RC01-CODEX-ENR-002` : `ACTIVE - IMPLEMENTATION`. Les décisions de périmètre et
+les clarifications de raccordement ont été acceptées par le porteur ; les lots 0 à 5 sont terminés
+localement et le lot 6 a passé l'acceptation intégrée Windows locale : 18/24 critères sont démontrés
+(A17 attend la CI sur SHA publié et la revue humaine). Le lot 4 ajoute V014, l'exécution optionnelle des jobs d'enrichissement, les fenêtres
+conditionnelles LINEUP/DETAIL et l'armement post-match depuis un statut final explicite. Le lot 5
+ajoute une lecture interne quotidienne bornée de qualité/provenance sans seuil automatique de
+fraîcheur ni nouvelle migration. Le worker et les transports restent désactivés par défaut ; registre
+réel vide, aucun pilote ni appel fournisseur réel. Validation Windows complète locale : **655 tests
+standards et 254 tests PostgreSQL/Testcontainers**, sans échec ni omission ; scan de secrets `PASS`.
+Aucun commit, push, PR ni CI sur SHA publié ENR-002 n'a été effectué ; le pilote réel du lot 7
+reste `PENDING - ACTIVATION_REQUIRED`.
+
 Le projet est personnel et piloté par un humain. Il ne place aucun pari automatiquement et le profil live n'est pas autorisé.
 
 ## Versions du socle
@@ -68,6 +82,9 @@ Les fixtures de replay ne contactent aucun fournisseur et ne consomment aucun qu
 - Contrat de l'API interne du catalogue : [`docs/contracts/catalog-control-api-v1.md`](docs/contracts/catalog-control-api-v1.md)
 - Exploitation locale de l'API du catalogue : [`docs/runbooks/catalog-control-api-local.md`](docs/runbooks/catalog-control-api-local.md)
 - Contrat du receiver local J7 : [`docs/contracts/j7-import-receiver-v1.md`](docs/contracts/j7-import-receiver-v1.md)
+- Contrat des observations d'enrichissement ENR-002 : [`docs/contracts/enrichment-observations-v1.md`](docs/contracts/enrichment-observations-v1.md)
+- Contrat de consultation qualité ENR-002 : [`docs/contracts/enrichment-quality-control-v1.md`](docs/contracts/enrichment-quality-control-v1.md)
+- Runbook de consultation locale ENR-002 : [`docs/runbooks/enrichment-local.md`](docs/runbooks/enrichment-local.md)
 - Modèle de menace du receiver J7 : [`docs/security/j7-import-receiver-threat-model.md`](docs/security/j7-import-receiver-threat-model.md)
 - Qualification locale du receiver J7 : [`docs/runbooks/j7-import-receiver-local.md`](docs/runbooks/j7-import-receiver-local.md)
 - Sauvegarde/restauration J7 : [`docs/runbooks/j7-import-backup-restore.md`](docs/runbooks/j7-import-backup-restore.md)
